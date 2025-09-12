@@ -1,0 +1,36 @@
+{
+  "originalQrCode": "QR_COL_WORKFLOW_TEST_001",
+  "testId": "TEST_WORKFLOW_001",
+  "lab": {
+    "name": "Workflow Test Labs",
+    "labId": "LAB_WF_001",
+    "contact": "+91 9876543211",
+    "certification": "ISO/IEC 17025",
+    "technician": "Dr. Workflow Tester",
+    "location": "Testing Laboratory, Bangalore"
+  },
+  "tests": {
+    "moisture": "7.0%",
+    "pesticides": "Not Detected",
+    "heavyMetals": "Within Limits",
+    "microbial": "Acceptable",
+    "dnaAuthenticity": "Confirmed",
+    "activeCompounds": "3.2%",
+    "purity": "97.8%",
+    "contamination": "None",
+    "notes": "All parameters within acceptable limits. Excellent quality sample."
+  },
+  "certificate": {
+    "certificateId": "CERT_WORKFLOW_001",
+    "testDate": "2025-09-07",
+    "expiryDate": "2026-09-07",
+    "overallGrade": "A+",
+    "compliance": "Fully Compliant",
+    "recommendations": "Maintain current storage conditions",
+    "notes": "Outstanding quality turmeric sample meeting all regulatory standards",
+    "issued": "2025-09-07T19:35:00.000Z",
+    "issuedBy": "Workflow Test Labs"
+  },
+  "timestamp": "2025-09-07T19:35:00.000Z",
+  "status": "tested"
+}

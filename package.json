@@ -1,0 +1,154 @@
+{
+  "name": "trace-herb-complete",
+  "version": "1.0.0",
+  "description": "Complete Blockchain-Based Ayurvedic Supply Chain Traceability System",
+  "main": "backend/src/app.js",
+  "scripts": {
+    "setup": "npm run install:all && npm run start:all",
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "npm run install:consumer && npm run install:farmer && npm run install:processor && npm run install:lab && npm run install:regulator && npm run install:stakeholder && npm run install:management && npm run install:overview",
+    "install:consumer": "cd frontend/enhanced-consumer-portal && npm install",
+    "install:farmer": "cd frontend/farmer-dapp && npm install",
+    "install:processor": "cd frontend/processor-portal && npm install",
+    "install:lab": "cd frontend/lab-portal && npm install",
+    "install:regulator": "cd frontend/regulator-portal && npm install",
+    "install:stakeholder": "cd frontend/stakeholder-dashboard && npm install",
+    "install:management": "cd frontend/management-portal && npm install",
+    "install:overview": "cd frontend/supply-chain-overview && npm install",
+    "start:all": "concurrently \"npm run start:backend\" \"npm run start:consumer\" \"npm run start:farmer\" \"npm run start:processor\" \"npm run start:lab\" \"npm run start:regulator\" \"npm run start:stakeholder\" \"npm run start:management\" \"npm run start:overview\"",
+    "start:backend": "cd backend && npm start",
+    "start:consumer": "cd frontend/enhanced-consumer-portal && npm run dev -- -p 3001",
+    "start:farmer": "cd frontend/farmer-dapp && npm run dev -- -p 3002",
+    "start:processor": "cd frontend/processor-portal && npm run dev -- -p 3003",
+    "start:lab": "cd frontend/lab-portal && npm run dev -- -p 3004",
+    "start:regulator": "cd frontend/regulator-portal && npm run dev -- -p 3005",
+    "start:stakeholder": "cd frontend/stakeholder-dashboard && npm run dev -- -p 3006",
+    "start:management": "cd frontend/management-portal && npm run dev -- -p 3007",
+    "start:overview": "cd frontend/supply-chain-overview && npm run dev -- -p 3008",
+    "dev": "npm run start:all",
+    "build:all": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "npm run build:consumer && npm run build:farmer && npm run build:processor && npm run build:lab && npm run build:regulator && npm run build:stakeholder && npm run build:management && npm run build:overview",
+    "build:consumer": "cd frontend/enhanced-consumer-portal && npm run build",
+    "build:farmer": "cd frontend/farmer-dapp && npm run build",
+    "build:processor": "cd frontend/processor-portal && npm run build",
+    "build:lab": "cd frontend/lab-portal && npm run build",
+    "build:regulator": "cd frontend/regulator-portal && npm run build",
+    "build:stakeholder": "cd frontend/stakeholder-dashboard && npm run build",
+    "build:management": "cd frontend/management-portal && npm run build",
+    "build:overview": "cd frontend/supply-chain-overview && npm run build",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "echo 'Frontend tests not implemented yet'",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "echo 'Frontend linting not implemented yet'",
+    "clean": "npm run clean:backend && npm run clean:frontend",
+    "clean:backend": "cd backend && rm -rf node_modules && rm -rf logs && rm -rf data",
+    "clean:frontend": "find frontend -name 'node_modules' -type d -exec rm -rf {} + && find frontend -name '.next' -type d -exec rm -rf {} +",
+    "reset": "npm run clean && npm run install:all",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "blockchain:start": "cd blockchain/network && docker-compose up -d",
+    "blockchain:stop": "cd blockchain/network && docker-compose down",
+    "blockchain:clean": "cd blockchain/network && docker-compose down -v && docker system prune -f",
+    "demo:setup": "npm run install:all && npm run demo:data && npm run start:all",
+    "demo:data": "cd scripts && node create-demo-data.js",
+    "demo:test": "cd scripts && node test-complete-workflow.js",
+    "health:check": "curl -f http://localhost:3000/api/health && curl -f http://localhost:3001 && curl -f http://localhost:3002 && curl -f http://localhost:3003 && curl -f http://localhost:3004 && curl -f http://localhost:3005 && curl -f http://localhost:3006 && curl -f http://localhost:3007 && curl -f http://localhost:3008",
+    "logs:backend": "tail -f backend/logs/app.log",
+    "logs:all": "concurrently \"npm run logs:backend\" \"echo 'Frontend logs available in browser console'\"",
+    "stop:all": "pkill -f 'node.*3000' && pkill -f 'node.*3001' && pkill -f 'node.*3002' && pkill -f 'node.*3003' && pkill -f 'node.*3004' && pkill -f 'node.*3005' && pkill -f 'node.*3006' && pkill -f 'node.*3007' && pkill -f 'node.*3008'",
+    "restart": "npm run stop:all && sleep 2 && npm run start:all"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vimalluuu/TRACE-HERB-COMPLETE.git"
+  },
+  "keywords": [
+    "blockchain",
+    "traceability",
+    "supply-chain",
+    "ayurveda",
+    "hyperledger-fabric",
+    "nodejs",
+    "react",
+    "nextjs",
+    "hackathon",
+    "herbs",
+    "quality-assurance",
+    "regulatory-compliance",
+    "qr-codes",
+    "provenance",
+    "transparency"
+  ],
+  "author": {
+    "name": "Vimal",
+    "email": "vimal@example.com",
+    "url": "https://github.com/vimalluuu"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vimalluuu/TRACE-HERB-COMPLETE/issues"
+  },
+  "homepage": "https://github.com/vimalluuu/TRACE-HERB-COMPLETE#readme",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "nodemon": "^2.0.20",
+    "eslint": "^8.0.0",
+    "prettier": "^2.8.0"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3"
+  },
+  "config": {
+    "ports": {
+      "backend": 3000,
+      "consumer": 3001,
+      "farmer": 3002,
+      "processor": 3003,
+      "lab": 3004,
+      "regulator": 3005,
+      "stakeholder": 3006,
+      "management": 3007,
+      "overview": 3008
+    }
+  },
+  "workspaces": [
+    "backend",
+    "frontend/*"
+  ],
+  "private": false,
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/sponsors/vimalluuu"
+  },
+  "contributors": [
+    {
+      "name": "Vimal",
+      "email": "vimal@example.com",
+      "url": "https://github.com/vimalluuu"
+    }
+  ],
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "files": [
+    "backend/",
+    "frontend/",
+    "blockchain/",
+    "scripts/",
+    "docs/",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ]
+}

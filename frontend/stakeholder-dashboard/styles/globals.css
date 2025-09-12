@@ -1,0 +1,279 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS Variables for TRACE HERB Dashboard */
+:root {
+  --trace-green-50: #f0fdf4;
+  --trace-green-100: #dcfce7;
+  --trace-green-200: #bbf7d0;
+  --trace-green-300: #86efac;
+  --trace-green-400: #4ade80;
+  --trace-green-500: #22c55e;
+  --trace-green-600: #16a34a;
+  --trace-green-700: #15803d;
+  --trace-green-800: #166534;
+  --trace-green-900: #14532d;
+  
+  --trace-blue-50: #eff6ff;
+  --trace-blue-100: #dbeafe;
+  --trace-blue-200: #bfdbfe;
+  --trace-blue-300: #93c5fd;
+  --trace-blue-400: #60a5fa;
+  --trace-blue-500: #3b82f6;
+  --trace-blue-600: #2563eb;
+  --trace-blue-700: #1d4ed8;
+  --trace-blue-800: #1e40af;
+  --trace-blue-900: #1e3a8a;
+  
+  --trace-purple-500: #8b5cf6;
+  --trace-purple-600: #7c3aed;
+  --trace-orange-500: #f97316;
+  --trace-gold-500: #f59e0b;
+}
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+}
+
+@layer components {
+  /* Enhanced Button Styles */
+  .btn-primary {
+    @apply bg-gradient-to-r from-trace-green-600 to-trace-green-700 
+           hover:from-trace-green-700 hover:to-trace-green-800 
+           text-white px-6 py-3 rounded-xl font-semibold 
+           shadow-lg hover:shadow-xl transition-all duration-300 
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+  
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+  
+  .btn-secondary {
+    @apply bg-white hover:bg-gray-50 text-trace-green-700 
+           px-6 py-3 rounded-xl font-semibold border-2 
+           border-trace-green-200 hover:border-trace-green-300 
+           shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+  
+  /* Enhanced Card Styles */
+  .card {
+    @apply bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl 
+           border border-white/20 p-6 hover:shadow-2xl 
+           transition-all duration-500;
+  }
+  
+  .card-glass {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    @apply rounded-2xl shadow-xl;
+  }
+  
+  /* Enhanced Input Styles */
+  .input-field {
+    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl 
+           focus:border-trace-green-500 focus:ring-4 focus:ring-trace-green-100 
+           outline-none transition-all duration-300 bg-white/90;
+  }
+  
+  /* Gradient Text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-trace-green-600 to-trace-blue-600 
+           bg-clip-text text-transparent;
+  }
+  
+  .gradient-text-hero {
+    background: linear-gradient(135deg, #1f2937, var(--trace-green-600), var(--trace-blue-600));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Loading States */
+  .loading-skeleton {
+    @apply bg-gray-200 animate-pulse rounded;
+  }
+  
+  .loading-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+  
+  /* Status Indicators */
+  .status-online {
+    @apply text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .status-offline {
+    @apply text-red-600 bg-red-100 px-2 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .status-warning {
+    @apply text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full text-xs font-medium;
+  }
+}
+
+@layer utilities {
+  /* Animation Classes */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+  
+  .animate-slide-up {
+    animation: slideInUp 0.6s ease-out forwards;
+  }
+  
+  .animate-fade-scale {
+    animation: fadeInScale 0.5s ease-out forwards;
+  }
+  
+  /* Glass Effects */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+  
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+  
+  /* Enhanced Shadows */
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+  }
+  
+  .shadow-glow-blue {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  
+  .shadow-xl-colored {
+    box-shadow: 0 20px 25px -5px rgba(34, 197, 94, 0.1), 
+                0 10px 10px -5px rgba(34, 197, 94, 0.04);
+  }
+  
+  /* Hover Effects */
+  .hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+  
+  /* Text Effects */
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Keyframe Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 30px rgba(34, 197, 94, 0.6);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--trace-green-400);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--trace-green-600);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .card {
+    @apply p-4;
+  }
+  
+  .btn-primary, .btn-secondary {
+    @apply px-4 py-2 text-sm;
+  }
+}

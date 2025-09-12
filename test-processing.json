@@ -1,0 +1,34 @@
+{
+  "originalQrCode": "QR_COL_1757267400000_NEWTEST",
+  "processingId": "PROC_1757267300000_TEST",
+  "processor": {
+    "name": "Premium Herb Processing",
+    "facilityId": "PROC_001",
+    "license": "PRC2024001",
+    "location": "Mumbai, Maharashtra",
+    "contact": "+91 9876543210",
+    "certification": "GMP"
+  },
+  "processing": {
+    "method": "Drying",
+    "equipment": "Tray Dryer TD-500",
+    "temperature": "45",
+    "duration": "24",
+    "humidity": "60",
+    "batchSize": "5",
+    "yield": "85",
+    "notes": "Optimal drying conditions maintained"
+  },
+  "quality": {
+    "moisture": "8.5",
+    "color": "Good",
+    "texture": "Good",
+    "aroma": "Good",
+    "contamination": "None",
+    "packaging": "Sealed",
+    "storageConditions": "Cool & Dry",
+    "notes": "Quality parameters within acceptable range"
+  },
+  "timestamp": "2025-09-07T18:00:00.000Z",
+  "status": "processed"
+}

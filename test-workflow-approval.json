@@ -1,0 +1,15 @@
+{
+  "qrCode": "QR_COL_WORKFLOW_TEST_001",
+  "decision": "approved",
+  "reviewerId": "REV_WORKFLOW_001",
+  "reviewer": {
+    "name": "Workflow Test Regulatory Authority",
+    "regulatorId": "REG_WF_001",
+    "contact": "+91 9876543212",
+    "certification": "FDA Approved",
+    "license": "REG2024001",
+    "location": "Regulatory Office, Bangalore"
+  },
+  "reason": "Excellent quality product meeting all regulatory standards. Lab results show A+ grade with full compliance.",
+  "timestamp": "2025-09-07T19:40:00.000Z"
+}

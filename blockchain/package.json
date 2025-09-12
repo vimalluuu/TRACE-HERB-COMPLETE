@@ -1,0 +1,62 @@
+{
+  "name": "trace-herb-blockchain",
+  "version": "1.0.0",
+  "description": "Hyperledger Fabric blockchain network for TRACE HERB",
+  "main": "index.js",
+  "scripts": {
+    "start:network": "cd network && ./start-network.sh",
+    "stop:network": "cd network && ./stop-network.sh",
+    "clean:network": "cd network && ./clean-network.sh",
+    "deploy:chaincode": "cd scripts && ./deploy-chaincode.sh",
+    "upgrade:chaincode": "cd scripts && ./upgrade-chaincode.sh",
+    "install:chaincode": "cd scripts && ./install-chaincode.sh",
+    "instantiate:chaincode": "cd scripts && ./instantiate-chaincode.sh",
+    "invoke:chaincode": "cd scripts && ./invoke-chaincode.sh",
+    "query:chaincode": "cd scripts && ./query-chaincode.sh",
+    "generate:crypto": "cd network && cryptogen generate --config=./crypto-config.yaml",
+    "generate:genesis": "cd network && configtxgen -profile TraceHerbOrdererGenesis -channelID system-channel -outputBlock ./channel-artifacts/genesis.block",
+    "generate:channel": "cd network && configtxgen -profile TraceHerbChannel -outputCreateChannelTx ./channel-artifacts/channel.tx -channelID herb-channel",
+    "generate:anchor": "cd network && configtxgen -profile TraceHerbChannel -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx -channelID herb-channel -asOrg Org1MSP",
+    "create:channel": "cd scripts && ./create-channel.sh",
+    "join:channel": "cd scripts && ./join-channel.sh",
+    "update:anchor": "cd scripts && ./update-anchor-peers.sh",
+    "test": "mocha test/**/*.js --timeout 10000",
+    "test:integration": "mocha test/integration/**/*.js --timeout 30000",
+    "test:unit": "mocha test/unit/**/*.js --timeout 5000",
+    "lint": "eslint chaincode/**/*.js",
+    "clean": "rm -rf network/channel-artifacts/* network/crypto-config/* wallet/*"
+  },
+  "keywords": [
+    "hyperledger-fabric",
+    "blockchain",
+    "smart-contracts",
+    "chaincode",
+    "traceability"
+  ],
+  "author": "TRACE HERB Development Team",
+  "license": "MIT",
+  "dependencies": {
+    "fabric-contract-api": "^2.4.1",
+    "fabric-shim": "^2.4.1",
+    "fabric-network": "^2.4.1",
+    "fabric-ca-client": "^2.4.1",
+    "fabric-client": "^1.4.19",
+    "winston": "^3.8.2",
+    "uuid": "^9.0.0",
+    "joi": "^17.7.0",
+    "moment": "^2.29.4",
+    "crypto-js": "^4.1.1",
+    "geolib": "^3.3.3"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0",
+    "chai": "^4.3.7",
+    "sinon": "^15.0.1",
+    "eslint": "^8.34.0",
+    "nyc": "^15.1.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}

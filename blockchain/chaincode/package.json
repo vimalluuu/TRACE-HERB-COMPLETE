@@ -1,0 +1,39 @@
+{
+  "name": "herb-traceability-chaincode",
+  "version": "1.0.0",
+  "description": "Smart contract for TRACE HERB blockchain network",
+  "main": "herb-traceability.js",
+  "scripts": {
+    "test": "mocha test/**/*.js --timeout 10000",
+    "lint": "eslint *.js",
+    "start": "fabric-chaincode-node start"
+  },
+  "keywords": [
+    "hyperledger-fabric",
+    "chaincode",
+    "smart-contract",
+    "traceability",
+    "ayurveda"
+  ],
+  "author": "TRACE HERB Development Team",
+  "license": "MIT",
+  "dependencies": {
+    "fabric-contract-api": "^2.4.1",
+    "fabric-shim": "^2.4.1",
+    "uuid": "^9.0.0",
+    "geolib": "^3.3.3"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0",
+    "chai": "^4.3.7",
+    "sinon": "^15.0.1",
+    "eslint": "^8.34.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "fabric": {
+    "type": "node",
+    "version": "2.4"
+  }
+}

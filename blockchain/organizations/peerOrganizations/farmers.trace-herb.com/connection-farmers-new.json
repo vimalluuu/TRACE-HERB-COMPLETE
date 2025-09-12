@@ -1,0 +1,48 @@
+{
+  "name": "farmers-trace-herb-network",
+  "version": "1.0.0",
+  "client": {
+    "organization": "Farmers",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        }
+      }
+    }
+  },
+  "organizations": {
+    "Farmers": {
+      "mspid": "FarmersMSP",
+      "peers": ["peer0.farmers.trace-herb.com"],
+      "certificateAuthorities": ["ca.farmers.trace-herb.com"]
+    }
+  },
+  "orderers": {
+    "orderer.trace-herb.com": {
+      "url": "grpcs://localhost:7050",
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer.trace-herb.com",
+        "hostnameOverride": "orderer.trace-herb.com"
+      }
+    }
+  },
+  "peers": {
+    "peer0.farmers.trace-herb.com": {
+      "url": "grpcs://localhost:7051",
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.farmers.trace-herb.com",
+        "hostnameOverride": "peer0.farmers.trace-herb.com"
+      }
+    }
+  },
+  "certificateAuthorities": {
+    "ca.farmers.trace-herb.com": {
+      "url": "https://localhost:7054",
+      "caName": "ca-farmers",
+      "httpOptions": {
+        "verify": false
+      }
+    }
+  }
+}

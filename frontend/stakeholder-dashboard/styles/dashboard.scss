@@ -1,0 +1,385 @@
+// TRACE HERB Stakeholder Dashboard - Custom SCSS Styles
+// Beautiful, modern design system for the dashboard interface
+
+// Color Variables
+$trace-green-50: #f0fdf4;
+$trace-green-100: #dcfce7;
+$trace-green-200: #bbf7d0;
+$trace-green-300: #86efac;
+$trace-green-400: #4ade80;
+$trace-green-500: #22c55e;
+$trace-green-600: #16a34a;
+$trace-green-700: #15803d;
+$trace-green-800: #166534;
+$trace-green-900: #14532d;
+
+$trace-blue-50: #eff6ff;
+$trace-blue-100: #dbeafe;
+$trace-blue-200: #bfdbfe;
+$trace-blue-300: #93c5fd;
+$trace-blue-400: #60a5fa;
+$trace-blue-500: #3b82f6;
+$trace-blue-600: #2563eb;
+$trace-blue-700: #1d4ed8;
+$trace-blue-800: #1e40af;
+$trace-blue-900: #1e3a8a;
+
+$trace-purple-500: #8b5cf6;
+$trace-purple-600: #7c3aed;
+$trace-orange-500: #f97316;
+$trace-gold-500: #f59e0b;
+
+// Animation Keyframes
+@keyframes dashboardPulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmerEffect {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes rotateGlow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Dashboard Layout Styles
+.dashboard-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, $trace-green-50 0%, rgba(255, 255, 255, 0.9) 25%, $trace-blue-50 50%, rgba(255, 255, 255, 0.9) 75%, $trace-green-50 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 20s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+// Header Styles
+.dashboard-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  
+  .logo-container {
+    position: relative;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(45deg, $trace-green-400, $trace-blue-400, $trace-purple-500, $trace-green-400);
+      border-radius: 12px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      animation: rotateGlow 3s linear infinite;
+    }
+    
+    &:hover::before {
+      opacity: 0.3;
+    }
+    
+    .logo {
+      position: relative;
+      background: linear-gradient(135deg, $trace-green-600, $trace-green-700);
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba($trace-green-600, 0.4);
+      }
+    }
+  }
+  
+  .live-indicator {
+    position: relative;
+    
+    .pulse-dot {
+      animation: dashboardPulse 2s ease-in-out infinite;
+    }
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 2px;
+      width: 8px;
+      height: 8px;
+      background: $trace-green-500;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      animation: dashboardPulse 2s ease-in-out infinite;
+      animation-delay: 0.5s;
+    }
+  }
+}
+
+// Card Styles
+.dashboard-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.6s ease-out forwards;
+  
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    border-color: rgba($trace-green-400, 0.3);
+  }
+  
+  &.metric-card {
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, $trace-green-400, transparent);
+      transition: left 0.5s ease;
+    }
+    
+    &:hover::before {
+      left: 100%;
+    }
+  }
+  
+  &.chart-card {
+    .chart-container {
+      position: relative;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, transparent 30%, rgba($trace-green-400, 0.1) 50%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      &:hover::after {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// Metric Card Enhancements
+.metric-value {
+  font-weight: 800;
+  background: linear-gradient(135deg, $trace-green-600, $trace-blue-600);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: bounceIn 0.8s ease-out;
+}
+
+.metric-change {
+  &.positive {
+    color: $trace-green-600;
+    
+    &::before {
+      content: '↗';
+      margin-right: 4px;
+      animation: bounceIn 0.5s ease-out;
+    }
+  }
+  
+  &.negative {
+    color: #ef4444;
+    
+    &::before {
+      content: '↘';
+      margin-right: 4px;
+      animation: bounceIn 0.5s ease-out;
+    }
+  }
+  
+  &.neutral {
+    color: #6b7280;
+    
+    &::before {
+      content: '→';
+      margin-right: 4px;
+    }
+  }
+}
+
+// Loading States
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmerEffect 2s infinite;
+  border-radius: 8px;
+}
+
+.loading-dots {
+  display: inline-flex;
+  align-items: center;
+  
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $trace-green-600;
+    margin: 0 2px;
+    animation: dashboardPulse 1.4s ease-in-out infinite both;
+    
+    &:nth-child(1) { animation-delay: -0.32s; }
+    &:nth-child(2) { animation-delay: -0.16s; }
+    &:nth-child(3) { animation-delay: 0s; }
+  }
+}
+
+// Transaction Feed Styles
+.transaction-item {
+  position: relative;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  animation: slideInFromRight 0.5s ease-out;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .transaction-type {
+    &.collection { color: $trace-green-600; }
+    &.quality { color: $trace-blue-600; }
+    &.processing { color: $trace-purple-500; }
+    &.transport { color: $trace-orange-500; }
+  }
+  
+  .transaction-time {
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+}
+
+// Alert Styles
+.alert-item {
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border-left: 4px solid;
+  animation: slideInFromRight 0.4s ease-out;
+  
+  &.critical {
+    background: rgba(239, 68, 68, 0.1);
+    border-left-color: #ef4444;
+    color: #dc2626;
+  }
+  
+  &.warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-left-color: #f59e0b;
+    color: #d97706;
+  }
+  
+  &.info {
+    background: rgba(59, 130, 246, 0.1);
+    border-left-color: $trace-blue-500;
+    color: $trace-blue-700;
+  }
+  
+  &.success {
+    background: rgba(34, 197, 94, 0.1);
+    border-left-color: $trace-green-500;
+    color: $trace-green-700;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .dashboard-card {
+    margin-bottom: 16px;
+    
+    &:hover {
+      transform: none;
+    }
+  }
+  
+  .metric-value {
+    font-size: 1.5rem;
+  }
+}
+
+// Dark Mode Support
+@media (prefers-color-scheme: dark) {
+  .dashboard-container {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%);
+  }
+  
+  .dashboard-card {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #f8fafc;
+  }
+  
+  .transaction-item {
+    background: rgba(30, 41, 59, 0.7);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+  }
+}

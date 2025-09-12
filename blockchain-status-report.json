@@ -1,0 +1,51 @@
+{
+  "timestamp": "2025-09-07T07:20:32.521Z",
+  "checks": {
+    "api": {
+      "success": true,
+      "message": "Backend API is accessible"
+    },
+    "blockchain": {
+      "success": true,
+      "isRealBlockchain": false,
+      "message": "Running in demo mode",
+      "details": {
+        "connected": true,
+        "networkName": "trace-herb-network",
+        "channelName": "herb-channel",
+        "peersConnected": 4,
+        "blockHeight": 1000,
+        "transactionCount": 0,
+        "status": "HEALTHY",
+        "mode": "demo"
+      }
+    },
+    "transaction": {
+      "success": false,
+      "message": "Transaction submission failed"
+    },
+    "components": {
+      "success": true,
+      "message": "Found 2/4 Hyperledger components",
+      "components": [
+        {
+          "path": "blockchain/organizations",
+          "exists": true
+        },
+        {
+          "path": "blockchain/channel-artifacts",
+          "exists": false
+        },
+        {
+          "path": "blockchain/chaincode",
+          "exists": true
+        },
+        {
+          "path": "wallet",
+          "exists": false
+        }
+      ],
+      "foundCount": 2
+    }
+  }
+}

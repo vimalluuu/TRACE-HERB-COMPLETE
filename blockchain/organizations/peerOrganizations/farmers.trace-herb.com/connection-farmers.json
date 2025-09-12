@@ -1,0 +1,52 @@
+﻿{
+    "version":  "1.0.0",
+    "name":  "farmers-trace-herb-network",
+    "organizations":  {
+                          "Farmers":  {
+                                          "peers":  [
+                                                        "peer0.farmers.trace-herb.com"
+                                                    ],
+                                          "certificateAuthorities":  [
+                                                                         "ca.farmers.trace-herb.com"
+                                                                     ],
+                                          "mspid":  "FarmersMSP"
+                                      }
+                      },
+    "client":  {
+                   "connection":  {
+                                      "timeout":  {
+                                                      "peer":  {
+                                                                   "endorser":  "300"
+                                                               }
+                                                  }
+                                  },
+                   "organization":  "Farmers"
+               },
+    "peers":  {
+                  "peer0.farmers.trace-herb.com":  {
+                                                       "grpcOptions":  {
+                                                                           "ssl-target-name-override":  "peer0.farmers.trace-herb.com",
+                                                                           "hostnameOverride":  "peer0.farmers.trace-herb.com"
+                                                                       },
+                                                       "url":  "grpcs://localhost:7051"
+                                                   }
+              },
+    "certificateAuthorities":  {
+                                   "ca.farmers.trace-herb.com":  {
+                                                                     "httpOptions":  {
+                                                                                         "verify":  false
+                                                                                     },
+                                                                     "url":  "https://localhost:7054",
+                                                                     "caName":  "ca-farmers"
+                                                                 }
+                               },
+    "orderers":  {
+                     "orderer.trace-herb.com":  {
+                                                    "grpcOptions":  {
+                                                                        "ssl-target-name-override":  "orderer.trace-herb.com",
+                                                                        "hostnameOverride":  "orderer.trace-herb.com"
+                                                                    },
+                                                    "url":  "grpcs://localhost:7050"
+                                                }
+                 }
+}

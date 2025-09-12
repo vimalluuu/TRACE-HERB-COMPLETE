@@ -1,0 +1,34 @@
+{
+  "originalQrCode": "QR_COL_WORKFLOW_TEST_001",
+  "processingId": "PROC_WORKFLOW_TEST_001",
+  "processor": {
+    "name": "Workflow Test Processing",
+    "facilityId": "PROC_WF_001",
+    "contact": "+91 9876543210",
+    "certification": "GMP",
+    "license": "PRC2024001",
+    "location": "Processing Facility, Bangalore"
+  },
+  "processing": {
+    "method": "Steam Distillation",
+    "equipment": "Steam Distiller SD-300",
+    "temperature": "100",
+    "duration": "4 hours",
+    "humidity": "70%",
+    "batchSize": "3.0 kg",
+    "yield": "90%",
+    "notes": "Optimal processing conditions maintained for turmeric"
+  },
+  "quality": {
+    "moisture": "7.2%",
+    "color": "Excellent",
+    "texture": "Fine powder",
+    "aroma": "Strong",
+    "contamination": "None detected",
+    "packaging": "Vacuum sealed",
+    "storageConditions": "Cool & Dry",
+    "notes": "Quality parameters within acceptable range"
+  },
+  "timestamp": "2025-09-07T19:30:00.000Z",
+  "status": "processed"
+}

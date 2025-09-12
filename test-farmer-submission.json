@@ -1,0 +1,47 @@
+{
+  "collectionId": "COL_1757267200000_TESTFARM",
+  "farmer": {
+    "name": "Rajesh Kumar",
+    "phone": "+91 9876543210",
+    "farmerId": "FARMER_RK_001",
+    "village": "Kumbakonam",
+    "district": "Thanjavur",
+    "state": "Tamil Nadu",
+    "experience": "10",
+    "certification": "Organic"
+  },
+  "herb": {
+    "botanicalName": "Withania somnifera",
+    "commonName": "Ashwagandha",
+    "ayurvedicName": "Aswagandha",
+    "partUsed": "Root",
+    "quantity": "2.5",
+    "unit": "kg",
+    "collectionMethod": "Sustainable Harvesting",
+    "season": "Winter",
+    "weatherConditions": "Clear and dry",
+    "soilType": "Loamy",
+    "notes": "High quality roots collected at optimal maturity"
+  },
+  "location": {
+    "latitude": 10.9601,
+    "longitude": 79.3788,
+    "accuracy": 5,
+    "altitude": 15,
+    "timestamp": "2025-09-07T17:50:00.000Z",
+    "address": "Kumbakonam, Thanjavur, Tamil Nadu"
+  },
+  "environmental": {
+    "temperature": 28,
+    "humidity": 65,
+    "soilPH": 6.8,
+    "lightIntensity": 85,
+    "airQuality": 90
+  },
+  "metadata": {
+    "deviceInfo": "Farmer DApp v1.0.0",
+    "appVersion": "1.0.0",
+    "dataSource": "farmer-dapp",
+    "timestamp": "2025-09-07T17:50:00.000Z"
+  }
+}

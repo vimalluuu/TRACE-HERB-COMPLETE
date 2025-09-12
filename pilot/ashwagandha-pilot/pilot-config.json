@@ -1,0 +1,462 @@
+{
+  "pilotName": "Ashwagandha Traceability Pilot",
+  "version": "1.0.0",
+  "description": "Live pilot demonstration of end-to-end traceability for Withania somnifera (Ashwagandha) from farm to consumer",
+  "startDate": "2024-01-15",
+  "endDate": "2024-06-15",
+  "status": "active",
+  "participants": {
+    "farmers": {
+      "count": 25,
+      "locations": [
+        {
+          "name": "Rajesh Kumar Farm",
+          "farmerId": "FARMER_001",
+          "location": {
+            "latitude": 23.2599,
+            "longitude": 77.4126,
+            "address": "Village Khajuraho, Chhatarpur District, Madhya Pradesh",
+            "zone": "madhya-pradesh-zone-1"
+          },
+          "certifications": ["Organic India", "NPOP Certified"],
+          "farmSize": "5.2 hectares",
+          "experience": "15 years",
+          "contact": "+91-9876543210"
+        },
+        {
+          "name": "Sunita Devi Cooperative",
+          "farmerId": "FARMER_002",
+          "location": {
+            "latitude": 26.9124,
+            "longitude": 75.7873,
+            "address": "Village Bassi, Jaipur District, Rajasthan",
+            "zone": "rajasthan-zone-1"
+          },
+          "certifications": ["Fair Trade", "USDA Organic"],
+          "farmSize": "12.8 hectares",
+          "experience": "22 years",
+          "contact": "+91-9876543211"
+        },
+        {
+          "name": "Maharashtra Ashwagandha Collective",
+          "farmerId": "FARMER_003",
+          "location": {
+            "latitude": 19.7515,
+            "longitude": 75.7139,
+            "address": "Village Nagpur, Nagpur District, Maharashtra",
+            "zone": "maharashtra-zone-1"
+          },
+          "certifications": ["APEDA Certified", "ISO 22000"],
+          "farmSize": "8.5 hectares",
+          "experience": "18 years",
+          "contact": "+91-9876543212"
+        }
+      ]
+    },
+    "processors": {
+      "count": 3,
+      "facilities": [
+        {
+          "name": "Ayurvedic Processing Unit",
+          "processorId": "PROC_001",
+          "location": {
+            "latitude": 28.7041,
+            "longitude": 77.1025,
+            "address": "Industrial Area, New Delhi",
+            "zone": "delhi-processing-zone"
+          },
+          "certifications": ["GMP", "ISO 9001", "AYUSH License"],
+          "capacity": "500 kg/day",
+          "specialization": "Root processing and powder manufacturing"
+        }
+      ]
+    },
+    "laboratories": {
+      "count": 2,
+      "labs": [
+        {
+          "name": "NABL Certified Quality Lab",
+          "labId": "LAB_001",
+          "location": {
+            "latitude": 19.0760,
+            "longitude": 72.8777,
+            "address": "Andheri East, Mumbai, Maharashtra"
+          },
+          "certifications": ["NABL", "ISO 17025", "AYUSH Approved"],
+          "testingCapabilities": [
+            "Withanolides content analysis",
+            "Heavy metals testing",
+            "Pesticide residue analysis",
+            "Microbial testing",
+            "DNA authentication"
+          ]
+        }
+      ]
+    },
+    "manufacturers": {
+      "count": 2,
+      "companies": [
+        {
+          "name": "Himalaya Wellness Company",
+          "manufacturerId": "MFG_001",
+          "location": {
+            "latitude": 12.9716,
+            "longitude": 77.5946,
+            "address": "Bangalore, Karnataka"
+          },
+          "certifications": ["WHO-GMP", "USFDA", "AYUSH License"],
+          "products": ["Ashwagandha Tablets", "Ashwagandha Powder", "Stress Relief Capsules"]
+        }
+      ]
+    }
+  },
+  "targetMetrics": {
+    "collections": {
+      "target": 1000,
+      "current": 0,
+      "unit": "collection events"
+    },
+    "qualityTests": {
+      "target": 500,
+      "current": 0,
+      "unit": "test reports"
+    },
+    "qrScans": {
+      "target": 10000,
+      "current": 0,
+      "unit": "consumer scans"
+    },
+    "sustainabilityScore": {
+      "target": 85,
+      "current": 0,
+      "unit": "percentage"
+    },
+    "transactionThroughput": {
+      "target": 100,
+      "current": 0,
+      "unit": "TPS"
+    },
+    "dataAccuracy": {
+      "target": 99.5,
+      "current": 0,
+      "unit": "percentage"
+    }
+  },
+  "ashwagandhaSpecifications": {
+    "botanicalName": "Withania somnifera",
+    "commonNames": ["Ashwagandha", "Indian Winter Cherry", "Poison Gooseberry"],
+    "ayurvedicName": "Ashwagandha",
+    "partUsed": "Root",
+    "activeCompounds": {
+      "withanolides": {
+        "minimum": 2.5,
+        "maximum": 5.0,
+        "unit": "percentage",
+        "testMethod": "HPLC"
+      },
+      "alkaloids": {
+        "minimum": 0.3,
+        "maximum": 1.0,
+        "unit": "percentage",
+        "testMethod": "Gravimetric"
+      }
+    },
+    "qualityParameters": {
+      "moisture": {
+        "maximum": 10,
+        "unit": "percentage"
+      },
+      "totalAsh": {
+        "maximum": 10,
+        "unit": "percentage"
+      },
+      "acidInsolublAsh": {
+        "maximum": 2,
+        "unit": "percentage"
+      },
+      "heavyMetals": {
+        "lead": {
+          "maximum": 10,
+          "unit": "ppm"
+        },
+        "cadmium": {
+          "maximum": 0.3,
+          "unit": "ppm"
+        },
+        "mercury": {
+          "maximum": 1,
+          "unit": "ppm"
+        },
+        "arsenic": {
+          "maximum": 3,
+          "unit": "ppm"
+        }
+      },
+      "pesticides": {
+        "organochlorines": {
+          "maximum": 0.01,
+          "unit": "ppm"
+        },
+        "organophosphorus": {
+          "maximum": 0.01,
+          "unit": "ppm"
+        }
+      },
+      "microbial": {
+        "totalBacterialCount": {
+          "maximum": 100000,
+          "unit": "cfu/g"
+        },
+        "yeastAndMold": {
+          "maximum": 1000,
+          "unit": "cfu/g"
+        },
+        "enterobacteria": {
+          "maximum": 1000,
+          "unit": "cfu/g"
+        },
+        "salmonella": "absent",
+        "eColi": "absent"
+      }
+    },
+    "harvestingGuidelines": {
+      "optimalSeason": "Post-monsoon (October-December)",
+      "plantAge": "12-18 months",
+      "rootLength": "15-25 cm",
+      "dryingMethod": "Shade drying",
+      "storageConditions": "Cool, dry place below 25°C"
+    },
+    "sustainabilityMetrics": {
+      "waterUsage": {
+        "target": 200,
+        "unit": "liters per kg"
+      },
+      "carbonFootprint": {
+        "target": 2.5,
+        "unit": "kg CO2 per kg"
+      },
+      "soilHealth": {
+        "target": 80,
+        "unit": "percentage score"
+      },
+      "biodiversityIndex": {
+        "target": 0.75,
+        "unit": "Shannon index"
+      }
+    }
+  },
+  "blockchainConfiguration": {
+    "network": "trace-herb-pilot",
+    "channels": [
+      {
+        "name": "ashwagandha-channel",
+        "organizations": ["FarmersMSP", "ProcessorsMSP", "LabsMSP", "ManufacturersMSP"],
+        "contracts": ["ashwagandha-collection", "ashwagandha-quality", "ashwagandha-supply"]
+      }
+    ],
+    "consensus": "RAFT",
+    "endorsementPolicy": "AND('FarmersMSP.peer', 'LabsMSP.peer')",
+    "dataRetention": "7 years",
+    "backupFrequency": "daily"
+  },
+  "testingScenarios": [
+    {
+      "id": "SCENARIO_001",
+      "name": "Complete Farm-to-Consumer Journey",
+      "description": "Test complete traceability from collection to consumer QR scan",
+      "steps": [
+        "Farmer collects Ashwagandha roots using mobile app",
+        "GPS coordinates and environmental data recorded",
+        "Batch transported to processing facility",
+        "Quality testing at NABL certified laboratory",
+        "Processing into powder/tablets",
+        "Final product packaging with QR codes",
+        "Consumer scans QR code to view complete provenance"
+      ],
+      "expectedDuration": "30 days",
+      "successCriteria": [
+        "All data points captured accurately",
+        "QR code provides complete traceability",
+        "Blockchain transactions confirmed",
+        "Quality parameters within specifications"
+      ]
+    },
+    {
+      "id": "SCENARIO_002",
+      "name": "Quality Gate Validation",
+      "description": "Test quality gate enforcement and rejection handling",
+      "steps": [
+        "Submit batch with withanolides below minimum threshold",
+        "System should reject batch automatically",
+        "Farmer receives notification of rejection",
+        "Corrective action taken",
+        "Re-testing and approval process"
+      ],
+      "expectedDuration": "7 days",
+      "successCriteria": [
+        "Quality gates enforced correctly",
+        "Rejection notifications sent",
+        "Audit trail maintained",
+        "Re-testing process works"
+      ]
+    },
+    {
+      "id": "SCENARIO_003",
+      "name": "Geo-fencing Compliance",
+      "description": "Test geo-fencing rules for approved harvesting zones",
+      "steps": [
+        "Attempt collection outside approved zone",
+        "System should prevent submission",
+        "Farmer receives geo-fencing violation alert",
+        "Collection from approved zone succeeds"
+      ],
+      "expectedDuration": "2 days",
+      "successCriteria": [
+        "Geo-fencing rules enforced",
+        "Violations detected and blocked",
+        "Approved zones work correctly",
+        "GPS accuracy within 5 meters"
+      ]
+    },
+    {
+      "id": "SCENARIO_004",
+      "name": "Offline Functionality",
+      "description": "Test offline data capture and synchronization",
+      "steps": [
+        "Farmer works in area with poor connectivity",
+        "Data captured and stored locally",
+        "Device comes back online",
+        "Data automatically syncs to blockchain",
+        "Verify data integrity"
+      ],
+      "expectedDuration": "5 days",
+      "successCriteria": [
+        "Offline capture works reliably",
+        "Data syncs when online",
+        "No data loss occurs",
+        "Timestamps preserved correctly"
+      ]
+    }
+  ],
+  "performanceTargets": {
+    "transactionLatency": {
+      "target": 3,
+      "unit": "seconds",
+      "description": "Time from submission to blockchain confirmation"
+    },
+    "qrScanSpeed": {
+      "target": 1,
+      "unit": "seconds",
+      "description": "Time to load provenance data after QR scan"
+    },
+    "mobileAppResponse": {
+      "target": 2,
+      "unit": "seconds",
+      "description": "Average response time for mobile app operations"
+    },
+    "dataAccuracy": {
+      "target": 99.9,
+      "unit": "percentage",
+      "description": "Accuracy of GPS and sensor data"
+    },
+    "systemUptime": {
+      "target": 99.5,
+      "unit": "percentage",
+      "description": "System availability during pilot period"
+    }
+  },
+  "reportingSchedule": {
+    "daily": [
+      "Transaction count",
+      "Active users",
+      "System performance metrics",
+      "Error rates"
+    ],
+    "weekly": [
+      "Quality test results summary",
+      "Farmer adoption metrics",
+      "Consumer engagement statistics",
+      "Sustainability metrics"
+    ],
+    "monthly": [
+      "Comprehensive pilot progress report",
+      "ROI analysis",
+      "Stakeholder feedback summary",
+      "Technical performance review"
+    ]
+  },
+  "successCriteria": {
+    "technical": [
+      "100% of collection events recorded on blockchain",
+      "99%+ quality test pass rate",
+      "Sub-3 second transaction confirmation times",
+      "Zero data loss incidents",
+      "95%+ farmer adoption rate"
+    ],
+    "business": [
+      "25% increase in farmer income through transparency",
+      "50% reduction in quality disputes",
+      "10,000+ consumer QR scans",
+      "85+ sustainability score achieved",
+      "Positive ROI demonstrated"
+    ],
+    "regulatory": [
+      "100% compliance with AYUSH guidelines",
+      "All export documentation automated",
+      "Audit trail completeness verified",
+      "Data privacy compliance confirmed"
+    ]
+  },
+  "riskMitigation": {
+    "technical": [
+      "Backup blockchain nodes in multiple regions",
+      "Offline-first mobile app design",
+      "Automated failover mechanisms",
+      "Regular security audits"
+    ],
+    "operational": [
+      "Comprehensive farmer training program",
+      "24/7 technical support hotline",
+      "Multi-language support (Hindi, English, regional)",
+      "Incentive programs for early adopters"
+    ],
+    "regulatory": [
+      "Legal compliance review",
+      "Data localization compliance",
+      "Export regulation adherence",
+      "Privacy policy implementation"
+    ]
+  },
+  "nextSteps": [
+    {
+      "phase": "Pilot Completion",
+      "timeline": "Month 6",
+      "activities": [
+        "Complete all testing scenarios",
+        "Collect comprehensive performance data",
+        "Conduct stakeholder interviews",
+        "Prepare final pilot report"
+      ]
+    },
+    {
+      "phase": "Scale Preparation",
+      "timeline": "Month 7-8",
+      "activities": [
+        "Infrastructure scaling plan",
+        "Additional farmer onboarding",
+        "Integration with existing ERP systems",
+        "Regulatory approval for full deployment"
+      ]
+    },
+    {
+      "phase": "Production Rollout",
+      "timeline": "Month 9-12",
+      "activities": [
+        "Deploy to 500+ farmers",
+        "Add 5 more medicinal plants",
+        "International market integration",
+        "Advanced analytics and AI features"
+      ]
+    }
+  ]
+}

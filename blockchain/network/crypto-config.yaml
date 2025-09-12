@@ -1,0 +1,56 @@
+# Crypto configuration for TRACE HERB network
+# This file defines the network topology and cryptographic material generation
+
+OrdererOrgs:
+  - Name: Orderer
+    Domain: trace-herb.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer
+        SANS:
+          - localhost
+
+PeerOrgs:
+  # Farmers and Collectors Organization
+  - Name: Org1
+    Domain: org1.trace-herb.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+      SANS:
+        - localhost
+    Users:
+      Count: 2
+
+  # Processors and Manufacturers Organization  
+  - Name: Org2
+    Domain: org2.trace-herb.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+      SANS:
+        - localhost
+    Users:
+      Count: 2
+
+  # Testing Laboratories Organization
+  - Name: Org3
+    Domain: org3.trace-herb.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+      SANS:
+        - localhost
+    Users:
+      Count: 2
+
+  # Regulatory and Compliance Organization
+  - Name: Org4
+    Domain: org4.trace-herb.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+      SANS:
+        - localhost
+    Users:
+      Count: 1

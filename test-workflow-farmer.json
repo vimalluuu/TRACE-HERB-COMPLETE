@@ -1,0 +1,39 @@
+{
+  "collectionId": "COL_WORKFLOW_TEST_001",
+  "farmer": {
+    "farmerId": "FARMER_WORKFLOW_001",
+    "name": "Workflow Test Farmer",
+    "contact": "+91 9876543210",
+    "certification": "Organic",
+    "experience": "5 years"
+  },
+  "product": {
+    "name": "Turmeric",
+    "botanicalName": "Curcuma longa",
+    "category": "Medicinal Herb",
+    "grade": "Premium",
+    "certifications": ["Organic", "Sustainable"]
+  },
+  "collection": {
+    "method": "Hand harvesting",
+    "quantity": "3.0 kg",
+    "partUsed": "Rhizome",
+    "season": "Winter",
+    "weatherConditions": "Favorable",
+    "soilType": "Fertile",
+    "notes": "Fresh turmeric rhizomes for workflow testing"
+  },
+  "location": {
+    "coordinates": [77.5946, 12.9716],
+    "address": "Workflow Test Farm, Bangalore, Karnataka",
+    "altitude": 920,
+    "accuracy": 5
+  },
+  "environmental": {
+    "temperature": "24°C",
+    "humidity": "65%",
+    "soilPH": "6.8",
+    "rainfall": "Adequate"
+  },
+  "timestamp": "2025-09-07T19:05:00.000Z"
+}
