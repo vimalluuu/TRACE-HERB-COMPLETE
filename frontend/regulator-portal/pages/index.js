@@ -12,6 +12,18 @@ export default function RegulatorPortal() {
   const [complianceData, setComplianceData] = useState([])
   const [availableBatches, setAvailableBatches] = useState([])
   const [dashboardLoading, setDashboardLoading] = useState(false)
+  const [dashboardStats, setDashboardStats] = useState({
+    approved: 0,
+    pending: 0,
+    rejected: 0,
+    complianceRate: 0
+  })
+  const [commonIssues, setCommonIssues] = useState([
+    { name: 'Pesticide Residue', percentage: 0 },
+    { name: 'Missing Documentation', percentage: 0 },
+    { name: 'Quality Standards', percentage: 0 },
+    { name: 'Traceability Gaps', percentage: 0 }
+  ])
   
   // Mock compliance data - in real app this would come from API
   const [mockCompliance] = useState([
@@ -116,9 +128,9 @@ export default function RegulatorPortal() {
 
       if (response.data.success) {
         toast.success('Batch approved successfully!')
-        // Refresh compliance data
+        // Refresh all data
+        fetchDashboardStats()
         fetchComplianceData()
-        // Refresh available batches
         fetchAvailableBatches()
         // Clear current batch data to force refresh
         setBatchData(null)
@@ -156,9 +168,9 @@ export default function RegulatorPortal() {
 
       if (response.data.success) {
         toast.error('Batch rejected')
-        // Refresh compliance data
+        // Refresh all data
+        fetchDashboardStats()
         fetchComplianceData()
-        // Refresh available batches
         fetchAvailableBatches()
         // Clear current batch data to force refresh
         setBatchData(null)
@@ -170,6 +182,66 @@ export default function RegulatorPortal() {
       console.error('Error:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Fetch dashboard statistics
+  const fetchDashboardStats = async () => {
+    try {
+      const [historyResponse, pendingResponse] = await Promise.all([
+        axios.get('http://localhost:3000/api/regulator/history'),
+        axios.get('http://localhost:3000/api/regulator/pending')
+      ])
+
+      if (historyResponse.data.success && pendingResponse.data.success) {
+        const approved = historyResponse.data.data.approved || 0
+        const rejected = historyResponse.data.data.rejected || 0
+        const pending = pendingResponse.data.data.totalPending || 0
+        const total = approved + rejected + pending
+        const complianceRate = total > 0 ? ((approved / (approved + rejected)) * 100).toFixed(1) : 0
+
+        setDashboardStats({
+          approved,
+          pending,
+          rejected,
+          complianceRate: parseFloat(complianceRate)
+        })
+
+        // Calculate common issues from rejected batches
+        const rejectedBatches = historyResponse.data.data.batches?.filter(b => b.status === 'rejected') || []
+        const totalRejected = rejectedBatches.length
+
+        if (totalRejected > 0) {
+          const issueCount = {
+            'Pesticide Residue': 0,
+            'Missing Documentation': 0,
+            'Quality Standards': 0,
+            'Traceability Gaps': 0
+          }
+
+          rejectedBatches.forEach(batch => {
+            const reason = batch.regulatory?.reason || ''
+            if (reason.toLowerCase().includes('pesticide') || reason.toLowerCase().includes('residue')) {
+              issueCount['Pesticide Residue']++
+            } else if (reason.toLowerCase().includes('documentation') || reason.toLowerCase().includes('certificate')) {
+              issueCount['Missing Documentation']++
+            } else if (reason.toLowerCase().includes('quality') || reason.toLowerCase().includes('standard')) {
+              issueCount['Quality Standards']++
+            } else {
+              issueCount['Traceability Gaps']++
+            }
+          })
+
+          setCommonIssues([
+            { name: 'Pesticide Residue', percentage: Math.round((issueCount['Pesticide Residue'] / totalRejected) * 100) },
+            { name: 'Missing Documentation', percentage: Math.round((issueCount['Missing Documentation'] / totalRejected) * 100) },
+            { name: 'Quality Standards', percentage: Math.round((issueCount['Quality Standards'] / totalRejected) * 100) },
+            { name: 'Traceability Gaps', percentage: Math.round((issueCount['Traceability Gaps'] / totalRejected) * 100) }
+          ])
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error)
     }
   }
 
@@ -204,7 +276,7 @@ export default function RegulatorPortal() {
   const fetchAvailableBatches = async () => {
     setDashboardLoading(true)
     try {
-      const response = await axios.get('http://localhost:3000/api/workflow/batches/regulator')
+      const response = await axios.get('http://localhost:3000/api/regulator/pending')
       if (response.data.success) {
         const batches = response.data.data.batches || []
         // Transform batch data for display
@@ -230,9 +302,13 @@ export default function RegulatorPortal() {
   }
 
   useEffect(() => {
+    fetchDashboardStats()
     fetchComplianceData()
     fetchAvailableBatches()
-    const interval = setInterval(fetchAvailableBatches, 30000)
+    const interval = setInterval(() => {
+      fetchDashboardStats()
+      fetchAvailableBatches()
+    }, 30000)
     return () => clearInterval(interval)
   }, [])
 
@@ -301,43 +377,43 @@ export default function RegulatorPortal() {
                     <span className="text-green-600 text-2xl">✅</span>
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">156</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">{dashboardLoading ? '...' : dashboardStats.approved}</h3>
                     <p className="text-gray-600">Approved Batches</p>
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-2xl shadow-lg p-6">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
                     <span className="text-yellow-600 text-2xl">⏳</span>
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">23</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">{dashboardLoading ? '...' : dashboardStats.pending}</h3>
                     <p className="text-gray-600">Pending Review</p>
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-2xl shadow-lg p-6">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
                     <span className="text-red-600 text-2xl">❌</span>
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">8</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">{dashboardLoading ? '...' : dashboardStats.rejected}</h3>
                     <p className="text-gray-600">Rejected Batches</p>
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-2xl shadow-lg p-6">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                     <span className="text-blue-600 text-2xl">📈</span>
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">94.2%</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">{dashboardLoading ? '...' : `${dashboardStats.complianceRate}%`}</h3>
                     <p className="text-gray-600">Compliance Rate</p>
                   </div>
                 </div>
@@ -632,17 +708,17 @@ export default function RegulatorPortal() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
                       <span className="font-bold text-green-800">Fully Compliant</span>
-                      <span className="text-2xl font-bold text-green-600">156</span>
+                      <span className="text-2xl font-bold text-green-600">{dashboardLoading ? '...' : dashboardStats.approved}</span>
                     </div>
 
                     <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-xl">
                       <span className="font-bold text-yellow-800">Under Review</span>
-                      <span className="text-2xl font-bold text-yellow-600">23</span>
+                      <span className="text-2xl font-bold text-yellow-600">{dashboardLoading ? '...' : dashboardStats.pending}</span>
                     </div>
 
                     <div className="flex items-center justify-between p-4 bg-red-50 rounded-xl">
                       <span className="font-bold text-red-800">Non-Compliant</span>
-                      <span className="text-2xl font-bold text-red-600">8</span>
+                      <span className="text-2xl font-bold text-red-600">{dashboardLoading ? '...' : dashboardStats.rejected}</span>
                     </div>
                   </div>
                 </div>
@@ -651,22 +727,18 @@ export default function RegulatorPortal() {
                   <h3 className="text-xl font-bold text-gray-900">Common Issues</h3>
 
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-700">Pesticide Residue</span>
-                      <span className="font-bold text-red-600">45%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-700">Missing Documentation</span>
-                      <span className="font-bold text-orange-600">30%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-700">Quality Standards</span>
-                      <span className="font-bold text-yellow-600">15%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-700">Traceability Gaps</span>
-                      <span className="font-bold text-blue-600">10%</span>
-                    </div>
+                    {commonIssues.map((issue, index) => (
+                      <div key={issue.name} className="flex items-center justify-between">
+                        <span className="text-gray-700">{issue.name}</span>
+                        <span className={`font-bold ${
+                          index === 0 ? 'text-red-600' :
+                          index === 1 ? 'text-orange-600' :
+                          index === 2 ? 'text-yellow-600' : 'text-blue-600'
+                        }`}>
+                          {dashboardLoading ? '...' : `${issue.percentage}%`}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

@@ -704,35 +704,45 @@ export default function ProcessorPortal() {
               animate={{ opacity: 1, y: 0 }}
               className="text-center space-y-8"
             >
-              <div className="w-32 h-32 bg-herb-green-100 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-herb-green-600 text-6xl">✅</span>
+              <div className="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                <span className="text-green-600 text-6xl">✅</span>
               </div>
               <h2 className="text-4xl md:text-5xl font-black text-gray-900">Processing Complete!</h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              <p className="text-xl text-gray-700 max-w-2xl mx-auto font-medium">
                 Processing data has been successfully recorded on the blockchain.
                 The batch is now ready for the next stage in the supply chain.
               </p>
 
-              <div className="bg-processor-blue-50 p-8 rounded-2xl max-w-2xl mx-auto">
-                <h3 className="text-2xl font-bold text-processor-blue-800 mb-4">Processing Summary</h3>
+              <div className="bg-blue-50 p-8 rounded-2xl max-w-2xl mx-auto border border-blue-200">
+                <h3 className="text-2xl font-bold text-blue-800 mb-6">Processing Summary</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                  <div><strong>Original QR:</strong> {qrCode}</div>
-                  <div><strong>Method:</strong> {processingData.method}</div>
-                  <div><strong>Facility:</strong> {processorData.name}</div>
-                  <div><strong>Quality:</strong> {qualityData.color}</div>
+                  <div className="text-gray-800"><strong className="text-gray-900">Original QR:</strong> {qrCode}</div>
+                  <div className="text-gray-800"><strong className="text-gray-900">Method:</strong> {processingData.method}</div>
+                  <div className="text-gray-800"><strong className="text-gray-900">Facility:</strong> {processorData.name}</div>
+                  <div className="text-gray-800"><strong className="text-gray-900">Quality:</strong> {qualityData.color}</div>
                 </div>
               </div>
 
-              <button
-                onClick={() => {
-                  setCurrentStep(1)
-                  setBatchData(null)
-                  setQrCode('')
-                }}
-                className="btn-primary"
-              >
-                Process Another Batch
-              </button>
+              <div className="space-y-4">
+                <div className="bg-green-50 p-6 rounded-xl border border-green-200 max-w-2xl mx-auto">
+                  <h4 className="text-lg font-bold text-green-800 mb-2">✅ Next Steps</h4>
+                  <p className="text-green-700">
+                    This batch is now available for laboratory testing. The lab portal will automatically
+                    receive this batch for quality testing and certification.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setCurrentStep(1)
+                    setBatchData(null)
+                    setQrCode('')
+                  }}
+                  className="btn-primary"
+                >
+                  Process Another Batch
+                </button>
+              </div>
             </motion.div>
           )}
 

@@ -7,7 +7,7 @@ export default function SupplyChainOverview() {
       name: 'Enhanced Consumer Portal',
       description: 'Advanced QR verification and provenance display',
       icon: '📱',
-      url: 'http://localhost:3001',
+      url: 'http://localhost:3004',
       color: 'from-orange-500 to-orange-600',
       features: ['QR Code Scanning', 'Provenance History', 'Interactive Maps', 'Authenticity Verification']
     },
@@ -16,7 +16,7 @@ export default function SupplyChainOverview() {
       name: 'Farmer Portal',
       description: 'Herb collection data entry and QR generation',
       icon: '🌱',
-      url: 'http://localhost:3002',
+      url: 'http://localhost:3001',
       color: 'from-green-500 to-green-600',
       features: ['GPS Location Tracking', 'Herb Details Entry', 'QR Code Generation', 'Blockchain Submission']
     },
@@ -34,7 +34,7 @@ export default function SupplyChainOverview() {
       name: 'Lab Portal',
       description: 'Quality testing and digital certificates',
       icon: '🔬',
-      url: 'http://localhost:3004',
+      url: 'http://localhost:3002',
       color: 'from-purple-500 to-purple-600',
       features: ['Comprehensive Testing', 'Certificate Generation', 'Compliance Verification', 'DNA Authentication']
     },
@@ -52,7 +52,7 @@ export default function SupplyChainOverview() {
       name: 'Stakeholder Dashboard',
       description: 'Real-time multi-stakeholder monitoring',
       icon: '📈',
-      url: 'http://localhost:3006',
+      url: 'http://localhost:3007',
       color: 'from-teal-500 to-teal-600',
       features: ['Real-time Monitoring', 'Blockchain Status', 'Audit Trails', 'Compliance Reports']
     },
@@ -61,7 +61,7 @@ export default function SupplyChainOverview() {
       name: 'Management Portal',
       description: 'System management and analytics dashboard',
       icon: '📊',
-      url: 'http://localhost:3007',
+      url: 'http://localhost:3006',
       color: 'from-indigo-500 to-purple-600',
       features: ['System Monitoring', 'User Management', 'Analytics Dashboard', 'Settings']
     }

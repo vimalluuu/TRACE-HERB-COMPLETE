@@ -130,8 +130,19 @@ router.get('/pending', async (req, res) => {
     const allBatches = await blockchainService.getAllBatches();
     const pendingBatches = workflowService.filterBatchesForPortal(allBatches, 'regulator', 'edit');
 
+    // Filter out already approved or rejected batches
+    const trulyPendingBatches = pendingBatches.filter(batch => {
+      const hasRegulatoryReview = batch.events?.some(event =>
+        event.type === 'Regulatory' || event.type === 'Regulatory Review'
+      );
+      const isApprovedOrRejected = batch.status === 'approved' || batch.status === 'rejected';
+
+      // Exclude if already reviewed OR if has regulatory event
+      return !isApprovedOrRejected && !hasRegulatoryReview;
+    });
+
     // Add workflow status to each batch
-    const batchesWithWorkflow = pendingBatches.map(batch => ({
+    const batchesWithWorkflow = trulyPendingBatches.map(batch => ({
       ...batch,
       workflowStatus: workflowService.getWorkflowStatus(batch),
       hasBeenProcessed: workflowService.hasBeenProcessedBy(batch, 'regulator'),

@@ -17,7 +17,7 @@
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
+  color: #1f2937; /* Ensure text is always visible */
   background: linear-gradient(
       to bottom,
       transparent,
