@@ -16,7 +16,7 @@ export default function SupplyChainOverview() {
       name: 'Farmer Portal',
       description: 'Herb collection data entry and QR generation',
       icon: '🌱',
-      url: 'http://localhost:3001',
+      url: 'http://localhost:3002',
       color: 'from-green-500 to-green-600',
       features: ['GPS Location Tracking', 'Herb Details Entry', 'QR Code Generation', 'Blockchain Submission']
     },
@@ -25,7 +25,7 @@ export default function SupplyChainOverview() {
       name: 'Processor Portal',
       description: 'Processing steps and quality control',
       icon: '🏭',
-      url: 'http://localhost:3003',
+      url: 'http://localhost:3004',
       color: 'from-blue-500 to-blue-600',
       features: ['Batch Verification', 'Processing Details', 'Quality Control', 'Equipment Tracking']
     },
@@ -34,7 +34,7 @@ export default function SupplyChainOverview() {
       name: 'Lab Portal',
       description: 'Quality testing and digital certificates',
       icon: '🔬',
-      url: 'http://localhost:3002',
+      url: 'http://localhost:3005',
       color: 'from-purple-500 to-purple-600',
       features: ['Comprehensive Testing', 'Certificate Generation', 'Compliance Verification', 'DNA Authentication']
     },
@@ -43,7 +43,7 @@ export default function SupplyChainOverview() {
       name: 'Regulator Portal',
       description: 'Compliance review and regulatory oversight',
       icon: '⚖️',
-      url: 'http://localhost:3005',
+      url: 'http://localhost:3006',
       color: 'from-red-500 to-red-600',
       features: ['Batch Review', 'Compliance Management', 'Regulatory Reports', 'Approval/Rejection']
     },
@@ -58,12 +58,30 @@ export default function SupplyChainOverview() {
     },
     {
       id: 7,
+      name: 'Consumer Portal (Original)',
+      description: 'Basic consumer interface for product verification',
+      icon: '👤',
+      url: 'http://localhost:3001',
+      color: 'from-yellow-500 to-orange-600',
+      features: ['QR Code Verification', 'Basic Provenance', 'Product Information', 'Simple Interface']
+    },
+    {
+      id: 8,
       name: 'Management Portal',
       description: 'System management and analytics dashboard',
       icon: '📊',
-      url: 'http://localhost:3006',
+      url: 'http://localhost:3008',
       color: 'from-indigo-500 to-purple-600',
       features: ['System Monitoring', 'User Management', 'Analytics Dashboard', 'Settings']
+    },
+    {
+      id: 9,
+      name: 'Wild Collector Portal',
+      description: 'Wild herb collection and sustainable harvesting',
+      icon: '🌿',
+      url: 'http://localhost:3009',
+      color: 'from-emerald-500 to-green-600',
+      features: ['Wild Collection Tracking', 'Sustainability Metrics', 'GPS Mapping', 'Conservation Data']
     }
   ]
 

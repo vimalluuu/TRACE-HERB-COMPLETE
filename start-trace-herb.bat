@@ -118,38 +118,50 @@ echo.
 
 REM Start Backend (CA-Connected Blockchain Mode)
 echo Starting Backend API Server (CA-Connected Mode)...
-start "TRACE HERB Backend" cmd /k "cd backend && npm start"
+start "TRACE HERB Backend" cmd /k "cd /d %~dp0backend && npm start"
 
 REM Wait for backend to start
 timeout /t 5 /nobreak >nul
 
 REM Start Enhanced Consumer Portal (Main Demo Portal)
 echo Starting Enhanced Consumer Portal (Port 3010)...
-start "Enhanced Consumer Portal" cmd /k "cd frontend\enhanced-consumer-portal && npm run dev"
+start "Enhanced Consumer Portal" cmd /k "cd /d %~dp0frontend\enhanced-consumer-portal && npm run dev"
 
 REM Start Farmer Portal
 echo Starting Farmer Portal (Port 3002)...
-start "Farmer Portal" cmd /k "cd frontend\farmer-dapp && npm run dev"
+start "Farmer Portal" cmd /k "cd /d %~dp0frontend\farmer-dapp && npm run dev"
 
 REM Start Supply Chain Overview
 echo Starting Supply Chain Overview (Port 3000)...
-start "Supply Chain Overview" cmd /k "cd frontend\supply-chain-overview && npm run dev"
+start "Supply Chain Overview" cmd /k "cd /d %~dp0frontend\supply-chain-overview && npm run dev"
 
 REM Start Consumer Portal (Original)
 echo Starting Consumer Portal (Port 3001)...
-start "Consumer Portal" cmd /k "cd frontend\consumer-portal && npm run dev"
+start "Consumer Portal" cmd /k "cd /d %~dp0frontend\consumer-portal && npm run dev -- -p 3001"
 
 REM Start Processor Portal
 echo Starting Processor Portal (Port 3004)...
-start "Processor Portal" cmd /k "cd frontend\processor-portal && npm run dev"
+start "Processor Portal" cmd /k "cd /d %~dp0frontend\processor-portal && npm run dev -- -p 3004"
 
 REM Start Lab Portal
 echo Starting Lab Portal (Port 3005)...
-start "Lab Portal" cmd /k "cd frontend\lab-portal && npm run dev"
+start "Lab Portal" cmd /k "cd /d %~dp0frontend\lab-portal && npm run dev -- -p 3005"
 
 REM Start Regulator Portal
 echo Starting Regulator Portal (Port 3006)...
-start "Regulator Portal" cmd /k "cd frontend\regulator-portal && npm run dev"
+start "Regulator Portal" cmd /k "cd /d %~dp0frontend\regulator-portal && npm run dev -- -p 3006"
+
+REM Start Stakeholder Dashboard
+echo Starting Stakeholder Dashboard (Port 3007)...
+start "Stakeholder Dashboard" cmd /k "cd /d %~dp0frontend\stakeholder-dashboard && npm run dev -- -p 3007"
+
+REM Start Management Portal
+echo Starting Management Portal (Port 3008)...
+start "Management Portal" cmd /k "cd /d %~dp0frontend\management-portal && npm run dev -- -p 3008"
+
+REM Start Wild Collector Portal
+echo Starting Wild Collector Portal (Port 3009)...
+start "Wild Collector Portal" cmd /k "cd /d %~dp0frontend\wild-collector-dapp && npm install --legacy-peer-deps && npm run dev -- -p 3009"
 
 echo.
 echo ========================================
@@ -165,6 +177,9 @@ echo 👤 Consumer Portal (Original):          http://localhost:3001
 echo 🏭 Processor Portal:                    http://localhost:3004
 echo 🔬 Lab Portal:                          http://localhost:3005
 echo 🏛️  Regulator Portal:                   http://localhost:3006
+echo 👥 Stakeholder Dashboard:               http://localhost:3007
+echo 🎛️  Management Portal:                  http://localhost:3008
+echo 🌿 Wild Collector Portal:               http://localhost:3009
 echo 🔧 Backend API:                         http://localhost:3000/api
 echo.
 echo 🔗 Blockchain Status: CA-Connected Mode (Certificate Authority)
