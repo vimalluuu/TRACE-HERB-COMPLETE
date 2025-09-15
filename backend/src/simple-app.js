@@ -108,11 +108,11 @@ app.get('/api/provenance/qr/:qrCode', async (req, res) => {
       provenance = await databaseService.getProvenanceByQR(qrCode);
     }
 
-    // If still not found, check if it's the demo QR code
-    if (!provenance && qrCode === 'QR_DEMO_ASHWAGANDHA_001') {
+    // If still not found, check if it's a demo QR code
+    if (!provenance && qrCode.startsWith('QR_DEMO_')) {
       const demoData = getAllDemoData();
       provenance = demoData.provenance;
-      
+
       // Load demo data into services for future requests
       await blockchainService.loadDemoData(demoData);
       await databaseService.loadDemoData(demoData);

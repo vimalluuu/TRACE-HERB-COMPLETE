@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   MapPinIcon,
   UserIcon,
   BeakerIcon,
   TruckIcon,
-  ShoppingBagIcon,
   SunIcon,
   CloudIcon,
   DropletIcon,
   ThermometerIcon,
   CalendarIcon,
   ClockIcon,
-  CameraIcon,
-  HeartIcon,
   StarIcon,
   ShieldCheckIcon
 } from '@heroicons/react/24/outline'
@@ -32,7 +28,6 @@ interface StoryNode {
   actor: string
   icon: React.ComponentType<any>
   details: any
-  images?: string[]
   environmental?: {
     temperature: number
     humidity: number
@@ -44,8 +39,6 @@ interface StoryNode {
 
 const InteractiveStoryMap: React.FC<StoryMapProps> = ({ qrCode, batchData }) => {
   const [activeNode, setActiveNode] = useState<string | null>(null)
-  const [playingStory, setPlayingStory] = useState(false)
-  const [currentStoryIndex, setCurrentStoryIndex] = useState(0)
 
   // Generate story nodes from batch data
   const generateStoryNodes = (): StoryNode[] => {

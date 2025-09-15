@@ -15,6 +15,12 @@ import { v4 as uuidv4 } from 'uuid'
 import axios from 'axios'
 import { useAuth } from '../hooks/useAuth'
 import LoginForm from '../components/LoginForm'
+import AIVerificationWidget from '../components/AIVerificationWidget'
+import RuralConnectivityWidget from '../components/RuralConnectivityWidget'
+import SMSBlockchainGateway from '../components/SMSBlockchainGateway'
+import SustainabilityWidget from '../components/SustainabilityWidget'
+import SecurityWidget from '../components/SecurityWidget'
+import RegulatoryWidget from '../components/RegulatoryWidget'
 
 export default function FarmerDApp() {
   // Authentication
@@ -27,6 +33,18 @@ export default function FarmerDApp() {
   const [locationError, setLocationError] = useState('')
   const [qrCodeUrl, setQrCodeUrl] = useState('')
   const [submissionResult, setSubmissionResult] = useState(null)
+  const [aiVerificationResult, setAiVerificationResult] = useState(null)
+  const [showAiVerification, setShowAiVerification] = useState(false)
+  const [ruralConnectivityResult, setRuralConnectivityResult] = useState(null)
+  const [showRuralConnectivity, setShowRuralConnectivity] = useState(false)
+  const [smsGatewayResult, setSMSGatewayResult] = useState(null)
+  const [showSMSGateway, setShowSMSGateway] = useState(false)
+  const [sustainabilityResult, setSustainabilityResult] = useState(null)
+  const [showSustainability, setShowSustainability] = useState(false)
+  const [securityResult, setSecurityResult] = useState(null)
+  const [showSecurity, setShowSecurity] = useState(false)
+  const [regulatoryResult, setRegulatoryResult] = useState(null)
+  const [showRegulatory, setShowRegulatory] = useState(false)
 
   // Farmer/Collector Information
   const [farmerData, setFarmerData] = useState({
@@ -349,11 +367,11 @@ export default function FarmerDApp() {
                   Logout
                 </button>
                 <div className="text-right">
-                  <p className="text-lg md:text-xl text-gray-600 font-medium">Step {currentStep} of 4</p>
+                  <p className="text-lg md:text-xl text-gray-600 font-medium">Step {currentStep} of 5</p>
                   <div className="w-32 bg-gray-200 rounded-full h-4 mt-2">
                     <div
                       className="bg-herb-green-600 h-4 rounded-full transition-all duration-300 shadow-lg"
-                      style={{ width: `${(currentStep / 4) * 100}%` }}
+                      style={{ width: `${(currentStep / 5) * 100}%` }}
                     ></div>
                   </div>
                 </div>
@@ -807,14 +825,383 @@ export default function FarmerDApp() {
                   disabled={!location}
                   className="btn-primary"
                 >
-                  Next: Generate QR
+                  Next: AI Verification
                 </button>
               </div>
             </div>
           )}
 
-          {/* Step 4: QR Code Generation and Submission */}
+          {/* Step 4: AI Verification */}
           {currentStep === 4 && (
+            <div className="card max-w-4xl mx-auto">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center">
+                    <span className="text-sm font-bold">AI</span>
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">AI Verification</h2>
+                </div>
+                <button
+                  onClick={() => setShowAiVerification(!showAiVerification)}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  {showAiVerification ? 'Hide AI Tools' : 'Show AI Tools'}
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-purple-800 mb-2">🤖 AI-Powered Verification</h3>
+                  <p className="text-purple-700 text-sm mb-3">
+                    Use AI to verify plant species, detect anomalies, and process voice reports.
+                    This step is optional but recommended for enhanced traceability.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      <span>Plant Species Verification</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                      <span>Voice-to-Blockchain Recording</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                      <span>Anomaly Detection</span>
+                    </div>
+                  </div>
+                </div>
+
+                {showAiVerification && (
+                  <AIVerificationWidget
+                    onVerificationComplete={(result) => {
+                      setAiVerificationResult(result);
+                      console.log('AI Verification Result:', result);
+                    }}
+                    batchData={{
+                      ...herbData,
+                      ...farmerData,
+                      location,
+                      collectionDate: new Date().toISOString()
+                    }}
+                  />
+                )}
+
+                {aiVerificationResult && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-green-800 mb-2">✅ AI Verification Complete</h4>
+                    <p className="text-green-700 text-sm">
+                      AI verification has been completed and the results will be included in the blockchain record.
+                    </p>
+                  </div>
+                )}
+
+                {/* Rural Connectivity Section */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="font-semibold text-blue-800 mb-2">🌐 Rural Connectivity Solutions</h3>
+                      <p className="text-blue-700 text-sm mb-3">
+                        Alternative methods for farmers in remote areas with limited internet connectivity.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowRuralConnectivity(!showRuralConnectivity)}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      {showRuralConnectivity ? 'Hide Rural Tools' : 'Show Rural Tools'}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      <span>SMS-to-Blockchain Gateway</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                      <span>Offline Data Synchronization</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                      <span>Paper QR with OTP Activation</span>
+                    </div>
+                  </div>
+                </div>
+
+                {showRuralConnectivity && (
+                  <RuralConnectivityWidget
+                    onConnectivityComplete={(result) => {
+                      setRuralConnectivityResult(result);
+                      console.log('Rural Connectivity Result:', result);
+                    }}
+                    batchData={{
+                      ...herbData,
+                      ...farmerData,
+                      location,
+                      collectionDate: new Date().toISOString()
+                    }}
+                  />
+                )}
+
+                {ruralConnectivityResult && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-800 mb-2">🌐 Rural Connectivity Complete</h4>
+                    <p className="text-blue-700 text-sm">
+                      Rural connectivity solution has been configured and is ready for use.
+                    </p>
+                  </div>
+                )}
+
+                {/* SMS-over-Blockchain Gateway Section */}
+                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="font-semibold text-indigo-800 mb-2">📡 SMS-over-Blockchain Gateway</h3>
+                      <p className="text-indigo-700 text-sm mb-3">
+                        IoT devices transmitting collection data via SMS when internet connectivity is sparse.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowSMSGateway(!showSMSGateway)}
+                      className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                    >
+                      {showSMSGateway ? 'Hide Gateway' : 'Show Gateway'}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                      <span>IoT Device Registry</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      <span>SMS Data Transmission</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                      <span>Collection Event Simulation</span>
+                    </div>
+                  </div>
+
+                  {showSMSGateway && (
+                    <div className="mt-4 p-4 bg-white rounded-lg border border-indigo-200">
+                      <p className="text-sm text-indigo-700 mb-3">
+                        <strong>SMS Gateway Status:</strong> Monitoring {smsGatewayResult?.data?.devices?.length || 0} IoT devices at remote collection points.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {showSMSGateway && (
+                  <SMSBlockchainGateway
+                    onGatewayComplete={(result) => {
+                      setSMSGatewayResult(result);
+                      console.log('SMS Gateway Result:', result);
+                    }}
+                    batchData={{
+                      commonName: formData.commonName || 'Ashwagandha',
+                      quantity: formData.quantity || '5.0',
+                      location: formData.location || 'Karnataka, India'
+                    }}
+                  />
+                )}
+
+                {/* Sustainability & Incentives Section */}
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="font-semibold text-green-800 mb-2">🌱 Sustainability & Incentives</h3>
+                      <p className="text-green-700 text-sm mb-3">
+                        Earn Green Tokens, build reputation, and generate carbon credits for sustainable practices.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowSustainability(!showSustainability)}
+                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      {showSustainability ? 'Hide Incentives' : 'Show Incentives'}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                      <span>Green Token Economy</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                      <span>Reputation Scoring</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                      <span>Carbon Credits Marketplace</span>
+                    </div>
+                  </div>
+                </div>
+
+                {showSustainability && (
+                  <SustainabilityWidget
+                    onSustainabilityComplete={(result) => {
+                      setSustainabilityResult(result);
+                      console.log('Sustainability Result:', result);
+                    }}
+                    batchData={{
+                      ...herbData,
+                      ...farmerData,
+                      location,
+                      collectionDate: new Date().toISOString()
+                    }}
+                    farmerId={farmerData.farmerId || 'F001'}
+                  />
+                )}
+
+                {sustainabilityResult && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-green-800 mb-2">🌱 Sustainability Action Complete</h4>
+                    <p className="text-green-700 text-sm">
+                      Your sustainable action has been recorded and rewards have been calculated.
+                    </p>
+                  </div>
+                )}
+
+                {/* Security & Cyber Innovation Section */}
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="font-semibold text-red-800 mb-2">🔐 Security & Cyber Innovation</h3>
+                      <p className="text-red-700 text-sm mb-3">
+                        Zero-Knowledge Proofs, end-to-end encryption, and advanced threat detection for maximum security.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowSecurity(!showSecurity)}
+                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      {showSecurity ? 'Hide Security' : 'Show Security'}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                      <span>Zero-Knowledge Proofs</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                      <span>End-to-End Encryption</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                      <span>Threat Detection</span>
+                    </div>
+                  </div>
+                </div>
+
+                {showSecurity && (
+                  <SecurityWidget
+                    onSecurityComplete={(result) => {
+                      setSecurityResult(result);
+                      console.log('Security Result:', result);
+                    }}
+                    batchData={{
+                      ...herbData,
+                      ...farmerData,
+                      location,
+                      collectionDate: new Date().toISOString()
+                    }}
+                    farmerId={farmerData.farmerId || 'F001'}
+                  />
+                )}
+
+                {securityResult && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-red-800 mb-2">🔐 Security Operation Complete</h4>
+                    <p className="text-red-700 text-sm">
+                      Security operation has been completed successfully with advanced cryptographic protection.
+                    </p>
+                  </div>
+                )}
+
+                {/* Regulatory & Export Ready Section */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="font-semibold text-blue-800 mb-2">📋 Regulatory & Export Ready</h3>
+                      <p className="text-blue-700 text-sm mb-3">
+                        GS1/FHIR compliance and automated export certificate generation for global markets.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowRegulatory(!showRegulatory)}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      {showRegulatory ? 'Hide Regulatory' : 'Show Regulatory'}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                      <span>GS1 Global Standards</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      <span>FHIR Healthcare</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                      <span>Export Certificates</span>
+                    </div>
+                  </div>
+                </div>
+
+                {showRegulatory && (
+                  <RegulatoryWidget
+                    onRegulatoryComplete={(result) => {
+                      setRegulatoryResult(result);
+                      console.log('Regulatory Result:', result);
+                    }}
+                    batchData={{
+                      ...herbData,
+                      ...farmerData,
+                      location,
+                      collectionDate: new Date().toISOString()
+                    }}
+                    farmerId={farmerData.farmerId || 'F001'}
+                  />
+                )}
+
+                {regulatoryResult && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-800 mb-2">📋 Regulatory Compliance Complete</h4>
+                    <p className="text-blue-700 text-sm">
+                      Regulatory compliance has been generated successfully and is ready for global export.
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex justify-between pt-6">
+                  <button
+                    onClick={() => setCurrentStep(3)}
+                    className="btn-secondary"
+                  >
+                    ← Back to Location
+                  </button>
+                  <button
+                    onClick={() => setCurrentStep(5)}
+                    className="btn-primary"
+                  >
+                    Continue to QR Generation →
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: QR Code Generation and Submission */}
+          {currentStep === 5 && (
             <div className="card max-w-2xl mx-auto">
               <div className="flex items-center space-x-3 mb-6">
                 <QrCodeIcon className="w-8 h-8 text-herb-green-600" />
@@ -941,7 +1328,7 @@ export default function FarmerDApp() {
                         <button
                           onClick={() => {
                             setSubmissionResult(null)
-                            setCurrentStep(3)
+                            setCurrentStep(4)
                           }}
                           className="px-8 py-4 bg-gray-200 text-gray-700 rounded-2xl font-black text-xl hover:bg-gray-300 transition-all duration-300 shadow-lg"
                         >
@@ -965,10 +1352,10 @@ export default function FarmerDApp() {
               {!submissionResult && (
                 <div className="flex justify-between mt-8">
                   <button
-                    onClick={() => setCurrentStep(3)}
+                    onClick={() => setCurrentStep(4)}
                     className="btn-secondary"
                   >
-                    Back
+                    Back to AI Verification
                   </button>
                 </div>
               )}

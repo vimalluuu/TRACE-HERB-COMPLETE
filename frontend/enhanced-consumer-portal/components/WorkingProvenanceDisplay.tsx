@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react'
+import SimpleInteractiveStoryMap from './SimpleInteractiveStoryMap'
+import SimpleTrustScoreWidget from './SimpleTrustScoreWidget'
+import SimpleHealthInsightsPanel from './SimpleHealthInsightsPanel'
 
 interface ProvenanceData {
   id: string
@@ -35,6 +38,9 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'journey' | 'quality' | 'sustainability' | 'farmer'>('journey')
+  const [showAdvancedInsights, setShowAdvancedInsights] = useState(false)
+  const [isNotFound, setIsNotFound] = useState(false)
+  const [isRateLimit, setIsRateLimit] = useState(false)
 
   // Fetch provenance data
   useEffect(() => {
@@ -76,10 +82,12 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
 
         if (!response.ok) {
           if (response.status === 404) {
+            setIsNotFound(true)
             throw new Error('QR code not found. Please check the code and try again.')
           } else if (response.status === 400) {
             throw new Error('Invalid QR code format. Please enter a valid TRACE HERB QR code.')
           } else if (response.status === 429) {
+            setIsRateLimit(true)
             throw new Error('Too many requests. Please wait a moment and try again.')
           } else if (response.status >= 500) {
             throw new Error('Server error. Please try again later.')
@@ -163,7 +171,9 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
                 <h4 className="font-medium text-blue-900 mb-2">💡 Try these demo QR codes:</h4>
                 <ul className="text-sm text-blue-800 space-y-1">
                   <li>• <code className="bg-blue-100 px-2 py-1 rounded">QR_DEMO_ASHWAGANDHA_001</code></li>
-                  <li>• <code className="bg-blue-100 px-2 py-1 rounded">QR_DEMO_TURMERIC_002</code></li>
+                  <li>• <code className="bg-blue-100 px-2 py-1 rounded">QR_DEMO_TURMERIC_001</code></li>
+                  <li>• <code className="bg-blue-100 px-2 py-1 rounded">QR_DEMO_BRAHMI_001</code></li>
+                  <li>• <code className="bg-blue-100 px-2 py-1 rounded">QR_DEMO_NEEM_001</code></li>
                 </ul>
               </div>
             )}
@@ -204,6 +214,119 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
   const currentStageIndex = trackingStages.findIndex(stage => stage.key === (provenance.currentStatus || 'approved'))
   const isInProgress = provenance.isInProgress || false
 
+  // Show advanced insights if requested
+  if (showAdvancedInsights) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-2xl max-w-7xl w-full max-h-[90vh] overflow-y-auto">
+          {/* Advanced Insights Header */}
+          <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                <span className="text-purple-600 mr-2">✨</span>
+                Advanced Insights for {provenance.product.name}
+              </h2>
+              <p className="text-gray-600 mt-1">QR Code: {qrCode}</p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowAdvancedInsights(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+              >
+                ← Back to Tracking
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-xl"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+
+          {/* Advanced Insights Content */}
+          <div className="p-6 space-y-8">
+            {/* Interactive Story Map */}
+            <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <span className="text-green-600 mr-2">🗺️</span>
+                Interactive Supply Chain Journey
+              </h3>
+              <SimpleInteractiveStoryMap
+                batchData={{
+                  qrCode: qrCode,
+                  botanicalName: provenance.product.botanicalName,
+                  commonName: provenance.product.name,
+                  farmerName: provenance.events.find(e => e.type === 'Collection')?.performer?.name || 'Unknown Farmer',
+                  village: provenance.events.find(e => e.type === 'Collection')?.location?.name?.split(',')[0] || 'Unknown',
+                  district: provenance.events.find(e => e.type === 'Collection')?.location?.name?.split(',')[1]?.trim() || 'Unknown',
+                  state: provenance.events.find(e => e.type === 'Collection')?.location?.name?.split(',')[2]?.trim() || 'Unknown',
+                  quantity: parseFloat(provenance.events.find(e => e.type === 'Collection')?.details?.quantity) || 0,
+                  collectionDate: provenance.events.find(e => e.type === 'Collection')?.timestamp?.split('T')[0] || '2024-01-01',
+                  farmerExperience: provenance.events.find(e => e.type === 'Collection')?.performer?.experience || '5+ years',
+                  farmerReputation: 85 + Math.floor(Math.random() * 15),
+                  qualityScore: 85 + Math.floor(Math.random() * 15),
+                  sustainabilityScore: 80 + Math.floor(Math.random() * 20)
+                }}
+              />
+            </div>
+
+            {/* Trust Score Widget */}
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <span className="text-blue-600 mr-2">🛡️</span>
+                Blockchain Trust Score
+              </h3>
+              <SimpleTrustScoreWidget
+                batchData={{
+                  qrCode: qrCode,
+                  botanicalName: provenance.product.botanicalName,
+                  commonName: provenance.product.name,
+                  farmerName: provenance.events.find(e => e.type === 'Collection')?.performer?.name || 'Unknown Farmer',
+                  village: provenance.events.find(e => e.type === 'Collection')?.location?.name?.split(',')[0] || 'Unknown',
+                  district: provenance.events.find(e => e.type === 'Collection')?.location?.name?.split(',')[1]?.trim() || 'Unknown',
+                  state: provenance.events.find(e => e.type === 'Collection')?.location?.name?.split(',')[2]?.trim() || 'Unknown',
+                  quantity: parseFloat(provenance.events.find(e => e.type === 'Collection')?.details?.quantity) || 0,
+                  collectionDate: provenance.events.find(e => e.type === 'Collection')?.timestamp?.split('T')[0] || '2024-01-01',
+                  farmerExperience: provenance.events.find(e => e.type === 'Collection')?.performer?.experience || '5+ years',
+                  farmerReputation: 85 + Math.floor(Math.random() * 15),
+                  qualityScore: 85 + Math.floor(Math.random() * 15),
+                  sustainabilityScore: 80 + Math.floor(Math.random() * 20)
+                }}
+              />
+            </div>
+
+            {/* Health Insights Panel */}
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <span className="text-purple-600 mr-2">💊</span>
+                Ayurvedic Health Insights
+              </h3>
+              <SimpleHealthInsightsPanel
+                batchData={{
+                  qrCode: qrCode,
+                  botanicalName: provenance.product.botanicalName,
+                  commonName: provenance.product.name,
+                  farmerName: provenance.events.find(e => e.type === 'Collection')?.performer?.name || 'Unknown Farmer',
+                  village: provenance.events.find(e => e.type === 'Collection')?.location?.name?.split(',')[0] || 'Unknown',
+                  district: provenance.events.find(e => e.type === 'Collection')?.location?.name?.split(',')[1]?.trim() || 'Unknown',
+                  state: provenance.events.find(e => e.type === 'Collection')?.location?.name?.split(',')[2]?.trim() || 'Unknown',
+                  quantity: parseFloat(provenance.events.find(e => e.type === 'Collection')?.details?.quantity) || 0,
+                  collectionDate: provenance.events.find(e => e.type === 'Collection')?.timestamp?.split('T')[0] || '2024-01-01',
+                  farmerExperience: provenance.events.find(e => e.type === 'Collection')?.performer?.experience || '5+ years',
+                  farmerReputation: 85 + Math.floor(Math.random() * 15),
+                  qualityScore: 85 + Math.floor(Math.random() * 15),
+                  sustainabilityScore: 80 + Math.floor(Math.random() * 20)
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Default tracking progress view
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
@@ -309,25 +432,36 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
 
           {/* Navigation Tabs */}
           <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6">
-              {[
-                { id: 'journey', label: 'Journey' },
-                { id: 'quality', label: 'Quality' },
-                { id: 'sustainability', label: 'Sustainability' },
-                { id: 'farmer', label: 'Farmer' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`py-4 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-green-600 text-green-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <nav className="flex items-center justify-between px-6">
+              <div className="flex space-x-8">
+                {[
+                  { id: 'journey', label: 'Journey' },
+                  { id: 'quality', label: 'Quality' },
+                  { id: 'sustainability', label: 'Sustainability' },
+                  { id: 'farmer', label: 'Farmer' }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`py-4 border-b-2 font-medium text-sm transition-colors ${
+                      activeTab === tab.id
+                        ? 'border-green-600 text-green-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Advanced Insights Button */}
+              <button
+                onClick={() => setShowAdvancedInsights(true)}
+                className="py-2 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium text-sm transition-all duration-300 flex items-center space-x-2"
+              >
+                <span>✨</span>
+                <span>Advanced Insights</span>
+              </button>
             </nav>
           </div>
 

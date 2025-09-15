@@ -4,7 +4,7 @@
   "description": "Enhanced TRACE HERB Consumer Portal with Advanced QR Scanning and FHIR Compliance",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3003",
+    "dev": "next dev -p 3010",
     "build": "next build",
     "start": "next start -p 3003",
     "lint": "next lint",

@@ -1,65 +1,147 @@
-import { useState } from 'react';
-import Head from 'next/head';
+import React, { useState, useEffect } from 'react'
+import Head from 'next/head'
+import {
+  QrCodeIcon,
+  ShieldCheckIcon,
+  GlobeAltIcon,
+  BeakerIcon,
+  UserGroupIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  MapPinIcon,
+  CalendarIcon,
+  StarIcon,
+  TruckIcon,
+  HomeIcon,
+  UserIcon
+} from '@heroicons/react/24/outline'
 
-export default function Home() {
-  const [qrInput, setQrInput] = useState('');
-  const [provenanceData, setProvenanceData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+export default function ConsumerPortal() {
+  const [qrInput, setQrInput] = useState('')
+  const [provenanceData, setProvenanceData] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [currentStep, setCurrentStep] = useState(0)
+  const [showDetails, setShowDetails] = useState({})
+
+  // Auto-advance through journey steps
+  useEffect(() => {
+    if (provenanceData && provenanceData.journey) {
+      const interval = setInterval(() => {
+        setCurrentStep(prev => (prev + 1) % provenanceData.journey.length)
+      }, 3000)
+      return () => clearInterval(interval)
+    }
+  }, [provenanceData])
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!qrInput.trim()) return;
-    
-    setLoading(true);
-    setError(null);
-    
+    e.preventDefault()
+    if (!qrInput.trim()) return
+
+    setLoading(true)
+    setError(null)
+
     try {
-      const response = await fetch(`http://localhost:3000/api/provenance/qr/${qrInput.trim()}`);
-      const data = await response.json();
-      
+      const response = await fetch(`http://localhost:3000/api/provenance/qr/${qrInput.trim()}`)
+      const data = await response.json()
+
       if (data.success) {
-        setProvenanceData(data.data);
+        setProvenanceData(data.data)
+        setCurrentStep(0)
       } else {
-        setError(data.error || 'Product not found');
+        setError(data.error || 'Product not found')
       }
     } catch (err) {
-      console.error('Error fetching provenance:', err);
-      setError('Failed to verify product. Please check your connection.');
+      console.error('Error fetching provenance:', err)
+      setError('Failed to verify product. Please check your connection.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const resetView = () => {
-    setProvenanceData(null);
-    setError(null);
-    setQrInput('');
-  };
+    setProvenanceData(null)
+    setError(null)
+    setQrInput('')
+    setCurrentStep(0)
+    setShowDetails({})
+  }
+
+  const toggleDetails = (section) => {
+    setShowDetails(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }))
+  }
+
+  const getStepIcon = (type) => {
+    const icons = {
+      'collection': UserGroupIcon,
+      'processing': BeakerIcon,
+      'quality': ShieldCheckIcon,
+      'shipping': TruckIcon,
+      'retail': HomeIcon
+    }
+    return icons[type] || CheckCircleIcon
+  }
+
+  const getQualityColor = (grade) => {
+    const colors = {
+      'A': 'text-green-600 bg-green-100',
+      'B': 'text-yellow-600 bg-yellow-100',
+      'C': 'text-orange-600 bg-orange-100'
+    }
+    return colors[grade] || 'text-gray-600 bg-gray-100'
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+    <div className="min-h-screen bg-gray-50">
       <Head>
-        <title>TRACE HERB - Ayurvedic Herb Traceability</title>
-        <meta name="description" content="Blockchain-based traceability for Ayurvedic herbs" />
+        <title>TRACE HERB - Consumer Portal</title>
+        <meta name="description" content="Verify authentic Ayurvedic herbs with blockchain traceability" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-green-800 mb-4">
-            🌿 TRACE HERB
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Blockchain-Based Ayurvedic Herb Traceability System
-          </p>
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <h1 className="text-2xl font-bold text-green-700">🌿 TRACE HERB</h1>
+              </div>
+              <div className="ml-10">
+                <span className="text-sm text-gray-600">Consumer Portal</span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center text-sm text-gray-600">
+                <ShieldCheckIcon className="h-4 w-4 mr-1 text-green-500" />
+                Blockchain Verified
+              </div>
+            </div>
+          </div>
         </div>
+      </header>
 
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {!provenanceData ? (
-          <div className="max-w-md mx-auto">
-            <div className="bg-white p-6 rounded-lg shadow-lg">
+          // QR Code Scanner Section
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-8">
+              <QrCodeIcon className="h-16 w-16 text-green-600 mx-auto mb-4" />
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                🌿 TRACE HERB
+              </h2>
+              <p className="text-xl text-gray-600 mb-8">
+                Blockchain-Based Ayurvedic Herb Traceability System
+              </p>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-semibold mb-4 text-center">Verify Your Product</h2>
-              
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label htmlFor="qrInput" className="block text-sm font-medium text-gray-700 mb-2">

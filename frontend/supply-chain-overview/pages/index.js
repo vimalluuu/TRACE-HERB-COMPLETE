@@ -5,9 +5,9 @@ export default function SupplyChainOverview() {
     {
       id: 1,
       name: 'Enhanced Consumer Portal',
-      description: 'Advanced QR verification and provenance display',
-      icon: '📱',
-      url: 'http://localhost:3004',
+      description: 'Advanced QR verification and provenance display with gamification',
+      icon: '🚀',
+      url: 'http://localhost:3010',
       color: 'from-orange-500 to-orange-600',
       features: ['QR Code Scanning', 'Provenance History', 'Interactive Maps', 'Authenticity Verification']
     },

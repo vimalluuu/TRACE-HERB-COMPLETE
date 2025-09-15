@@ -22,9 +22,7 @@ import PortalNavigation from '../components/PortalNavigation'
 import WorkingProvenanceDisplay from '../components/WorkingProvenanceDisplay'
 import QRScanner from '../components/QRScanner'
 import BatchTracker from '../components/BatchTracker'
-import InteractiveStoryMap from '../components/InteractiveStoryMap'
-import TrustScoreWidget from '../components/TrustScoreWidget'
-import HealthInsightsPanel from '../components/HealthInsightsPanel'
+
 import { useAuth } from '../lib/useAuth'
 
 interface RecentScan {
@@ -44,8 +42,7 @@ const HomePage: React.FC = () => {
   const [isOnline, setIsOnline] = useState(true)
   const [showBatchTracker, setShowBatchTracker] = useState(false)
   const [trackingBatchId, setTrackingBatchId] = useState<string | null>(null)
-  const [batchData, setBatchData] = useState<any>(null)
-  const [showAdvancedFeatures, setShowAdvancedFeatures] = useState(false)
+
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -98,51 +95,9 @@ const HomePage: React.FC = () => {
   const handleQRScan = async (qrCode: string) => {
     setCurrentQRCode(qrCode)
     setShowScanner(false)
-    setShowAdvancedFeatures(true)
 
-    // Fetch batch data for advanced features
-    try {
-      const response = await fetch(`http://localhost:3000/api/collection/batch/${qrCode}`)
-      if (response.ok) {
-        const data = await response.json()
-        setBatchData(data.data)
-      } else {
-        // Use mock data for demo
-        setBatchData({
-          qrCode,
-          botanicalName: 'Withania somnifera',
-          commonName: 'Ashwagandha',
-          farmerName: 'Rajesh Kumar',
-          village: 'Kumta',
-          district: 'Uttara Kannada',
-          state: 'Karnataka',
-          quantity: 5,
-          collectionDate: '2024-08-15',
-          farmerExperience: 15,
-          farmerReputation: 88,
-          qualityScore: 92,
-          sustainabilityScore: 87
-        })
-      }
-    } catch (error) {
-      console.error('Error fetching batch data:', error)
-      // Use mock data for demo
-      setBatchData({
-        qrCode,
-        botanicalName: 'Withania somnifera',
-        commonName: 'Ashwagandha',
-        farmerName: 'Rajesh Kumar',
-        village: 'Kumta',
-        district: 'Uttara Kannada',
-        state: 'Karnataka',
-        quantity: 5,
-        collectionDate: '2024-08-15',
-        farmerExperience: 15,
-        farmerReputation: 88,
-        qualityScore: 92,
-        sustainabilityScore: 87
-      })
-    }
+    // Save to recent scans (will be updated with real product name after successful fetch)
+    saveRecentScan(qrCode, 'Loading...')
   }
 
   // Handle manual QR input
@@ -180,10 +135,10 @@ const HomePage: React.FC = () => {
 
   // Demo QR codes for testing
   const demoQRCodes = [
-    { code: 'TH-2024-001', name: 'Turmeric Batch', origin: 'Kerala' },
     { code: 'QR_DEMO_ASHWAGANDHA_001', name: 'Ashwagandha Root', origin: 'Maharashtra' },
-    { code: 'QR_DEMO_TURMERIC_002', name: 'Turmeric Powder', origin: 'Kerala' },
-    { code: 'QR_DEMO_BRAHMI_003', name: 'Brahmi Leaves', origin: 'Karnataka' }
+    { code: 'QR_DEMO_TURMERIC_001', name: 'Turmeric Powder', origin: 'Kerala' },
+    { code: 'QR_DEMO_BRAHMI_001', name: 'Brahmi Leaves', origin: 'Karnataka' },
+    { code: 'QR_DEMO_NEEM_001', name: 'Neem Leaves', origin: 'Tamil Nadu' }
   ]
 
   // Show loading state while checking authentication
@@ -711,7 +666,7 @@ const HomePage: React.FC = () => {
                     sustainabilityScore: 87
                   })
                   setCurrentQRCode('DEMO_ASHWAGANDHA_PREMIUM')
-                  setShowAdvancedFeatures(true)
+                  router.push('/dashboard')
                 }}
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center mx-auto"
               >
@@ -871,67 +826,7 @@ const HomePage: React.FC = () => {
           />
         )}
 
-        {/* Advanced Features Section */}
-        {showAdvancedFeatures && batchData && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white rounded-xl shadow-2xl max-w-7xl w-full max-h-[90vh] overflow-y-auto"
-            >
-              {/* Header */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                    <SparklesIcon className="h-6 w-6 mr-2 text-purple-600" />
-                    Advanced Insights for {batchData.commonName}
-                  </h2>
-                  <p className="text-gray-600 mt-1">QR Code: {currentQRCode}</p>
-                </div>
-                <button
-                  onClick={() => setShowAdvancedFeatures(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
 
-              {/* Content */}
-              <div className="p-6 space-y-8">
-                {/* Interactive Story Map */}
-                <InteractiveStoryMap qrCode={currentQRCode} batchData={batchData} />
-
-                {/* Trust Score Widget */}
-                <TrustScoreWidget qrCode={currentQRCode} batchData={batchData} />
-
-                {/* Health Insights Panel */}
-                <HealthInsightsPanel
-                  qrCode={currentQRCode}
-                  batchData={batchData}
-                  userProfile={{
-                    age: 35,
-                    gender: 'male',
-                    healthConditions: ['stress'],
-                    preferences: ['natural', 'organic']
-                  }}
-                />
-              </div>
-
-              {/* Footer */}
-              <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-4 flex justify-center">
-                <button
-                  onClick={() => setShowAdvancedFeatures(false)}
-                  className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-green-600 hover:to-blue-600 transition-all"
-                >
-                  Close Advanced Insights
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
 
         {/* Batch Tracker Modal */}
         {showBatchTracker && trackingBatchId && (

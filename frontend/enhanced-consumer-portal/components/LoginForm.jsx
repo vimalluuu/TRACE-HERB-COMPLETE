@@ -158,25 +158,7 @@ const LoginForm = ({
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <div className="text-sm text-gray-600">
-            <p className="mb-2">Demo Accounts:</p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-gray-50 p-2 rounded">
-                <strong>Admin:</strong> admin / password
-              </div>
-              <div className="bg-gray-50 p-2 rounded">
-                <strong>Farmer:</strong> farmer1 / password
-              </div>
-              <div className="bg-gray-50 p-2 rounded">
-                <strong>Processor:</strong> processor1 / password
-              </div>
-              <div className="bg-gray-50 p-2 rounded">
-                <strong>Consumer:</strong> consumer1 / password
-              </div>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   );

@@ -496,12 +496,12 @@ class BlockchainService {
         },
         recorded: '2024-03-18T16:30:00Z'
       },
-      'QR_DEMO_TURMERIC_002': {
-        id: 'PROV_TUR_002_2024',
+      'QR_DEMO_TURMERIC_001': {
+        id: 'PROV_TUR_001_2024',
         resourceType: 'Provenance',
         target: {
-          qrCode: 'QR_DEMO_TURMERIC_002',
-          batchNumber: 'TUR-2024-002',
+          qrCode: 'QR_DEMO_TURMERIC_001',
+          batchNumber: 'TUR-2024-001',
           productName: 'Organic Turmeric Powder',
           expiryDate: '2025-11-30'
         },
@@ -580,6 +580,126 @@ class BlockchainService {
           biodiversityImpact: 'Positive - supports monsoon agriculture'
         },
         recorded: '2024-02-21T18:45:00Z'
+      },
+      'QR_DEMO_BRAHMI_001': {
+        id: 'PROV_BRA_001_2024',
+        resourceType: 'Provenance',
+        target: {
+          qrCode: 'QR_DEMO_BRAHMI_001',
+          batchNumber: 'BRA-2024-001',
+          productName: 'Organic Brahmi Leaves',
+          expiryDate: '2025-10-31'
+        },
+        product: {
+          name: 'Organic Brahmi Leaves',
+          botanicalName: 'Bacopa monnieri',
+          category: 'Cognitive Enhancement Herb',
+          grade: 'Premium Organic',
+          certifications: ['USDA Organic', 'Ayurvedic Certified', 'Non-GMO']
+        },
+        blockchain: {
+          networkId: 'trace-herb-network',
+          channelId: 'herb-channel',
+          chaincodeId: 'herb-traceability',
+          transactionId: 'tx_' + Date.now(),
+          timestamp: Date.now(),
+          certificateAuthorities: this.certificateAuthorities || [],
+          mode: 'CA_CONNECTED',
+          verified: true
+        },
+        events: [
+          {
+            id: 'event-brahmi-collection-001',
+            type: 'collection',
+            timestamp: '2024-03-10T07:30:00Z',
+            location: { name: 'Organic Farm, Mysore, Karnataka', coordinates: { latitude: 12.2958, longitude: 76.6394 } },
+            performer: { name: 'Lakshmi Devi', certification: 'Organic Certified', experience: '12 years' },
+            details: { quantity: 8, unit: 'kg', method: 'Hand-picked', quality: 'Premium', moistureContent: '12%' }
+          },
+          {
+            id: 'event-brahmi-processing-001',
+            type: 'processing',
+            timestamp: '2024-03-12T10:15:00Z',
+            location: { name: 'Ayurvedic Processing Unit, Mysore', coordinates: { latitude: 12.3051, longitude: 76.6553 } },
+            performer: { name: 'Dr. Suresh Kumar', certification: 'Ayurvedic Processing Expert' },
+            details: { process: 'Traditional drying', temperature: '40°C', duration: '48 hours', finalMoisture: '8%' }
+          },
+          {
+            id: 'event-brahmi-testing-001',
+            type: 'testing',
+            timestamp: '2024-03-15T14:20:00Z',
+            location: { name: 'Ayurvedic Quality Lab, Bangalore', coordinates: { latitude: 12.9716, longitude: 77.5946 } },
+            performer: { name: 'Dr. Priya Sharma', certification: 'Ayurvedic Quality Analyst' },
+            details: { bacosideContent: '12.5%', heavyMetals: 'Within limits', microbiology: 'Compliant', overallGrade: 'A+' }
+          }
+        ],
+        consumer: { scanCount: 0, firstScan: null, lastScan: null },
+        sustainability: {
+          carbonFootprint: 0.8,
+          waterUsage: 'Low',
+          biodiversityImpact: 'Positive - supports wetland agriculture'
+        },
+        recorded: '2024-03-15T16:30:00Z'
+      },
+      'QR_DEMO_NEEM_001': {
+        id: 'PROV_NEE_001_2024',
+        resourceType: 'Provenance',
+        target: {
+          qrCode: 'QR_DEMO_NEEM_001',
+          batchNumber: 'NEE-2024-001',
+          productName: 'Organic Neem Leaves',
+          expiryDate: '2025-09-30'
+        },
+        product: {
+          name: 'Organic Neem Leaves',
+          botanicalName: 'Azadirachta indica',
+          category: 'Antimicrobial Herb',
+          grade: 'Premium Organic',
+          certifications: ['USDA Organic', 'Traditional Medicine Certified', 'Non-GMO']
+        },
+        blockchain: {
+          networkId: 'trace-herb-network',
+          channelId: 'herb-channel',
+          chaincodeId: 'herb-traceability',
+          transactionId: 'tx_' + Date.now(),
+          timestamp: Date.now(),
+          certificateAuthorities: this.certificateAuthorities || [],
+          mode: 'CA_CONNECTED',
+          verified: true
+        },
+        events: [
+          {
+            id: 'event-neem-collection-001',
+            type: 'collection',
+            timestamp: '2024-04-05T06:00:00Z',
+            location: { name: 'Traditional Farm, Coimbatore, Tamil Nadu', coordinates: { latitude: 11.0168, longitude: 76.9558 } },
+            performer: { name: 'Murugan Pillai', certification: 'Traditional Farming Expert', experience: '20 years' },
+            details: { quantity: 15, unit: 'kg', method: 'Selective harvesting', quality: 'Premium', season: 'Summer' }
+          },
+          {
+            id: 'event-neem-processing-001',
+            type: 'processing',
+            timestamp: '2024-04-06T09:30:00Z',
+            location: { name: 'Traditional Processing Center, Coimbatore', coordinates: { latitude: 11.0168, longitude: 76.9558 } },
+            performer: { name: 'Kamala Devi', certification: 'Traditional Processing Expert' },
+            details: { process: 'Shade drying', duration: '72 hours', finalMoisture: '7%', color: 'Natural green' }
+          },
+          {
+            id: 'event-neem-testing-001',
+            type: 'testing',
+            timestamp: '2024-04-10T11:45:00Z',
+            location: { name: 'Herbal Quality Lab, Chennai', coordinates: { latitude: 13.0827, longitude: 80.2707 } },
+            performer: { name: 'Dr. Ravi Kumar', certification: 'Herbal Quality Specialist' },
+            details: { azadirachtinContent: '0.3%', bitterness: 'High', antimicrobialActivity: 'Excellent', overallGrade: 'A+' }
+          }
+        ],
+        consumer: { scanCount: 0, firstScan: null, lastScan: null },
+        sustainability: {
+          carbonFootprint: 0.5,
+          waterUsage: 'Very Low',
+          biodiversityImpact: 'Positive - supports natural pest control'
+        },
+        recorded: '2024-04-10T14:00:00Z'
       }
     };
 
