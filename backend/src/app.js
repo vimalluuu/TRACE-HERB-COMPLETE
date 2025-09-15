@@ -27,6 +27,7 @@ const provenanceRoutes = require('./routes/provenance');
 const dashboardRoutes = require('./routes/dashboard');
 const integrationRoutes = require('./routes/integration');
 const healthRoutes = require('./routes/health');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -130,6 +131,7 @@ app.use('/api/integration', integrationRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/workflow', require('./routes/workflow'));
 app.use('/api/regulator', require('./routes/regulator'));
+app.use('/api/ai', aiRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
