@@ -23,13 +23,21 @@ interface WorkingProvenanceDisplayProps {
   onClose: () => void
   onTrackBatch?: (batchId: string) => void
   onProvenanceLoaded?: (productName: string) => void
+  onBatchDataLoaded?: (batchData: any) => void
+  onShowStoryMap?: () => void
+  onShowTrustScore?: () => void
+  onShowHealthInsights?: () => void
 }
 
 const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
   qrCode,
   onClose,
   onTrackBatch,
-  onProvenanceLoaded
+  onProvenanceLoaded,
+  onBatchDataLoaded,
+  onShowStoryMap,
+  onShowTrustScore,
+  onShowHealthInsights
 }) => {
   const [provenance, setProvenance] = useState<ProvenanceData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -110,6 +118,11 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
         // Call the callback with product name if provided
         if (onProvenanceLoaded && batchData.product?.name) {
           onProvenanceLoaded(batchData.product.name)
+        }
+
+        // Call the callback with batch data for gamification features
+        if (onBatchDataLoaded) {
+          onBatchDataLoaded(batchData)
         }
       } catch (err) {
         console.error('Error fetching provenance:', err)
@@ -303,6 +316,53 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Gamification Features - Only show when batch is complete */}
+          {!isInProgress && (
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">🎮 Interactive Experience</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={onShowStoryMap}
+                  className="flex items-center space-x-3 p-4 bg-white rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-md transition-all duration-300 group"
+                >
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center text-white text-xl group-hover:scale-110 transition-transform">
+                    🗺️
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold text-gray-900">Story Map</div>
+                    <div className="text-sm text-gray-600">Interactive journey</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={onShowTrustScore}
+                  className="flex items-center space-x-3 p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 group"
+                >
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white text-xl group-hover:scale-110 transition-transform">
+                    🛡️
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold text-gray-900">Trust Score</div>
+                    <div className="text-sm text-gray-600">Authenticity analysis</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={onShowHealthInsights}
+                  className="flex items-center space-x-3 p-4 bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all duration-300 group"
+                >
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-xl group-hover:scale-110 transition-transform">
+                    💊
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold text-gray-900">Health Insights</div>
+                    <div className="text-sm text-gray-600">Personalized info</div>
+                  </div>
+                </button>
               </div>
             </div>
           )}

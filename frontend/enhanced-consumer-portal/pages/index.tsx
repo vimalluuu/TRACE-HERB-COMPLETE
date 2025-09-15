@@ -22,6 +22,9 @@ import PortalNavigation from '../components/PortalNavigation'
 import WorkingProvenanceDisplay from '../components/WorkingProvenanceDisplay'
 import QRScanner from '../components/QRScanner'
 import BatchTracker from '../components/BatchTracker'
+import InteractiveStoryMap from '../components/InteractiveStoryMap'
+import TrustScoreWidget from '../components/TrustScoreWidget'
+import HealthInsightsPanel from '../components/HealthInsightsPanel'
 import { useAuth } from '../lib/useAuth'
 
 interface RecentScan {
@@ -41,6 +44,10 @@ const HomePage: React.FC = () => {
   const [isOnline, setIsOnline] = useState(true)
   const [showBatchTracker, setShowBatchTracker] = useState(false)
   const [trackingBatchId, setTrackingBatchId] = useState<string | null>(null)
+  const [showStoryMap, setShowStoryMap] = useState(false)
+  const [showTrustScore, setShowTrustScore] = useState(false)
+  const [showHealthInsights, setShowHealthInsights] = useState(false)
+  const [currentBatchData, setCurrentBatchData] = useState<any>(null)
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -94,6 +101,11 @@ const HomePage: React.FC = () => {
     setCurrentQRCode(qrCode)
     setShowScanner(false)
     // Don't save to recent scans immediately - wait for provenance data to load
+  }
+
+  // Handle batch data loaded from provenance
+  const handleBatchDataLoaded = (batchData: any) => {
+    setCurrentBatchData(batchData)
   }
 
   // Handle manual QR input
@@ -778,6 +790,10 @@ const HomePage: React.FC = () => {
             onClose={() => setCurrentQRCode(null)}
             onTrackBatch={(batchId: string) => handleTrackBatch(batchId)}
             onProvenanceLoaded={(productName: string) => handleProvenanceLoaded(currentQRCode, productName)}
+            onBatchDataLoaded={handleBatchDataLoaded}
+            onShowStoryMap={() => setShowStoryMap(true)}
+            onShowTrustScore={() => setShowTrustScore(true)}
+            onShowHealthInsights={() => setShowHealthInsights(true)}
           />
         )}
 
@@ -790,6 +806,57 @@ const HomePage: React.FC = () => {
               setTrackingBatchId(null)
             }}
           />
+        )}
+
+        {/* Interactive Story Map Modal */}
+        {showStoryMap && currentBatchData && (
+          <InteractiveStoryMap
+            batchData={currentBatchData}
+            onClose={() => setShowStoryMap(false)}
+          />
+        )}
+
+        {/* Trust Score Widget Modal */}
+        {showTrustScore && currentBatchData && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Trust Score Analysis</h2>
+                <button
+                  onClick={() => setShowTrustScore(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="p-4">
+                <TrustScoreWidget batchData={currentBatchData} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Health Insights Panel Modal */}
+        {showHealthInsights && currentBatchData && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Personalized Health Insights</h2>
+                <button
+                  onClick={() => setShowHealthInsights(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="p-4">
+                <HealthInsightsPanel
+                  batchData={currentBatchData}
+                  herbName={currentBatchData?.target?.herbName || 'Herb'}
+                />
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Toast Notifications */}
