@@ -8,15 +8,12 @@ echo Starting TRACE HERB Blockchain-based Herb Supply Chain Traceability System.
 echo.
 
 REM Check Node.js
-echo Checking Node.js...
 node --version
 if %errorlevel% neq 0 (
-    echo ERROR: Node.js not found - Please install Node.js from https://nodejs.org/
-    echo Press any key to exit...
+    echo ERROR: Node.js not found
     pause
     exit /b 1
 )
-echo Node.js found!
 
 REM Check npm
 npm --version
@@ -100,6 +97,3 @@ echo.
 echo Press any key to open main demo portal...
 pause >nul
 start http://localhost:3010
-echo.
-echo Script completed! If you see this message, everything worked!
-pause
