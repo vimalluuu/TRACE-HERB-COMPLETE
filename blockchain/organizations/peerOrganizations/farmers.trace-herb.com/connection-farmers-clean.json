@@ -1,0 +1,101 @@
+{
+  "name": "trace-herb-network",
+  "version": "1.0.0",
+  "client": {
+    "organization": "Farmers",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        },
+        "orderer": "300"
+      }
+    }
+  },
+  "organizations": {
+    "Farmers": {
+      "mspid": "FarmersMSP",
+      "peers": ["peer0.farmers.trace-herb.com"],
+      "certificateAuthorities": ["ca.farmers.trace-herb.com"]
+    },
+    "Processors": {
+      "mspid": "ProcessorsMSP",
+      "peers": ["peer0.processors.trace-herb.com"],
+      "certificateAuthorities": ["ca.processors.trace-herb.com"]
+    },
+    "Labs": {
+      "mspid": "LabsMSP",
+      "peers": ["peer0.labs.trace-herb.com"],
+      "certificateAuthorities": ["ca.labs.trace-herb.com"]
+    },
+    "Regulators": {
+      "mspid": "RegulatorsMSP",
+      "peers": ["peer0.regulators.trace-herb.com"],
+      "certificateAuthorities": ["ca.regulators.trace-herb.com"]
+    }
+  },
+  "orderers": {
+    "orderer.trace-herb.com": {
+      "url": "grpcs://localhost:7050",
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer.trace-herb.com"
+      }
+    }
+  },
+  "peers": {
+    "peer0.farmers.trace-herb.com": {
+      "url": "grpcs://localhost:7051",
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.farmers.trace-herb.com"
+      }
+    },
+    "peer0.processors.trace-herb.com": {
+      "url": "grpcs://localhost:9051",
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.processors.trace-herb.com"
+      }
+    },
+    "peer0.labs.trace-herb.com": {
+      "url": "grpcs://localhost:11051",
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.labs.trace-herb.com"
+      }
+    },
+    "peer0.regulators.trace-herb.com": {
+      "url": "grpcs://localhost:13051",
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.regulators.trace-herb.com"
+      }
+    }
+  },
+  "certificateAuthorities": {
+    "ca.farmers.trace-herb.com": {
+      "url": "https://localhost:7054",
+      "caName": "ca-farmers",
+      "httpOptions": {
+        "verify": false
+      }
+    },
+    "ca.processors.trace-herb.com": {
+      "url": "https://localhost:8054",
+      "caName": "ca-processors",
+      "httpOptions": {
+        "verify": false
+      }
+    },
+    "ca.labs.trace-herb.com": {
+      "url": "https://localhost:9054",
+      "caName": "ca-labs",
+      "httpOptions": {
+        "verify": false
+      }
+    },
+    "ca.regulators.trace-herb.com": {
+      "url": "https://localhost:10054",
+      "caName": "ca-regulators",
+      "httpOptions": {
+        "verify": false
+      }
+    }
+  }
+}

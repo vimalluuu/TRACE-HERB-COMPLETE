@@ -34,14 +34,22 @@ class HerbTraceabilityContract extends Contract {
   async initLedger(ctx) {
     console.info('============= START : Initialize Ledger ===========');
     
-    // Initialize network configuration
+    // Initialize network configuration for full network
     const networkConfig = {
       id: 'trace-herb-network',
       version: '1.0.0',
       initialized: new Date().toISOString(),
-      organizations: ['Org1MSP', 'Org2MSP', 'Org3MSP', 'Org4MSP'],
+      organizations: ['FarmersMSP', 'ProcessorsMSP', 'LabsMSP', 'RegulatorsMSP'],
       channels: ['herb-channel'],
-      chaincode: 'herb-traceability'
+      chaincode: 'herb-traceability',
+      mode: 'full-network',
+      peers: [
+        'peer0.farmers.trace-herb.com',
+        'peer0.processors.trace-herb.com',
+        'peer0.labs.trace-herb.com',
+        'peer0.regulators.trace-herb.com'
+      ],
+      orderers: ['orderer.trace-herb.com']
     };
     
     await ctx.stub.putState('NETWORK_CONFIG', Buffer.from(JSON.stringify(networkConfig)));
@@ -563,6 +571,60 @@ class HerbTraceabilityContract extends Contract {
     }
     
     return history;
+  }
+
+  /**
+   * Get network information and status
+   */
+  async GetNetworkInfo(ctx) {
+    console.info('============= Getting Network Info ===========');
+
+    try {
+      // Get network configuration
+      const networkConfigBytes = await ctx.stub.getState('NETWORK_CONFIG');
+      let networkConfig = {};
+
+      if (networkConfigBytes && networkConfigBytes.length > 0) {
+        networkConfig = JSON.parse(networkConfigBytes.toString());
+      }
+
+      // Get current transaction info
+      const txId = ctx.stub.getTxID();
+      const timestamp = ctx.stub.getTxTimestamp();
+      const mspId = ctx.clientIdentity.getMSPID();
+
+      const networkInfo = {
+        success: true,
+        networkConfig: networkConfig,
+        currentTransaction: {
+          txId: txId,
+          timestamp: new Date(timestamp.seconds * 1000).toISOString(),
+          mspId: mspId
+        },
+        chaincode: {
+          name: 'herb-traceability',
+          version: '1.0',
+          functions: [
+            'initLedger',
+            'RecordCollectionEvent',
+            'RecordProcessingStep',
+            'RecordQualityTest',
+            'CreateProvenance',
+            'QueryProvenance',
+            'GetNetworkInfo'
+          ]
+        },
+        status: 'ACTIVE',
+        mode: 'full-network'
+      };
+
+      console.info('Network info retrieved successfully');
+      return JSON.stringify(networkInfo);
+
+    } catch (error) {
+      console.error('Error getting network info:', error);
+      throw new Error(`Failed to get network info: ${error.message}`);
+    }
   }
 }
 
