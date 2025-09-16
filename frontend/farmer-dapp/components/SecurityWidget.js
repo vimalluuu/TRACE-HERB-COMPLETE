@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { 
+import {
   ShieldCheckIcon,
   LockClosedIcon,
   ExclamationTriangleIcon,
@@ -12,7 +12,7 @@ import {
   XCircleIcon,
   InformationCircleIcon,
   CpuChipIcon,
-  DocumentLockIcon
+  DocumentIcon
 } from '@heroicons/react/24/outline';
 
 const SecurityWidget = ({ onSecurityComplete, batchData, farmerId }) => {
@@ -337,11 +337,11 @@ const SecurityWidget = ({ onSecurityComplete, batchData, farmerId }) => {
                     icon: ShieldCheckIcon,
                     color: 'bg-blue-100 text-blue-700'
                   },
-                  { 
-                    type: 'quantity', 
-                    title: 'Quantity Bounds', 
+                  {
+                    type: 'quantity',
+                    title: 'Quantity Bounds',
                     description: 'Prove quantity ≤ 100kg without revealing exact amount',
-                    icon: DocumentLockIcon,
+                    icon: DocumentIcon,
                     color: 'bg-yellow-100 text-yellow-700'
                   },
                   { 

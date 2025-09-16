@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { Toaster } from 'react-hot-toast'
 import BlockchainStatus from '../components/BlockchainStatus'
+import CarbonCreditsMarketplace from '../components/CarbonCreditsMarketplace'
 import PortalNavigation from '../components/PortalNavigation'
 import WorkingProvenanceDisplay from '../components/WorkingProvenanceDisplay'
 import QRScanner from '../components/QRScanner'
@@ -42,6 +43,12 @@ const HomePage: React.FC = () => {
   const [isOnline, setIsOnline] = useState(true)
   const [showBatchTracker, setShowBatchTracker] = useState(false)
   const [trackingBatchId, setTrackingBatchId] = useState<string | null>(null)
+
+  // Advanced Features State
+  const [showCarbonMarketplace, setShowCarbonMarketplace] = useState(false)
+  const [carbonResult, setCarbonResult] = useState(null)
+  const [showSustainabilityImpact, setShowSustainabilityImpact] = useState(false)
+  const [sustainabilityResult, setSustainabilityResult] = useState(null)
 
 
   // Redirect to login if not authenticated
@@ -724,6 +731,113 @@ const HomePage: React.FC = () => {
             </motion.div>
           </section>
         )}
+
+        {/* Advanced Consumer Features */}
+        <section className="container mx-auto px-4 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="max-w-6xl mx-auto space-y-8"
+          >
+            <h3 className="text-3xl font-bold text-center text-gray-900 mb-12">
+              🌱 Advanced Consumer Features
+            </h3>
+
+            {/* Carbon Credits Marketplace */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-semibold text-green-800 mb-2">🌍 Carbon Credits Marketplace</h3>
+                  <p className="text-green-700 text-sm mb-3">
+                    Purchase verified carbon credits to offset your environmental impact and support sustainable farming.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowCarbonMarketplace(!showCarbonMarketplace)}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  {showCarbonMarketplace ? 'Hide Marketplace' : 'Show Marketplace'}
+                </button>
+              </div>
+
+              {carbonResult && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-green-800 mb-2">🌍 Carbon Credits Purchased</h4>
+                  <p className="text-green-700 text-sm">
+                    Your carbon credit purchase has been completed and your environmental impact has been offset.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {showCarbonMarketplace && (
+              <CarbonCreditsMarketplace
+                onPurchaseComplete={(result) => {
+                  setCarbonResult(result);
+                  console.log('Carbon Credits Result:', result);
+                }}
+                userProfile={user}
+              />
+            )}
+
+            {/* Sustainability Action Complete */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-semibold text-blue-800 mb-2">🌿 Sustainability Impact View</h3>
+                  <p className="text-blue-700 text-sm mb-3">
+                    View the environmental impact of your purchases and sustainable actions.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowSustainabilityImpact(!showSustainabilityImpact)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {showSustainabilityImpact ? 'Hide Impact' : 'Show Impact'}
+                </button>
+              </div>
+
+              {sustainabilityResult && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-800 mb-2">🌿 Impact Calculated</h4>
+                  <p className="text-blue-700 text-sm">
+                    Your sustainability impact has been calculated and recorded.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {showSustainabilityImpact && (
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-2xl font-bold text-gray-800 mb-6">Your Sustainability Impact</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-green-50 rounded-lg p-4 text-center">
+                    <div className="text-3xl font-bold text-green-600 mb-2">12.5t</div>
+                    <div className="text-sm text-green-700">CO₂ Offset This Year</div>
+                  </div>
+                  <div className="bg-blue-50 rounded-lg p-4 text-center">
+                    <div className="text-3xl font-bold text-blue-600 mb-2">25</div>
+                    <div className="text-sm text-blue-700">Sustainable Products Purchased</div>
+                  </div>
+                  <div className="bg-purple-50 rounded-lg p-4 text-center">
+                    <div className="text-3xl font-bold text-purple-600 mb-2">8</div>
+                    <div className="text-sm text-purple-700">Farmers Supported</div>
+                  </div>
+                </div>
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-semibold text-gray-800 mb-2">Recent Sustainable Actions</h4>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li>✅ Purchased 5 carbon credits from Ashwagandha farming project</li>
+                    <li>✅ Supported organic certification for 3 farmers</li>
+                    <li>✅ Contributed to soil health improvement initiatives</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+          </motion.div>
+        </section>
 
         {/* Features Section */}
         <section className="container mx-auto px-4 py-16">

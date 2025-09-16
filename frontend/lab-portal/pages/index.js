@@ -3,6 +3,9 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { v4 as uuidv4 } from 'uuid'
+import PlantSpeciesVerification from '../components/PlantSpeciesVerification'
+import AnomalyDetection from '../components/AnomalyDetection'
+import FHIRHealthcare from '../components/FHIRHealthcare'
 
 export default function LabPortal() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -12,6 +15,14 @@ export default function LabPortal() {
   const [viewOnly, setViewOnly] = useState(false)
   const [availableBatches, setAvailableBatches] = useState([])
   const [dashboardLoading, setDashboardLoading] = useState(false)
+
+  // Advanced Features State
+  const [showPlantVerification, setShowPlantVerification] = useState(false)
+  const [verificationResult, setVerificationResult] = useState(null)
+  const [showAnomalyDetection, setShowAnomalyDetection] = useState(false)
+  const [anomalyResult, setAnomalyResult] = useState(null)
+  const [showFHIRCompliance, setShowFHIRCompliance] = useState(false)
+  const [fhirResult, setFhirResult] = useState(null)
   
   // Form data states
   const [labData, setLabData] = useState({
@@ -736,6 +747,144 @@ export default function LabPortal() {
               >
                 Test Another Batch
               </button>
+            </motion.div>
+          )}
+
+          {/* Advanced Features Section */}
+          {currentStep === 5 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-12 space-y-8"
+            >
+              <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">🧪 Advanced Laboratory Features</h2>
+
+              {/* Plant Species Verification */}
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-semibold text-purple-800 mb-2">🔬 Plant Species Verification</h3>
+                    <p className="text-purple-700 text-sm mb-3">
+                      Cross-reference and validate species identification from samples.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowPlantVerification(!showPlantVerification)}
+                    className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    {showPlantVerification ? 'Hide Verification' : 'Show Verification'}
+                  </button>
+                </div>
+
+                {verificationResult && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-purple-800 mb-2">🔬 Species Verification Complete</h4>
+                    <p className="text-purple-700 text-sm">
+                      Plant species has been verified and cross-referenced with authenticated databases.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {showPlantVerification && (
+                <PlantSpeciesVerification
+                  mode="lab"
+                  onVerificationComplete={(result) => {
+                    setVerificationResult(result);
+                    console.log('Plant Verification Result:', result);
+                  }}
+                  batchData={{
+                    ...batchData,
+                    ...testData,
+                    labData
+                  }}
+                />
+              )}
+
+              {/* Anomaly Detection */}
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-semibold text-orange-800 mb-2">🔍 Lab Testing Anomalies</h3>
+                    <p className="text-orange-700 text-sm mb-3">
+                      Identify anomalies in laboratory test results and sample analysis.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowAnomalyDetection(!showAnomalyDetection)}
+                    className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+                  >
+                    {showAnomalyDetection ? 'Hide Detection' : 'Show Detection'}
+                  </button>
+                </div>
+
+                {anomalyResult && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-orange-800 mb-2">🔍 Anomaly Detection Complete</h4>
+                    <p className="text-orange-700 text-sm">
+                      Laboratory test results have been analyzed for anomalies and irregularities.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {showAnomalyDetection && (
+                <AnomalyDetection
+                  mode="lab"
+                  onDetectionComplete={(result) => {
+                    setAnomalyResult(result);
+                    console.log('Lab Anomaly Detection Result:', result);
+                  }}
+                  batchData={{
+                    ...batchData,
+                    ...testData,
+                    labData
+                  }}
+                />
+              )}
+
+              {/* FHIR Healthcare Compliance */}
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-semibold text-red-800 mb-2">❤️ FHIR Healthcare Compliance</h3>
+                    <p className="text-red-700 text-sm mb-3">
+                      Ensure laboratory compliance with healthcare standards and interoperability.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowFHIRCompliance(!showFHIRCompliance)}
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    {showFHIRCompliance ? 'Hide Compliance' : 'Show Compliance'}
+                  </button>
+                </div>
+
+                {fhirResult && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-red-800 mb-2">❤️ FHIR Compliance Complete</h4>
+                    <p className="text-red-700 text-sm">
+                      Healthcare compliance standards have been validated and documented.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {showFHIRCompliance && (
+                <FHIRHealthcare
+                  onComplianceComplete={(result) => {
+                    setFhirResult(result);
+                    console.log('FHIR Compliance Result:', result);
+                  }}
+                  batchData={{
+                    ...batchData,
+                    ...testData,
+                    ...certificateData,
+                    labData
+                  }}
+                />
+              )}
+
             </motion.div>
           )}
 

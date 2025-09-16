@@ -1001,9 +1001,9 @@ export default function FarmerDApp() {
                       console.log('SMS Gateway Result:', result);
                     }}
                     batchData={{
-                      commonName: formData.commonName || 'Ashwagandha',
-                      quantity: formData.quantity || '5.0',
-                      location: formData.location || 'Karnataka, India'
+                      commonName: herbData.commonName || 'Ashwagandha',
+                      quantity: herbData.quantity || '5.0',
+                      location: `${farmerData.village || 'Karnataka'}, ${farmerData.state || 'India'}`
                     }}
                   />
                 )}

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { 
+import {
   CurrencyDollarIcon,
   TrophyIcon,
-  LeafIcon,
   StarIcon,
   ChartBarIcon,
   GiftIcon,
@@ -24,7 +23,7 @@ const SustainabilityWidget = ({ onSustainabilityComplete, batchData, farmerId })
     return (
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="text-center text-gray-500">
-          <LeafIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <SparklesIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>Sustainability Widget Loading...</p>
         </div>
       </div>
@@ -244,7 +243,7 @@ const SustainabilityWidget = ({ onSustainabilityComplete, batchData, farmerId })
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-            <LeafIcon className="h-6 w-6 mr-2 text-green-600" />
+            <SparklesIcon className="h-6 w-6 mr-2 text-green-600" />
             Sustainability & Incentives
           </h2>
           <p className="text-gray-600 mt-1">
@@ -308,12 +307,12 @@ const SustainabilityWidget = ({ onSustainabilityComplete, batchData, farmerId })
               <h4 className="font-semibold text-gray-800 mb-4">🎯 Earn Tokens</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { 
-                    action: 'harvest', 
-                    title: 'Quality Harvest', 
+                  {
+                    action: 'harvest',
+                    title: 'Quality Harvest',
                     description: 'Earn tokens based on quality grade',
                     tokens: '40-50 GHT',
-                    icon: LeafIcon,
+                    icon: SparklesIcon,
                     color: 'bg-green-100 text-green-700'
                   },
                   { 

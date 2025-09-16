@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { v4 as uuidv4 } from 'uuid'
+import AnomalyDetection from '../components/AnomalyDetection'
+import ExportCertificates from '../components/ExportCertificates'
 
 export default function ProcessorPortal() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -12,6 +14,18 @@ export default function ProcessorPortal() {
   const [viewOnly, setViewOnly] = useState(false)
   const [availableBatches, setAvailableBatches] = useState([])
   const [dashboardLoading, setDashboardLoading] = useState(false)
+
+  // Advanced Features State
+  const [showAnomalyDetection, setShowAnomalyDetection] = useState(false)
+  const [anomalyResult, setAnomalyResult] = useState(null)
+  const [showExportCertificates, setShowExportCertificates] = useState(false)
+  const [certificateResult, setCertificateResult] = useState(null)
+  const [showCollectionSimulation, setShowCollectionSimulation] = useState(false)
+  const [simulationResult, setSimulationResult] = useState(null)
+  const [showReputationScoring, setShowReputationScoring] = useState(false)
+  const [reputationResult, setReputationResult] = useState(null)
+  const [showThreatDetection, setShowThreatDetection] = useState(false)
+  const [threatResult, setThreatResult] = useState(null)
   
   // Form data states
   const [processorData, setProcessorData] = useState({
@@ -743,6 +757,104 @@ export default function ProcessorPortal() {
                   Process Another Batch
                 </button>
               </div>
+            </motion.div>
+          )}
+
+          {/* Advanced Features Section */}
+          {currentStep === 5 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-12 space-y-8"
+            >
+              <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">🏭 Advanced Processing Features</h2>
+
+              {/* Anomaly Detection */}
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-semibold text-orange-800 mb-2">🔍 Anomaly Detection</h3>
+                    <p className="text-orange-700 text-sm mb-3">
+                      Detect irregularities in processing parameters and quality metrics.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowAnomalyDetection(!showAnomalyDetection)}
+                    className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+                  >
+                    {showAnomalyDetection ? 'Hide Detection' : 'Show Detection'}
+                  </button>
+                </div>
+
+                {anomalyResult && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-orange-800 mb-2">🔍 Anomaly Detection Complete</h4>
+                    <p className="text-orange-700 text-sm">
+                      Processing parameters have been analyzed for irregularities and quality issues.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {showAnomalyDetection && (
+                <AnomalyDetection
+                  mode="processor"
+                  onDetectionComplete={(result) => {
+                    setAnomalyResult(result);
+                    console.log('Anomaly Detection Result:', result);
+                  }}
+                  batchData={{
+                    ...processingData,
+                    ...qualityData,
+                    batchId: batchData?.batchId,
+                    commonName: batchData?.commonName
+                  }}
+                />
+              )}
+
+              {/* Export Certificates */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-semibold text-blue-800 mb-2">📋 Export Certificates</h3>
+                    <p className="text-blue-700 text-sm mb-3">
+                      Generate international export certificates and compliance documents.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowExportCertificates(!showExportCertificates)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    {showExportCertificates ? 'Hide Certificates' : 'Show Certificates'}
+                  </button>
+                </div>
+
+                {certificateResult && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-800 mb-2">📋 Certificate Generated</h4>
+                    <p className="text-blue-700 text-sm">
+                      Export certificate has been generated and is ready for international trade.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {showExportCertificates && (
+                <ExportCertificates
+                  mode="processor"
+                  onCertificateGenerated={(result) => {
+                    setCertificateResult(result);
+                    console.log('Certificate Result:', result);
+                  }}
+                  batchData={{
+                    ...batchData,
+                    ...processingData,
+                    ...qualityData,
+                    processorData
+                  }}
+                />
+              )}
+
             </motion.div>
           )}
 

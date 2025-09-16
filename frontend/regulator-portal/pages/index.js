@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { v4 as uuidv4 } from 'uuid'
+import GS1GlobalStandards from '../components/GS1GlobalStandards'
+import ExportCertificates from '../components/ExportCertificates'
 
 export default function RegulatorPortal() {
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -12,6 +14,18 @@ export default function RegulatorPortal() {
   const [complianceData, setComplianceData] = useState([])
   const [availableBatches, setAvailableBatches] = useState([])
   const [dashboardLoading, setDashboardLoading] = useState(false)
+
+  // Advanced Features State
+  const [showGS1Standards, setShowGS1Standards] = useState(false)
+  const [gs1Result, setGs1Result] = useState(null)
+  const [showExportCertificates, setShowExportCertificates] = useState(false)
+  const [certificateResult, setCertificateResult] = useState(null)
+  const [showZKProofs, setShowZKProofs] = useState(false)
+  const [zkResult, setZkResult] = useState(null)
+  const [showEncryption, setShowEncryption] = useState(false)
+  const [encryptionResult, setEncryptionResult] = useState(null)
+  const [showThreatDetection, setShowThreatDetection] = useState(false)
+  const [threatResult, setThreatResult] = useState(null)
   const [dashboardStats, setDashboardStats] = useState({
     approved: 0,
     pending: 0,
@@ -752,6 +766,93 @@ export default function RegulatorPortal() {
                 </button>
               </div>
             </div>
+          </motion.div>
+        )}
+
+        {/* Advanced Features Section */}
+        {activeTab === 'dashboard' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-12 space-y-8"
+          >
+            <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">🏛 Advanced Regulatory Features</h2>
+
+            {/* GS1 Global Standards */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-semibold text-blue-800 mb-2">🌐 GS1 Global Standards</h3>
+                  <p className="text-blue-700 text-sm mb-3">
+                    Validate and implement GS1 global standards for product identification and traceability.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowGS1Standards(!showGS1Standards)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {showGS1Standards ? 'Hide Standards' : 'Show Standards'}
+                </button>
+              </div>
+
+              {gs1Result && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-800 mb-2">🌐 GS1 Standards Validated</h4>
+                  <p className="text-blue-700 text-sm">
+                    Global standards compliance has been verified and documented.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {showGS1Standards && (
+              <GS1GlobalStandards
+                onStandardsComplete={(result) => {
+                  setGs1Result(result);
+                  console.log('GS1 Standards Result:', result);
+                }}
+                batchData={batchData}
+              />
+            )}
+
+            {/* Export Certificates */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-semibold text-green-800 mb-2">📋 Export Certificates</h3>
+                  <p className="text-green-700 text-sm mb-3">
+                    Generate and validate international export certificates and compliance documents.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowExportCertificates(!showExportCertificates)}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  {showExportCertificates ? 'Hide Certificates' : 'Show Certificates'}
+                </button>
+              </div>
+
+              {certificateResult && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-green-800 mb-2">📋 Certificate Validated</h4>
+                  <p className="text-green-700 text-sm">
+                    Export certificate has been validated for regulatory compliance.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {showExportCertificates && (
+              <ExportCertificates
+                mode="regulatory"
+                onCertificateGenerated={(result) => {
+                  setCertificateResult(result);
+                  console.log('Regulatory Certificate Result:', result);
+                }}
+                batchData={batchData}
+              />
+            )}
+
           </motion.div>
         )}
 

@@ -38,7 +38,7 @@ const SMSBlockchainGateway = ({ onGatewayComplete, batchData }) => {
 
   const loadDevices = async () => {
     try {
-      const response = await fetch('/api/ai/sms/devices');
+      const response = await fetch('http://localhost:3000/api/ai/sms/devices');
       const data = await response.json();
       if (data.success) {
         setDevices(data.data.devices);
@@ -50,7 +50,7 @@ const SMSBlockchainGateway = ({ onGatewayComplete, batchData }) => {
 
   const loadStats = async () => {
     try {
-      const response = await fetch('/api/ai/sms/stats');
+      const response = await fetch('http://localhost:3000/api/ai/sms/stats');
       const data = await response.json();
       if (data.success) {
         setStats(data.data);
@@ -62,7 +62,7 @@ const SMSBlockchainGateway = ({ onGatewayComplete, batchData }) => {
 
   const loadRecentData = async () => {
     try {
-      const response = await fetch('/api/ai/sms/recent-data?limit=5');
+      const response = await fetch('http://localhost:3000/api/ai/sms/recent-data?limit=5');
       const data = await response.json();
       if (data.success) {
         setRecentData(data.data.recentTransmissions);
@@ -77,7 +77,7 @@ const SMSBlockchainGateway = ({ onGatewayComplete, batchData }) => {
     setResult(null);
 
     try {
-      const response = await fetch('/api/ai/sms/simulate-collection', {
+      const response = await fetch('http://localhost:3000/api/ai/sms/simulate-collection', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
