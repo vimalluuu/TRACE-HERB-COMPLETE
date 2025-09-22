@@ -3,10 +3,30 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { v4 as uuidv4 } from 'uuid'
+import { useStandaloneAuth } from '../hooks/useAuth'
+import LoginForm from '../components/LoginForm'
 import GS1GlobalStandards from '../components/GS1GlobalStandards'
 import ExportCertificates from '../components/ExportCertificates'
 
 export default function RegulatorPortal() {
+  // Authentication
+  const { user, loading: authLoading, login, logout } = useStandaloneAuth()
+  const [loginLoading, setLoginLoading] = useState(false)
+
+  // Login handler
+  const handleLogin = async (credentials) => {
+    setLoginLoading(true)
+    try {
+      const result = await login(credentials, 'regulatory')
+      if (!result.success) {
+        alert(result.error || 'Login failed')
+      }
+    } catch (error) {
+      alert('Login failed. Please try again.')
+    } finally {
+      setLoginLoading(false)
+    }
+  }
   const [activeTab, setActiveTab] = useState('dashboard')
   const [loading, setLoading] = useState(false)
   const [qrCode, setQrCode] = useState('')
@@ -316,15 +336,41 @@ export default function RegulatorPortal() {
   }
 
   useEffect(() => {
-    fetchDashboardStats()
-    fetchComplianceData()
-    fetchAvailableBatches()
-    const interval = setInterval(() => {
+    if (user) {
       fetchDashboardStats()
+      fetchComplianceData()
       fetchAvailableBatches()
-    }, 30000)
-    return () => clearInterval(interval)
-  }, [])
+      const interval = setInterval(() => {
+        fetchDashboardStats()
+        fetchAvailableBatches()
+      }, 30000)
+      return () => clearInterval(interval)
+    }
+  }, [user])
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-regulator-red-50 to-herb-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-regulator-red-600 mx-auto mb-4"></div>
+          <p className="text-regulator-red-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show login form if user is not authenticated
+  if (!user) {
+    return (
+      <LoginForm
+        onLogin={handleLogin}
+        portalName="Regulatory Portal"
+        portalIcon="🏛️"
+        loading={loginLoading}
+      />
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-regulator-red-50 to-herb-green-50">
@@ -343,9 +389,27 @@ export default function RegulatorPortal() {
                 <p className="text-xl md:text-2xl text-gray-600 font-medium">Regulatory Authority Portal</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-lg text-gray-600 font-medium">Compliance & Certification</p>
-              <p className="text-sm text-gray-500">Regulatory Oversight</p>
+
+            {/* User Info and Logout */}
+            <div className="flex items-center space-x-6">
+              <div className="text-right">
+                <p className="text-lg text-gray-600 font-medium">Compliance & Certification</p>
+                <p className="text-sm text-gray-500">Regulatory Oversight</p>
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">Welcome</p>
+                  <p className="font-semibold text-regulator-red-700">{user?.username || 'Regulator'}</p>
+                </div>
+                <button
+                  onClick={logout}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+                >
+                  <span>🚪</span>
+                  <span>Logout</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -3,11 +3,16 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { v4 as uuidv4 } from 'uuid'
+import { useStandaloneAuth } from '../hooks/useAuth'
+import LoginForm from '../components/LoginForm'
 import PlantSpeciesVerification from '../components/PlantSpeciesVerification'
 import AnomalyDetection from '../components/AnomalyDetection'
 import FHIRHealthcare from '../components/FHIRHealthcare'
 
 export default function LabPortal() {
+  // Authentication
+  const { user, loading: authLoading, login, logout } = useStandaloneAuth()
+  const [loginLoading, setLoginLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [batchData, setBatchData] = useState(null)
@@ -23,7 +28,22 @@ export default function LabPortal() {
   const [anomalyResult, setAnomalyResult] = useState(null)
   const [showFHIRCompliance, setShowFHIRCompliance] = useState(false)
   const [fhirResult, setFhirResult] = useState(null)
-  
+
+  // Login handler
+  const handleLogin = async (credentials) => {
+    setLoginLoading(true)
+    try {
+      const result = await login(credentials, 'laboratory')
+      if (!result.success) {
+        alert(result.error || 'Login failed')
+      }
+    } catch (error) {
+      alert('Login failed. Please try again.')
+    } finally {
+      setLoginLoading(false)
+    }
+  }
+
   // Form data states
   const [labData, setLabData] = useState({
     name: '',
@@ -175,10 +195,36 @@ export default function LabPortal() {
 
   // Load available batches on component mount and refresh every 30 seconds
   useEffect(() => {
-    fetchAvailableBatches()
-    const interval = setInterval(fetchAvailableBatches, 30000)
-    return () => clearInterval(interval)
-  }, [])
+    if (user) {
+      fetchAvailableBatches()
+      const interval = setInterval(fetchAvailableBatches, 30000)
+      return () => clearInterval(interval)
+    }
+  }, [user])
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-lab-purple-50 to-herb-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lab-purple-600 mx-auto mb-4"></div>
+          <p className="text-lab-purple-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show login form if user is not authenticated
+  if (!user) {
+    return (
+      <LoginForm
+        onLogin={handleLogin}
+        portalName="Laboratory Portal"
+        portalIcon="🔬"
+        loading={loginLoading}
+      />
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-lab-purple-50 to-herb-green-50">
@@ -197,13 +243,32 @@ export default function LabPortal() {
                 <p className="text-xl md:text-2xl text-gray-600 font-medium">Laboratory Portal</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-lg md:text-xl text-gray-600 font-medium">Step {currentStep} of 4</p>
-              <div className="w-32 bg-gray-200 rounded-full h-4 mt-2">
-                <div 
-                  className="bg-lab-purple-600 h-4 rounded-full transition-all duration-300 shadow-lg"
-                  style={{ width: `${(currentStep / 4) * 100}%` }}
-                ></div>
+
+            {/* User Info and Progress */}
+            <div className="flex items-center space-x-6">
+              <div className="text-right">
+                <p className="text-lg md:text-xl text-gray-600 font-medium">Step {currentStep} of 4</p>
+                <div className="w-32 bg-gray-200 rounded-full h-4 mt-2">
+                  <div
+                    className="bg-lab-purple-600 h-4 rounded-full transition-all duration-300 shadow-lg"
+                    style={{ width: `${(currentStep / 4) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* User Info and Logout */}
+              <div className="flex items-center space-x-4">
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">Welcome</p>
+                  <p className="font-semibold text-lab-purple-700">{user?.username || 'Lab Technician'}</p>
+                </div>
+                <button
+                  onClick={logout}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+                >
+                  <span>🚪</span>
+                  <span>Logout</span>
+                </button>
               </div>
             </div>
           </div>

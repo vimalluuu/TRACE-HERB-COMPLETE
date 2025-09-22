@@ -4,9 +4,9 @@
   "description": "TRACE HERB Stakeholder Dashboard - Real-time monitoring and reporting for herb traceability network",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3004",
+    "dev": "next dev -p 3006",
     "build": "next build",
-    "start": "next start -p 3004",
+    "start": "next start -p 3006",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "export": "next export",

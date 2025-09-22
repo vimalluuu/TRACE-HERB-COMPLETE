@@ -1,6 +1,6 @@
 ﻿{
-    "version": "1.0.0",
-    "name": "trace-herb-network",
+    "version":  "1.0.0",
+    "name":  "trace-herb-network",
     "organizations":  {
                           "Regulators":  {
                                              "peers":  [

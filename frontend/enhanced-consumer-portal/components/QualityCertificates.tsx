@@ -57,12 +57,38 @@ interface QualityTest {
 }
 
 interface QualityCertificatesProps {
-  qualityTests: QualityTest[]
+  qualityTests?: QualityTest[]
+  qrCode?: string
 }
 
-const QualityCertificates: React.FC<QualityCertificatesProps> = ({ qualityTests }) => {
+const QualityCertificates: React.FC<QualityCertificatesProps> = ({ qualityTests, qrCode }) => {
   const [selectedTest, setSelectedTest] = useState<QualityTest | null>(null)
   const [expandedTest, setExpandedTest] = useState<string | null>(null)
+  const [realQualityData, setRealQualityData] = useState<any>(null)
+
+  // Load real batch data
+  React.useEffect(() => {
+    const loadBatchData = async () => {
+      try {
+        const { getBatchByQRCode, batchToQualityMetrics, initializeDemoBatches } = await import('../utils/batchStatusSync.js')
+
+        // Initialize demo batches
+        initializeDemoBatches()
+
+        if (qrCode) {
+          const batch = getBatchByQRCode(qrCode)
+          if (batch) {
+            const qualityMetrics = batchToQualityMetrics(batch)
+            setRealQualityData(qualityMetrics)
+          }
+        }
+      } catch (error) {
+        console.error('Error loading batch data:', error)
+      }
+    }
+
+    loadBatchData()
+  }, [qrCode])
 
   // Mock quality test data if none provided
   const mockTests: QualityTest[] = [
@@ -83,8 +109,16 @@ const QualityCertificates: React.FC<QualityCertificatesProps> = ({ qualityTests 
         { reference: 'Observation/dna-authentication-001' },
         { reference: 'Observation/withanolides-content-001' }
       ],
-      conclusion: 'All parameters within acceptable limits. Product meets quality standards.',
-      conclusionCode: [{ coding: [{ system: 'http://trace-herb.com/fhir/CodeSystem/quality-status', code: 'passed', display: 'Quality Test Passed' }] }]
+      conclusion: realQualityData?.testsPassed
+        ? 'All Tests Passed - Product meets all quality standards and certifications.'
+        : realQualityData?.contaminants === 'Testing in progress'
+        ? 'Quality testing in progress. Results pending.'
+        : 'All parameters within acceptable limits. Product meets quality standards.',
+      conclusionCode: [{ coding: [{
+        system: 'http://trace-herb.com/fhir/CodeSystem/quality-status',
+        code: realQualityData?.testsPassed ? 'passed' : 'preliminary',
+        display: realQualityData?.testsPassed ? 'Quality Test Passed' : 'Quality Test Preliminary'
+      }] }]
     }
   ]
 

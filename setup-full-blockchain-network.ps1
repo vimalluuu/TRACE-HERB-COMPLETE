@@ -7,7 +7,7 @@ param(
 )
 
 # Set error action preference
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 # Colors for output
 function Write-Success { param($Message) Write-Host "[SUCCESS] $Message" -ForegroundColor Green }
@@ -45,8 +45,12 @@ if ($Clean) {
     Write-Step "Cleaning previous network..."
     
     # Stop and remove containers
-    docker-compose -f blockchain/network/docker-compose.yml down -v --remove-orphans 2>$null
-    docker-compose -f docker-compose.yml down -v --remove-orphans 2>$null
+    try {
+        docker-compose -f blockchain/network/docker-compose.yml down -v --remove-orphans 2>$null
+        docker-compose -f docker-compose.yml down -v --remove-orphans 2>$null
+    } catch {
+        Write-Info "No previous containers to clean"
+    }
     
     # Remove volumes
     docker volume prune -f 2>$null

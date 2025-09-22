@@ -319,4 +319,203 @@ export const withAuth = (WrappedComponent, requiredRole = null) => {
   };
 };
 
+// Enhanced standalone auth hook for farmer portal with signup and profile management
+export const useStandaloneAuth = () => {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Check for existing session
+    const savedUser = localStorage.getItem('traceHerbUser')
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser))
+      } catch (error) {
+        console.error('Error parsing saved user:', error)
+        localStorage.removeItem('traceHerbUser')
+      }
+    }
+    setLoading(false)
+  }, [])
+
+  const login = async (credentials, portalType) => {
+    setLoading(true)
+
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // Check if logging in with phone number
+      const loginField = credentials.username || credentials.phoneNumber
+
+      if (loginField && credentials.password) {
+        // Check if user exists in localStorage (for demo purposes)
+        const existingUsers = JSON.parse(localStorage.getItem('traceHerbUsers') || '[]')
+        let foundUser = null
+
+        // Find user by phone number or username
+        foundUser = existingUsers.find(u =>
+          u.phoneNumber === loginField ||
+          u.username === loginField ||
+          u.email === loginField
+        )
+
+        if (foundUser && foundUser.password === credentials.password) {
+          const userData = {
+            ...foundUser,
+            loginTime: new Date().toISOString(),
+            portalType: portalType || 'farmer'
+          }
+
+          setUser(userData)
+          localStorage.setItem('traceHerbUser', JSON.stringify(userData))
+          setLoading(false)
+          return { success: true, user: userData }
+        } else if (loginField === 'demo' && credentials.password === 'demo123') {
+          // Demo user fallback
+          const userData = {
+            id: 'demo-user',
+            username: 'demo',
+            firstName: 'Demo',
+            lastName: 'Farmer',
+            phoneNumber: '1234567890',
+            email: 'demo@farmer.com',
+            farmName: 'Demo Farm',
+            farmLocation: 'Demo Location',
+            portalType: portalType || 'farmer',
+            loginTime: new Date().toISOString(),
+            role: getRoleByPortal(portalType || 'farmer')
+          }
+
+          setUser(userData)
+          localStorage.setItem('traceHerbUser', JSON.stringify(userData))
+          setLoading(false)
+          return { success: true, user: userData }
+        } else {
+          setLoading(false)
+          return { success: false, error: 'Invalid phone number or password' }
+        }
+      } else {
+        setLoading(false)
+        return { success: false, error: 'Phone number and password are required' }
+      }
+    } catch (error) {
+      setLoading(false)
+      return { success: false, error: 'Login failed. Please try again.' }
+    }
+  }
+
+  const signup = async (formData) => {
+    setLoading(true)
+
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500))
+
+      // Check if user already exists
+      const existingUsers = JSON.parse(localStorage.getItem('traceHerbUsers') || '[]')
+      const userExists = existingUsers.find(u =>
+        u.phoneNumber === formData.phoneNumber ||
+        u.email === formData.email
+      )
+
+      if (userExists) {
+        setLoading(false)
+        return { success: false, error: 'User with this phone number or email already exists' }
+      }
+
+      // Create new user
+      const newUser = {
+        id: Date.now().toString(),
+        username: formData.phoneNumber, // Use phone number as username
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phoneNumber: formData.phoneNumber,
+        email: formData.email,
+        password: formData.password,
+        farmName: formData.farmName,
+        farmLocation: formData.farmLocation,
+        farmSize: formData.farmSize,
+        cropTypes: formData.cropTypes,
+        experience: formData.experience,
+        certifications: formData.certifications,
+        portalType: 'farmer',
+        role: 'Farmer',
+        createdAt: new Date().toISOString()
+      }
+
+      // Save to localStorage
+      existingUsers.push(newUser)
+      localStorage.setItem('traceHerbUsers', JSON.stringify(existingUsers))
+
+      // Auto-login the new user
+      const userData = { ...newUser, loginTime: new Date().toISOString() }
+      setUser(userData)
+      localStorage.setItem('traceHerbUser', JSON.stringify(userData))
+
+      setLoading(false)
+      return { success: true, user: userData }
+    } catch (error) {
+      setLoading(false)
+      return { success: false, error: 'Signup failed. Please try again.' }
+    }
+  }
+
+  const updateProfile = async (profileData) => {
+    setLoading(true)
+
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // Update user in localStorage
+      const existingUsers = JSON.parse(localStorage.getItem('traceHerbUsers') || '[]')
+      const userIndex = existingUsers.findIndex(u => u.id === user.id)
+
+      if (userIndex !== -1) {
+        existingUsers[userIndex] = { ...existingUsers[userIndex], ...profileData }
+        localStorage.setItem('traceHerbUsers', JSON.stringify(existingUsers))
+
+        // Update current user
+        const updatedUser = { ...user, ...profileData }
+        setUser(updatedUser)
+        localStorage.setItem('traceHerbUser', JSON.stringify(updatedUser))
+      }
+
+      setLoading(false)
+      return { success: true }
+    } catch (error) {
+      setLoading(false)
+      return { success: false, error: 'Profile update failed. Please try again.' }
+    }
+  }
+
+  const logout = () => {
+    setUser(null)
+    localStorage.removeItem('traceHerbUser')
+  }
+
+  const getRoleByPortal = (portalType) => {
+    const roleMap = {
+      'processor': 'Processor',
+      'laboratory': 'Lab Technician',
+      'regulatory': 'Regulator',
+      'stakeholder': 'Stakeholder',
+      'management': 'Manager',
+      'farmer': 'Farmer'
+    }
+    return roleMap[portalType] || 'User'
+  }
+
+  return {
+    user,
+    loading,
+    login,
+    signup,
+    updateProfile,
+    logout,
+    isAuthenticated: !!user
+  }
+}
+
 export default useAuth;

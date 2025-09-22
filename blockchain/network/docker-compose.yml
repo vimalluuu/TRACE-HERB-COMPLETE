@@ -1,8 +1,6 @@
 # TRACE HERB Hyperledger Fabric Network
 # Docker Compose configuration for blockchain network
 
-version: '3.7'
-
 volumes:
   orderer.trace-herb.com:
   peer0.farmers.trace-herb.com:

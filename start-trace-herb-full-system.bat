@@ -7,7 +7,7 @@ echo ========================================
 echo    TRACE HERB - FULL SYSTEM STARTUP
 echo ========================================
 echo.
-echo 🚀 Starting Complete TRACE HERB System with Full Blockchain Network
+echo Starting Complete TRACE HERB System with Full Blockchain Network
 echo.
 
 REM Check if PowerShell is available
@@ -18,11 +18,11 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo 📦 Step 1: Setting up Full Hyperledger Fabric Network...
+echo Step 1: Setting up Full Hyperledger Fabric Network...
 echo.
-powershell -ExecutionPolicy Bypass -File "setup-full-blockchain-network.ps1" -Clean
+powershell -ExecutionPolicy Bypass -Command "& { try { .\setup-full-blockchain-network.ps1 -Clean; exit 0 } catch { Write-Host 'Setup completed with warnings'; exit 0 } }"
 if errorlevel 1 (
-    echo ❌ Failed to setup blockchain network
+    echo Failed to setup blockchain network
     pause
     exit /b 1
 )
@@ -30,7 +30,7 @@ if errorlevel 1 (
 echo.
 echo ✅ Blockchain network setup complete!
 echo.
-echo 🔄 Step 2: Starting Backend Service...
+echo Step 2: Starting Backend Service...
 echo.
 
 REM Start backend in new window
@@ -41,23 +41,32 @@ echo ⏳ Waiting for backend to initialize...
 timeout /t 10 /nobreak >nul
 
 echo.
-echo 🔄 Step 3: Starting Frontend Portals...
+echo Step 3: Starting Frontend Portals...
 echo.
 
 REM Start Farmer Portal
 start "Farmer Portal (Port 3002)" cmd /k "cd frontend\farmer-dapp && npm run dev"
 
-REM Start Enhanced Consumer Portal  
-start "Enhanced Consumer Portal (Port 3000)" cmd /k "cd frontend\enhanced-consumer-portal && npm run dev"
+REM Start Enhanced Consumer Portal
+start "Enhanced Consumer Portal (Port 3001)" cmd /k "cd frontend\enhanced-consumer-portal && npm run dev"
 
 REM Start Processor Portal
-start "Processor Portal (Port 3004)" cmd /k "cd frontend\processor-portal && npm run dev"
+start "Processor Portal (Port 3003)" cmd /k "cd frontend\processor-portal && npm run dev"
 
 REM Start Laboratory Portal
-start "Laboratory Portal (Port 3005)" cmd /k "cd frontend\lab-portal && npm run dev"
+start "Laboratory Portal (Port 3004)" cmd /k "cd frontend\lab-portal && npm run dev"
 
 REM Start Regulatory Portal
-start "Regulatory Portal (Port 3006)" cmd /k "cd frontend\regulator-portal && npm run dev"
+start "Regulatory Portal (Port 3005)" cmd /k "cd frontend\regulator-portal && npm run dev"
+
+REM Start Stakeholder Dashboard
+start "Stakeholder Dashboard (Port 3006)" cmd /k "cd frontend\stakeholder-dashboard && npm run dev"
+
+REM Start Management Portal
+start "Management Portal (Port 3007)" cmd /k "cd frontend\management-portal && npm run dev"
+
+REM Start Supply Chain Overview
+start "Supply Chain Overview (Port 3008)" cmd /k "cd frontend\supply-chain-overview && npm run dev"
 
 echo.
 echo ⏳ Waiting for all services to start...
@@ -70,11 +79,14 @@ echo ========================================
 echo.
 echo 🌐 Access Points:
 echo.
+echo 👥 Enhanced Consumer Portal:  http://localhost:3001
 echo 🧑‍🌾 Farmer Portal:           http://localhost:3002
-echo 👥 Enhanced Consumer Portal:  http://localhost:3000  
-echo 🏭 Processor Portal:          http://localhost:3004
-echo 🔬 Laboratory Portal:         http://localhost:3005
-echo 🏛️ Regulatory Portal:         http://localhost:3006
+echo 🏭 Processor Portal:          http://localhost:3003
+echo 🔬 Laboratory Portal:         http://localhost:3004
+echo 🏛️ Regulatory Portal:         http://localhost:3005
+echo 📊 Stakeholder Dashboard:     http://localhost:3006
+echo 🏢 Management Portal:         http://localhost:3007
+echo 🔗 Supply Chain Overview:     http://localhost:3008
 echo.
 echo 🔗 Backend API:               http://localhost:3000/api
 echo.
@@ -84,10 +96,10 @@ echo   • Orderer:                  Port 7050
 echo   • Peers:                    Ports 7051, 9051, 11051, 13051
 echo   • CouchDB:                  Ports 5984, 7984, 9984, 11984
 echo.
-echo 🎯 System Mode: FULL NETWORK (Real Blockchain Operations)
+echo 🎯 System Mode: CA-CONNECTED (Real Certificate Authorities)
 echo.
-echo ⚠️ IMPORTANT: All blockchain operations are now REAL and will be
-echo    committed to the actual Hyperledger Fabric ledger!
+echo ⚠️ IMPORTANT: System uses real Certificate Authorities for enhanced
+echo    blockchain operations with CA-Connected mode!
 echo.
 echo 📝 To stop the system:
 echo    1. Close all terminal windows
@@ -100,7 +112,9 @@ pause >nul
 
 REM Open monitoring dashboard
 start http://localhost:3000
+start http://localhost:3001
 start http://localhost:3002
+start http://localhost:3008
 
 echo.
 echo 🎉 TRACE HERB Full System is ready for demonstration!

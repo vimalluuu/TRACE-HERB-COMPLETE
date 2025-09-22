@@ -13,8 +13,14 @@ import {
 import QRCode from 'qrcode'
 import { v4 as uuidv4 } from 'uuid'
 import axios from 'axios'
-import { useAuth } from '../hooks/useAuth'
+import { useStandaloneAuth } from '../hooks/useAuth'
 import LoginForm from '../components/LoginForm'
+import SignupForm from '../components/SignupForm'
+import ProfileView from '../components/ProfileView'
+import FarmerDashboard from '../components/FarmerDashboard'
+import FastFarmerDashboard from '../components/FastFarmerDashboard'
+import BatchTrackingView from '../components/BatchTrackingView'
+import FastBatchTracking from '../components/FastBatchTracking'
 import AIVerificationWidget from '../components/AIVerificationWidget'
 import RuralConnectivityWidget from '../components/RuralConnectivityWidget'
 import SMSBlockchainGateway from '../components/SMSBlockchainGateway'
@@ -24,7 +30,13 @@ import RegulatoryWidget from '../components/RegulatoryWidget'
 
 export default function FarmerDApp() {
   // Authentication
-  const { user, loading: authLoading, logout } = useAuth()
+  const { user, loading: authLoading, login, signup, updateProfile, logout } = useStandaloneAuth()
+  const [showDashboard, setShowDashboard] = useState(true)
+  const [showProfile, setShowProfile] = useState(false)
+  const [showSignup, setShowSignup] = useState(false)
+  const [showBatchTracking, setShowBatchTracking] = useState(false)
+  const [selectedBatchId, setSelectedBatchId] = useState(null)
+  const [loginLoading, setLoginLoading] = useState(false)
 
   // Form state
   const [currentStep, setCurrentStep] = useState(1)
@@ -45,6 +57,69 @@ export default function FarmerDApp() {
   const [showSecurity, setShowSecurity] = useState(false)
   const [regulatoryResult, setRegulatoryResult] = useState(null)
   const [showRegulatory, setShowRegulatory] = useState(false)
+
+  // Login handler
+  const handleLogin = async (credentials) => {
+    setLoginLoading(true)
+    try {
+      const result = await login(credentials, 'farmer')
+      if (result.success) {
+        setShowDashboard(true)
+        setShowSignup(false)
+      } else {
+        alert(result.error || 'Login failed')
+      }
+    } catch (error) {
+      alert('Login failed. Please try again.')
+    } finally {
+      setLoginLoading(false)
+    }
+  }
+
+  // Signup handler
+  const handleSignup = async (formData) => {
+    setLoginLoading(true)
+    try {
+      const result = await signup(formData)
+      if (result.success) {
+        setShowDashboard(true)
+        setShowSignup(false)
+      } else {
+        alert(result.error || 'Signup failed')
+      }
+    } catch (error) {
+      alert('Signup failed. Please try again.')
+    } finally {
+      setLoginLoading(false)
+    }
+  }
+
+  // Profile update handler
+  const handleUpdateProfile = async (profileData) => {
+    try {
+      const result = await updateProfile(profileData)
+      if (!result.success) {
+        alert(result.error || 'Profile update failed')
+      }
+    } catch (error) {
+      alert('Profile update failed. Please try again.')
+    }
+  }
+
+  // Dashboard handlers
+  const handleCreateBatch = () => {
+    setShowDashboard(false)
+    setCurrentStep(2) // Skip farmer information step, go directly to herb collection details
+  }
+
+  const handleBackToDashboard = () => {
+    setShowDashboard(true)
+  }
+
+  const handleLogout = () => {
+    logout()
+    setShowDashboard(true)
+  }
 
   // Farmer/Collector Information
   const [farmerData, setFarmerData] = useState({
@@ -185,12 +260,84 @@ export default function FarmerDApp() {
   // Generate QR Code and submit data
   const generateQRAndSubmit = async () => {
     setLoading(true)
-    
+
     try {
       // Generate unique collection ID
       const collectionId = `COL_${Date.now()}_${uuidv4().substr(0, 8).toUpperCase()}`
       const qrCode = `QR_${collectionId}`
-      
+
+      // Prepare batch data for local storage
+      const batchData = {
+        id: collectionId,
+        collectionId: collectionId,
+        batchId: collectionId,
+        qrCode: qrCode,
+        botanicalName: herbData.botanicalName,
+        commonName: herbData.commonName,
+        quantity: herbData.quantity,
+        unit: herbData.unit,
+        farmerName: farmerData.name,
+        farmLocation: `${farmerData.village}, ${farmerData.district}`,
+        farmSize: '5 acres', // Default value
+        collectionMethod: herbData.collectionMethod,
+        season: herbData.season,
+        weatherConditions: herbData.weatherConditions,
+        soilType: herbData.soilType,
+        certifications: farmerData.certification,
+        farmerData: farmerData,
+        herbData: herbData,
+        location: location,
+        createdAt: new Date().toISOString(),
+        lastUpdated: new Date().toISOString(),
+        status: 'pending',
+        synced: false
+      }
+
+      // Save to both farmer-specific and shared storage
+      const existingFarmerBatches = JSON.parse(localStorage.getItem('farmerBatches') || '[]')
+      existingFarmerBatches.push(batchData)
+      localStorage.setItem('farmerBatches', JSON.stringify(existingFarmerBatches))
+
+      // Also save to shared batch storage for cross-portal sync
+      const existingSharedBatches = JSON.parse(localStorage.getItem('traceHerbBatches') || '[]')
+      existingSharedBatches.push(batchData)
+      localStorage.setItem('traceHerbBatches', JSON.stringify(existingSharedBatches))
+
+      // Trigger immediate update event
+      window.dispatchEvent(new CustomEvent('batchAdded', { detail: batchData }))
+      console.log('🎉 Batch added event dispatched:', batchData.qrCode)
+
+      // If offline, add to pending sync queue
+      if (!navigator.onLine) {
+        const pendingSyncs = JSON.parse(localStorage.getItem('pendingSyncs') || '[]')
+        pendingSyncs.push({
+          type: 'batch_creation',
+          data: batchData,
+          timestamp: Date.now()
+        })
+        localStorage.setItem('pendingSyncs', JSON.stringify(pendingSyncs))
+
+        // Generate QR code for offline use
+        const qrCodeDataUrl = await QRCode.toDataURL(qrCode, {
+          width: 256,
+          margin: 2,
+          color: { dark: '#000000', light: '#FFFFFF' }
+        })
+        setQrCodeUrl(qrCodeDataUrl)
+
+        setSubmissionResult({
+          success: true,
+          message: 'Batch saved locally. Will sync when online.',
+          collectionId: collectionId,
+          qrCode: qrCode,
+          offline: true
+        })
+
+        setCurrentStep(4)
+        setLoading(false)
+        return
+      }
+
       // Prepare collection event data for backend API
       const collectionEventData = {
         collectionId: collectionId,
@@ -309,7 +456,7 @@ export default function FarmerDApp() {
   // Show loading while checking authentication
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-herb-green-50 to-blue-50 flex items-center justify-center">
+      <div className="mobile-container bg-gradient-to-br from-herb-green-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-herb-green-600 mx-auto mb-4"></div>
           <p className="text-herb-green-600 font-medium">Loading...</p>
@@ -318,16 +465,108 @@ export default function FarmerDApp() {
     )
   }
 
-  // Show login form if user is not authenticated
+  // Show login/signup forms if user is not authenticated
   if (!user) {
+    if (showSignup) {
+      return (
+        <>
+          <Head>
+            <title>TRACE HERB - Farmer Registration</title>
+            <meta name="description" content="Register as a farmer to access the collection portal" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+          </Head>
+          <SignupForm
+            onSignup={handleSignup}
+            onSwitchToLogin={() => setShowSignup(false)}
+            loading={loginLoading}
+          />
+        </>
+      )
+    }
+
     return (
       <>
         <Head>
           <title>TRACE HERB - Farmer Portal Login</title>
           <meta name="description" content="Login to access the farmer collection portal" />
+          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+          <meta name="mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+          <meta name="theme-color" content="#16a34a" />
+          <link rel="manifest" href="/manifest.json" />
+        </Head>
+        <LoginForm
+          onLogin={handleLogin}
+          onSwitchToSignup={() => setShowSignup(true)}
+          portalName="Farmer Portal"
+          portalIcon="🧑‍🌾"
+          loading={loginLoading}
+        />
+      </>
+    )
+  }
+
+  // Show profile view
+  if (showProfile) {
+    return (
+      <>
+        <Head>
+          <title>TRACE HERB - Farmer Profile</title>
+          <meta name="description" content="Manage your farmer profile" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
         </Head>
-        <LoginForm />
+        <ProfileView
+          user={user}
+          onUpdateProfile={handleUpdateProfile}
+          onBack={() => setShowProfile(false)}
+          onLogout={logout}
+        />
+      </>
+    )
+  }
+
+  // Show batch tracking view
+  if (showBatchTracking && selectedBatchId) {
+    return (
+      <>
+        <Head>
+          <title>TRACE HERB - Batch Tracking</title>
+          <meta name="description" content="Track your batch progress in real-time" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+        </Head>
+        <FastBatchTracking
+          key={selectedBatchId} // Force re-render when batchId changes
+          batchId={selectedBatchId}
+          onBack={() => {
+            setShowBatchTracking(false)
+            setSelectedBatchId(null)
+          }}
+        />
+      </>
+    )
+  }
+
+  // Show dashboard if user is authenticated and showDashboard is true
+  if (user && showDashboard) {
+    return (
+      <>
+        <Head>
+          <title>TRACE HERB - Farmer Dashboard</title>
+          <meta name="description" content="Farmer dashboard for batch management" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+        </Head>
+        <FastFarmerDashboard
+          user={user}
+          onCreateBatch={handleCreateBatch}
+          onShowProfile={() => setShowProfile(true)}
+          onShowBatchTracking={(batchId) => {
+            console.log('📋 FARMER PORTAL: Setting selected batch ID:', batchId)
+            setSelectedBatchId(batchId)
+            setShowBatchTracking(true)
+          }}
+          onLogout={handleLogout}
+        />
       </>
     )
   }
@@ -340,25 +579,31 @@ export default function FarmerDApp() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-herb-green-50 to-blue-50">
+      <div className="mobile-container bg-gradient-to-br from-herb-green-50 to-blue-50">
         {/* Header */}
-        <header className="bg-white/90 backdrop-blur-sm shadow-xl sticky top-0 z-50">
-          <div className="container mx-auto px-6 py-8">
+        <header className="mobile-header bg-white/90 backdrop-blur-sm shadow-xl">
+          <div className="px-4 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-herb-green-600 to-herb-green-700 rounded-2xl flex items-center justify-center shadow-xl">
-                  <span className="text-white font-bold text-4xl">🌿</span>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={handleBackToDashboard}
+                  className="bg-gray-100 hover:bg-gray-200 p-2 rounded-lg transition-colors touch-manipulation"
+                  title="Back to Dashboard"
+                >
+                  ←
+                </button>
+                <div className="w-10 h-10 bg-gradient-to-br from-herb-green-600 to-herb-green-700 rounded-lg flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-xl">🌿</span>
                 </div>
                 <div>
-                  <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-herb-green-600 to-herb-green-800 bg-clip-text text-transparent">TRACE HERB</h1>
-                  <p className="text-xl md:text-2xl text-gray-600 font-medium">Farmer Collection DApp</p>
+                  <h1 className="text-lg font-black bg-gradient-to-r from-herb-green-600 to-herb-green-800 bg-clip-text text-transparent">TRACE HERB</h1>
+                  <p className="text-sm text-gray-600 font-medium">Farmer DApp</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
                 <div className="text-right">
-                  <p className="text-sm text-gray-500">Welcome back,</p>
-                  <p className="text-lg font-semibold text-herb-green-700">{user.name}</p>
-                  <p className="text-xs text-gray-400">{user.profile?.farmName}</p>
+                  <p className="text-xs text-gray-500">Welcome</p>
+                  <p className="text-sm font-semibold text-herb-green-700">{user.name}</p>
                 </div>
                 <button
                   onClick={logout}
@@ -1277,10 +1522,25 @@ export default function FarmerDApp() {
                           📱 Download QR Code
                         </button>
                         <button
-                          onClick={resetForm}
+                          onClick={() => {
+                            resetForm()
+                            // Refresh the farmer portal by reloading the page
+                            window.location.reload()
+                          }}
                           className="btn-secondary"
                         >
                           ➕ Add New Collection
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowDashboard(true)
+                            // Refresh the farmer portal
+                            window.location.reload()
+                          }}
+                          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+                        >
+                          <span>🏠</span>
+                          <span>Return to Home Page</span>
                         </button>
                       </div>
                     </>

@@ -3,10 +3,15 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { v4 as uuidv4 } from 'uuid'
+import { useStandaloneAuth } from '../hooks/useAuth'
+import LoginForm from '../components/LoginForm'
 import AnomalyDetection from '../components/AnomalyDetection'
 import ExportCertificates from '../components/ExportCertificates'
 
 export default function ProcessorPortal() {
+  // Authentication
+  const { user, loading: authLoading, login, logout } = useStandaloneAuth()
+  const [loginLoading, setLoginLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [batchData, setBatchData] = useState(null)
@@ -26,7 +31,22 @@ export default function ProcessorPortal() {
   const [reputationResult, setReputationResult] = useState(null)
   const [showThreatDetection, setShowThreatDetection] = useState(false)
   const [threatResult, setThreatResult] = useState(null)
-  
+
+  // Login handler
+  const handleLogin = async (credentials) => {
+    setLoginLoading(true)
+    try {
+      const result = await login(credentials, 'processor')
+      if (!result.success) {
+        alert(result.error || 'Login failed')
+      }
+    } catch (error) {
+      alert('Login failed. Please try again.')
+    } finally {
+      setLoginLoading(false)
+    }
+  }
+
   // Form data states
   const [processorData, setProcessorData] = useState({
     name: '',
@@ -175,10 +195,36 @@ export default function ProcessorPortal() {
 
   // Load available batches on component mount and refresh every 30 seconds
   useEffect(() => {
-    fetchAvailableBatches()
-    const interval = setInterval(fetchAvailableBatches, 30000) // Refresh every 30 seconds
-    return () => clearInterval(interval)
-  }, [])
+    if (user) {
+      fetchAvailableBatches()
+      const interval = setInterval(fetchAvailableBatches, 30000) // Refresh every 30 seconds
+      return () => clearInterval(interval)
+    }
+  }, [user])
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-processor-blue-50 to-herb-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-processor-blue-600 mx-auto mb-4"></div>
+          <p className="text-processor-blue-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show login form if user is not authenticated
+  if (!user) {
+    return (
+      <LoginForm
+        onLogin={handleLogin}
+        portalName="Processor Portal"
+        portalIcon="🏭"
+        loading={loginLoading}
+      />
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-processor-blue-50 to-herb-green-50">
@@ -197,14 +243,37 @@ export default function ProcessorPortal() {
                 <p className="text-xl md:text-2xl text-gray-600 font-medium">Processor Portal</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-lg md:text-xl text-gray-600 font-medium">Step {currentStep} of 4</p>
-              <div className="w-32 bg-gray-200 rounded-full h-4 mt-2">
-                <div 
-                  className="bg-processor-blue-600 h-4 rounded-full transition-all duration-300 shadow-lg"
-                  style={{ width: `${(currentStep / 4) * 100}%` }}
-                ></div>
+
+            {/* User Info and Logout */}
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Welcome</p>
+                <p className="font-semibold text-processor-blue-700">{user?.username || 'Processor'}</p>
               </div>
+              <button
+                onClick={logout}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+              >
+                <span>🚪</span>
+                <span>Logout</span>
+              </button>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-lg md:text-xl text-gray-600 font-medium">Step {currentStep} of 4</p>
+                <div className="w-32 bg-gray-200 rounded-full h-4 mt-2">
+                  <div
+                    className="bg-processor-blue-600 h-4 rounded-full transition-all duration-300 shadow-lg"
+                    style={{ width: `${(currentStep / 4) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+              <button
+                onClick={logout}
+                className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-gray-700 font-medium transition-colors"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
@@ -751,6 +820,8 @@ export default function ProcessorPortal() {
                     setCurrentStep(1)
                     setBatchData(null)
                     setQrCode('')
+                    // Refresh the processor portal automatically
+                    window.location.reload()
                   }}
                   className="btn-primary"
                 >

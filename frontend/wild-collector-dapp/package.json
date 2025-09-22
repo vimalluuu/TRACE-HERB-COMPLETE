@@ -4,9 +4,9 @@
   "description": "TRACE HERB Wild Collector DApp - Mobile-first data collection for wild herb collectors",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3006",
+    "dev": "next dev -p 3011",
     "build": "next build",
-    "start": "next start -p 3006",
+    "start": "next start -p 3011",
     "lint": "next lint"
   },
   "dependencies": {

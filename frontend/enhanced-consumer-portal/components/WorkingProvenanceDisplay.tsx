@@ -41,6 +41,50 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
   const [showAdvancedInsights, setShowAdvancedInsights] = useState(false)
   const [isNotFound, setIsNotFound] = useState(false)
   const [isRateLimit, setIsRateLimit] = useState(false)
+  const [realBatchData, setRealBatchData] = useState<any>(null)
+
+  // Load real batch data
+  useEffect(() => {
+    const loadRealBatchData = async () => {
+      try {
+        const { getBatchByQRCode, batchToQualityMetrics, batchToSustainabilityMetrics, batchToAdvancedInsights, initializeDemoBatches } = await import('../utils/batchStatusSync.js')
+
+        // Initialize demo batches
+        initializeDemoBatches()
+
+        const batch = getBatchByQRCode(qrCode)
+        if (batch) {
+          // Check if batch is rejected
+          if (batch.status === 'rejected') {
+            setRealBatchData({
+              batch,
+              isRejected: true,
+              rejectionReason: batch.rejectionReason || 'This batch has been rejected by regulatory authorities.',
+              quality: null,
+              sustainability: null,
+              insights: null
+            })
+          } else {
+            const qualityMetrics = batchToQualityMetrics(batch)
+            const sustainabilityMetrics = batchToSustainabilityMetrics(batch)
+            const advancedInsights = batchToAdvancedInsights(batch)
+
+            setRealBatchData({
+              batch,
+              isRejected: false,
+              quality: qualityMetrics,
+              sustainability: sustainabilityMetrics,
+              insights: advancedInsights
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Error loading real batch data:', error)
+      }
+    }
+
+    loadRealBatchData()
+  }, [qrCode])
 
   // Fetch provenance data
   useEffect(() => {
@@ -147,6 +191,32 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
     )
   }
 
+  // Show rejection message if batch is rejected
+  if (realBatchData?.isRejected) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full text-center">
+          <div className="text-6xl mb-4">❌</div>
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Batch Rejected</h2>
+          <p className="text-gray-700 mb-6">{realBatchData.rejectionReason}</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-800 text-sm">
+              <strong>QR Code:</strong> {qrCode}<br/>
+              <strong>Status:</strong> Rejected by Regulatory Authority<br/>
+              <strong>Batch ID:</strong> {realBatchData.batch?.collectionId || realBatchData.batch?.id}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-lg font-medium transition-colors duration-200"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   // Error state
   if (error) {
     const isNotFound = error.includes('not found') || error.includes('QR code not found')
@@ -224,9 +294,16 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
             <div>
               <h2 className="text-2xl font-bold text-gray-800 flex items-center">
                 <span className="text-purple-600 mr-2">✨</span>
-                Advanced Insights for {provenance.product.name}
+                Advanced Insights for {realBatchData?.insights?.herbName || provenance.product.name}
               </h2>
               <p className="text-gray-600 mt-1">QR Code: {qrCode}</p>
+              {realBatchData?.insights && (
+                <div className="mt-2 text-sm text-gray-500">
+                  <p>Botanical Name: {realBatchData.insights.botanicalName}</p>
+                  <p>Origin: {realBatchData.insights.origin}</p>
+                  <p>Quality Grade: {realBatchData.insights.qualityGrade}</p>
+                </div>
+              )}
             </div>
             <div className="flex items-center space-x-3">
               <button
@@ -255,11 +332,11 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
               <SimpleInteractiveStoryMap
                 batchData={{
                   qrCode: qrCode,
-                  botanicalName: provenance.product.botanicalName,
-                  commonName: provenance.product.name,
-                  farmerName: provenance.events.find(e => e.type === 'Collection')?.performer?.name || 'Unknown Farmer',
-                  village: provenance.events.find(e => e.type === 'Collection')?.location?.name?.split(',')[0] || 'Unknown',
-                  district: provenance.events.find(e => e.type === 'Collection')?.location?.name?.split(',')[1]?.trim() || 'Unknown',
+                  botanicalName: realBatchData?.insights?.botanicalName || provenance.product.botanicalName,
+                  commonName: realBatchData?.insights?.herbName || provenance.product.name,
+                  farmerName: realBatchData?.insights?.farmer || provenance.events.find(e => e.type === 'Collection')?.performer?.name || 'Unknown Farmer',
+                  village: realBatchData?.insights?.origin?.split(',')[0] || provenance.events.find(e => e.type === 'Collection')?.location?.name?.split(',')[0] || 'Unknown',
+                  district: realBatchData?.insights?.origin?.split(',')[1]?.trim() || provenance.events.find(e => e.type === 'Collection')?.location?.name?.split(',')[1]?.trim() || 'Unknown',
                   state: provenance.events.find(e => e.type === 'Collection')?.location?.name?.split(',')[2]?.trim() || 'Unknown',
                   quantity: parseFloat(provenance.events.find(e => e.type === 'Collection')?.details?.quantity) || 0,
                   collectionDate: provenance.events.find(e => e.type === 'Collection')?.timestamp?.split('T')[0] || '2024-01-01',
@@ -601,12 +678,30 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
             {activeTab === 'quality' && (
               <div className="space-y-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Quality Testing Results</h3>
-                <div className="bg-green-50 rounded-lg p-6 border border-green-200">
+                <div className={`rounded-lg p-6 border ${
+                  realBatchData?.quality?.testsPassed
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-yellow-50 border-yellow-200'
+                }`}>
                   <div className="flex items-center space-x-3 mb-4">
-                    <span className="text-green-600 text-2xl">✅</span>
-                    <h4 className="text-lg font-semibold text-green-900">All Tests Passed</h4>
+                    <span className={`text-2xl ${
+                      realBatchData?.quality?.testsPassed ? 'text-green-600' : 'text-yellow-600'
+                    }`}>
+                      {realBatchData?.quality?.testsPassed ? '✅' : '🔬'}
+                    </span>
+                    <h4 className={`text-lg font-semibold ${
+                      realBatchData?.quality?.testsPassed ? 'text-green-900' : 'text-yellow-900'
+                    }`}>
+                      {realBatchData?.quality?.testsPassed ? 'All Tests Passed' : 'Quality Testing In Progress'}
+                    </h4>
                   </div>
-                  <p className="text-green-700 mb-4">Product meets all quality standards and certifications.</p>
+                  <p className={`mb-4 ${
+                    realBatchData?.quality?.testsPassed ? 'text-green-700' : 'text-yellow-700'
+                  }`}>
+                    {realBatchData?.quality?.testsPassed
+                      ? 'Product meets all quality standards and certifications.'
+                      : 'Quality testing is currently in progress. Results will be updated once available.'}
+                  </p>
                   
                   {/* Find quality testing event */}
                   {provenance.events.filter(event => event.type === 'Quality Testing').map(test => (
@@ -665,11 +760,19 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-green-700">Carbon Footprint</span>
-                        <span className="font-medium text-green-900">{provenance.sustainability.carbonFootprint}</span>
+                        <span className="font-medium text-green-900">
+                          {realBatchData?.sustainability?.carbonFootprint
+                            ? `${realBatchData.sustainability.carbonFootprint} kg CO₂`
+                            : provenance.sustainability.carbonFootprint}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-green-700">Water Usage</span>
-                        <span className="font-medium text-green-900">{provenance.sustainability.waterUsage}</span>
+                        <span className="font-medium text-green-900">
+                          {realBatchData?.sustainability?.waterUsage
+                            ? `${realBatchData.sustainability.waterUsage} L`
+                            : provenance.sustainability.waterUsage}
+                        </span>
                       </div>
                       {provenance.sustainability.biodiversityImpact && (
                         <div className="mt-4 p-3 bg-green-100 rounded-lg">
@@ -688,21 +791,21 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
                       <div className="flex items-center justify-between">
                         <span className="text-blue-700">Organic Certified</span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          provenance.sustainability.organicCertified 
-                            ? 'bg-green-100 text-green-800' 
+                          (realBatchData?.sustainability?.organicCertified ?? provenance.sustainability.organicCertified)
+                            ? 'bg-green-100 text-green-800'
                             : 'bg-gray-100 text-gray-600'
                         }`}>
-                          {provenance.sustainability.organicCertified ? 'Yes' : 'No'}
+                          {(realBatchData?.sustainability?.organicCertified ?? provenance.sustainability.organicCertified) ? 'Yes' : 'No'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-blue-700">Fair Trade</span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          provenance.sustainability.fairTrade 
-                            ? 'bg-green-100 text-green-800' 
+                          (realBatchData?.sustainability?.fairTrade ?? provenance.sustainability.fairTrade)
+                            ? 'bg-green-100 text-green-800'
                             : 'bg-gray-100 text-gray-600'
                         }`}>
-                          {provenance.sustainability.fairTrade ? 'Yes' : 'No'}
+                          {(realBatchData?.sustainability?.fairTrade ?? provenance.sustainability.fairTrade) ? 'Yes' : 'No'}
                         </span>
                       </div>
                       <div className="mt-4">

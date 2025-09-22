@@ -2,6 +2,159 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile-first responsive design */
+@layer base {
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Mobile optimizations */
+@layer components {
+  .mobile-container {
+    @apply min-h-screen bg-gray-50;
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .mobile-header {
+    @apply sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200;
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .mobile-content {
+    @apply flex-1 overflow-y-auto px-4 py-6;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  }
+
+  .mobile-button {
+    @apply w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 active:scale-95;
+    min-height: 48px;
+    touch-action: manipulation;
+  }
+
+  .mobile-input {
+    @apply w-full px-4 py-4 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent;
+    min-height: 48px;
+    -webkit-appearance: none;
+  }
+
+  .mobile-card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-4;
+    touch-action: manipulation;
+  }
+
+  .mobile-fab {
+    @apply fixed bottom-6 right-6 w-16 h-16 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg flex items-center justify-center text-2xl transition-all duration-200 active:scale-95;
+    bottom: calc(env(safe-area-inset-bottom) + 1.5rem);
+    z-index: 40;
+  }
+}
+
+/* Touch-friendly interactions */
+@layer utilities {
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+  .no-tap-highlight {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Animation improvements for mobile */
+@keyframes mobile-slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes mobile-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-slide-up {
+  animation: mobile-slide-up 0.3s ease-out;
+}
+
+.mobile-fade-in {
+  animation: mobile-fade-in 0.4s ease-out;
+}
+
+/* PWA specific styles */
+@media (display-mode: standalone) {
+  .pwa-only {
+    display: block !important;
+  }
+
+  .browser-only {
+    display: none !important;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .mobile-container {
+    @apply bg-gray-900;
+  }
+
+  .mobile-header {
+    @apply bg-gray-800 border-gray-700;
+  }
+
+  .mobile-card {
+    @apply bg-gray-800 border-gray-700;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .mobile-button {
+    @apply border-2 border-current;
+  }
+
+  .mobile-input {
+    @apply border-2 border-gray-600;
+  }
+}
+
 @layer base {
   html {
     font-family: system-ui, sans-serif;

@@ -20,22 +20,48 @@ interface SustainabilityMetrics {
 }
 
 interface SustainabilityMetricsProps {
-  metrics: SustainabilityMetrics
+  metrics?: SustainabilityMetrics
+  qrCode?: string
 }
 
-const SustainabilityMetrics: React.FC<SustainabilityMetricsProps> = ({ metrics }) => {
+const SustainabilityMetrics: React.FC<SustainabilityMetricsProps> = ({ metrics, qrCode }) => {
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null)
+  const [realMetrics, setRealMetrics] = useState<SustainabilityMetrics | null>(null)
+
+  // Import batch sync utilities
+  React.useEffect(() => {
+    const loadBatchData = async () => {
+      try {
+        const { getBatchByQRCode, batchToSustainabilityMetrics, initializeDemoBatches } = await import('../utils/batchStatusSync.js')
+
+        // Initialize demo batches
+        initializeDemoBatches()
+
+        if (qrCode) {
+          const batch = getBatchByQRCode(qrCode)
+          if (batch) {
+            const batchMetrics = batchToSustainabilityMetrics(batch)
+            setRealMetrics(batchMetrics)
+          }
+        }
+      } catch (error) {
+        console.error('Error loading batch data:', error)
+      }
+    }
+
+    loadBatchData()
+  }, [qrCode])
 
   // Mock data if not provided
   const defaultMetrics: SustainabilityMetrics = {
     carbonFootprint: 2.4,
     waterUsage: 150,
-    organicCertified: true,
-    fairTrade: true,
-    biodiversityScore: 8.5
+    organicCertified: false,
+    fairTrade: false,
+    biodiversityScore: 6.0
   }
 
-  const metricsToShow = metrics || defaultMetrics
+  const metricsToShow = realMetrics || metrics || defaultMetrics
 
   const sustainabilityData = [
     {
