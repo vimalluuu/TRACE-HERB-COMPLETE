@@ -15,7 +15,11 @@ const FastBatchTracking = ({ batchId, onBack }) => {
     console.log('📊 Batch data:', {
       status: batch.status,
       processingDate: batch.processingDate,
+      processingTimestamp: batch.processingTimestamp,
       testingDate: batch.testingDate,
+      labTimestamp: batch.labTimestamp,
+      reviewDate: batch.reviewDate,
+      regulatoryTimestamp: batch.regulatoryTimestamp,
       approvedDate: batch.approvedDate,
       rejectedDate: batch.rejectedDate
     })
@@ -50,11 +54,11 @@ const FastBatchTracking = ({ batchId, onBack }) => {
           }
           return 'pending'
         })(),
-        timestamp: batch.processingDate || batch.processingStarted || batch.processingCompleted ||
+        timestamp: batch.processingDate || batch.processingTimestamp || batch.processingStarted || batch.processingCompleted ||
                   (batch.status === 'processing' ? now.toISOString() : null),
         details: batch.processingNotes || 'Cleaning, sorting, and initial quality assessment',
         icon: '🏭',
-        actualTimestamp: !!(batch.processingDate || batch.processingStarted || batch.processingCompleted),
+        actualTimestamp: !!(batch.processingDate || batch.processingTimestamp || batch.processingStarted || batch.processingCompleted),
         portalSource: 'Processor Portal'
       },
       {
@@ -80,11 +84,11 @@ const FastBatchTracking = ({ batchId, onBack }) => {
           }
           return 'pending'
         })(),
-        timestamp: batch.testingDate || batch.testingStarted || batch.testingCompleted ||
+        timestamp: batch.testingDate || batch.labTimestamp || batch.testingStarted || batch.testingCompleted ||
                   (batch.status === 'testing' ? now.toISOString() : null),
         details: batch.testingNotes || batch.labResults || 'Chemical composition, purity, and safety testing',
         icon: '🧪',
-        actualTimestamp: !!(batch.testingDate || batch.testingStarted || batch.testingCompleted),
+        actualTimestamp: !!(batch.testingDate || batch.labTimestamp || batch.testingStarted || batch.testingCompleted),
         portalSource: 'Lab Portal'
       },
       {
@@ -110,12 +114,12 @@ const FastBatchTracking = ({ batchId, onBack }) => {
           }
           return 'pending'
         })(),
-        timestamp: batch.reviewDate || batch.regulatoryReviewStarted || batch.regulatoryReviewCompleted ||
+        timestamp: batch.reviewDate || batch.regulatoryTimestamp || batch.regulatoryReviewStarted || batch.regulatoryReviewCompleted ||
                   batch.approvedDate || batch.rejectedDate ||
                   (['approved', 'rejected'].includes(batch.status) ? now.toISOString() : null),
         details: batch.regulatoryNotes || 'Regulatory compliance verification',
         icon: '📋',
-        actualTimestamp: !!(batch.reviewDate || batch.regulatoryReviewStarted || batch.regulatoryReviewCompleted),
+        actualTimestamp: !!(batch.reviewDate || batch.regulatoryTimestamp || batch.regulatoryReviewStarted || batch.regulatoryReviewCompleted),
         portalSource: 'Regulatory Portal'
       }
     ]
@@ -152,7 +156,7 @@ const FastBatchTracking = ({ batchId, onBack }) => {
     return steps
   }
 
-  // Enhanced real-time batch synchronization
+  // Enhanced real-time batch synchronization with aggressive sync
   const syncBatchFromAllPortals = (targetBatchId = batchId) => {
     console.log('🔄 ENHANCED SYNC: Checking all portals for batch:', targetBatchId)
 
@@ -182,19 +186,26 @@ const FastBatchTracking = ({ batchId, onBack }) => {
         'completed': 10
       }
 
+      // Enhanced batch matching - try multiple ID formats
+      const findBatchInStorage = (batches, searchId) => {
+        return batches.find(b =>
+          b.qrCode === searchId ||
+          b.collectionId === searchId ||
+          b.id === searchId ||
+          searchId.includes(b.collectionId || '') ||
+          b.qrCode?.includes(searchId.replace('QR_COL_', '')) ||
+          searchId.replace('QR_COL_', '').includes(b.collectionId || '') ||
+          b.qrCode?.replace('QR_COL_', '') === searchId.replace('QR_COL_', '')
+        )
+      }
+
       for (const key of storageKeys) {
         const data = localStorage.getItem(key)
         if (data) {
           try {
             const batches = JSON.parse(data)
             if (Array.isArray(batches)) {
-              const foundBatch = batches.find(b =>
-                b.qrCode === targetBatchId ||
-                b.id === targetBatchId ||
-                b.collectionId === targetBatchId ||
-                (targetBatchId.includes('_') && (b.qrCode || '').includes(targetBatchId.split('_')[1])) ||
-                (targetBatchId.includes('_') && (b.id || '').includes(targetBatchId.split('_')[1]))
-              )
+              const foundBatch = findBatchInStorage(batches, targetBatchId)
 
               if (foundBatch) {
                 console.log(`📦 Found batch in ${key}:`, {
@@ -229,17 +240,26 @@ const FastBatchTracking = ({ batchId, onBack }) => {
             ...current,
             // Keep the most advanced status
             status: statusPriority[current.status] > statusPriority[merged.status] ? current.status : merged.status,
-            // Merge all timestamp data
-            processingDate: current.processingDate || merged.processingDate,
+            // Merge all timestamp data (check all possible field variations)
+            processingDate: current.processingDate || current.processingTimestamp || merged.processingDate || merged.processingTimestamp,
+            processingTimestamp: current.processingTimestamp || current.processingDate || merged.processingTimestamp || merged.processingDate,
             processingStarted: current.processingStarted || merged.processingStarted,
+            processingCompleted: current.processingCompleted || merged.processingCompleted,
             processingNotes: current.processingNotes || merged.processingNotes,
-            testingDate: current.testingDate || merged.testingDate,
+
+            testingDate: current.testingDate || current.labTimestamp || merged.testingDate || merged.labTimestamp,
+            labTimestamp: current.labTimestamp || current.testingDate || merged.labTimestamp || merged.testingDate,
             testingStarted: current.testingStarted || merged.testingStarted,
+            testingCompleted: current.testingCompleted || merged.testingCompleted,
             testingNotes: current.testingNotes || merged.testingNotes,
             labResults: current.labResults || merged.labResults,
-            reviewDate: current.reviewDate || merged.reviewDate,
+
+            reviewDate: current.reviewDate || current.regulatoryTimestamp || merged.reviewDate || merged.regulatoryTimestamp,
+            regulatoryTimestamp: current.regulatoryTimestamp || current.reviewDate || merged.regulatoryTimestamp || merged.reviewDate,
             regulatoryReviewStarted: current.regulatoryReviewStarted || merged.regulatoryReviewStarted,
+            regulatoryReviewCompleted: current.regulatoryReviewCompleted || merged.regulatoryReviewCompleted,
             regulatoryNotes: current.regulatoryNotes || merged.regulatoryNotes,
+
             approvedDate: current.approvedDate || merged.approvedDate,
             rejectedDate: current.rejectedDate || merged.rejectedDate,
             approvalReason: current.approvalReason || merged.approvalReason,

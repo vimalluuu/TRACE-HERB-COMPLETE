@@ -189,29 +189,54 @@ export const subscribeToBatchUpdates = (callback) => {
 // Simulate regulatory approval/rejection
 export const processRegulatoryDecision = (batchId, decision, comments = '') => {
   const newStatus = decision === 'approve' ? BATCH_STATUSES.APPROVED : BATCH_STATUSES.REJECTED
-  
-  return updateBatchStatus(batchId, newStatus, {
+  const now = new Date().toISOString()
+
+  const updateData = {
     regulatoryDecision: decision,
     regulatoryComments: comments,
-    regulatoryTimestamp: new Date().toISOString()
-  })
+    regulatoryTimestamp: now,
+    reviewDate: now,
+    regulatoryReviewStarted: now,
+    regulatoryReviewCompleted: now,
+    regulatoryNotes: comments || (decision === 'approve' ? 'All requirements met' : 'Requirements not met')
+  }
+
+  if (decision === 'approve') {
+    updateData.approvedDate = now
+    updateData.approvalReason = comments || 'All quality and regulatory standards met'
+  } else {
+    updateData.rejectedDate = now
+    updateData.rejectionReason = comments || 'Failed to meet regulatory standards'
+  }
+
+  return updateBatchStatus(batchId, newStatus, updateData)
 }
 
 // Simulate processor completion
 export const processProcessorCompletion = (batchId, processingData = {}) => {
+  const now = new Date().toISOString()
   return updateBatchStatus(batchId, BATCH_STATUSES.PROCESSED, {
     processingCompleted: true,
     processingData,
-    processingTimestamp: new Date().toISOString()
+    processingTimestamp: now,
+    processingDate: now,
+    processingStarted: now,
+    processingNotes: processingData.notes || 'Processing completed successfully'
   })
 }
 
 // Simulate lab testing completion
 export const processLabCompletion = (batchId, testResults = {}) => {
+  const now = new Date().toISOString()
   return updateBatchStatus(batchId, BATCH_STATUSES.TESTED, {
     labTestingCompleted: true,
     testResults,
-    labTimestamp: new Date().toISOString()
+    labTimestamp: now,
+    testingDate: now,
+    testingStarted: now,
+    testingCompleted: now,
+    testingNotes: 'Lab testing completed successfully',
+    labResults: testResults
   })
 }
 
