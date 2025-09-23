@@ -54,16 +54,11 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
 
         const batch = getBatchByQRCode(qrCode)
         if (batch) {
-          // Check if batch is rejected
+          // Check if batch is rejected - DON'T SHOW REJECTED BATCHES IN CONSUMER PORTAL
           if (batch.status === 'rejected') {
-            setRealBatchData({
-              batch,
-              isRejected: true,
-              rejectionReason: batch.rejectionReason || 'This batch has been rejected by regulatory authorities.',
-              quality: null,
-              sustainability: null,
-              insights: null
-            })
+            console.log('❌ Batch is rejected, hiding from consumer portal')
+            setIsNotFound(true)
+            return
           } else {
             const qualityMetrics = batchToQualityMetrics(batch)
             const sustainabilityMetrics = batchToSustainabilityMetrics(batch)

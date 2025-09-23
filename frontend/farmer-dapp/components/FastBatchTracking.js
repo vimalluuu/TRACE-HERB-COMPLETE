@@ -30,9 +30,12 @@ const FastBatchTracking = ({ batchId, onBack }) => {
     const tsOrNull = (e) => (e?.timestamp || e?.time || null)
 
     const processingEvtTs = tsOrNull(byType('processing')) || tsOrNull(byType('Processing'))
-    const testingEvtTs = tsOrNull(byType('testing')) || tsOrNull(byType('Testing'))
-    const regulatoryEvtTs = tsOrNull(byType('regulatory')) || tsOrNull(byType('Regulatory')) || tsOrNull(byType('regulatory review'))
-    const approvalEvtTs = tsOrNull(byType('approval')) || tsOrNull(byType('Approval')) || (events.find(e => (e.details?.decision === 'approve' || e.details?.decision === 'reject'))?.timestamp || null)
+    const testingEvtTs = tsOrNull(byType('testing')) || tsOrNull(byType('Testing')) || tsOrNull(byType('Laboratory Testing')) || tsOrNull(byType('laboratory testing'))
+    const regulatoryEvtTs = tsOrNull(byType('regulatory')) || tsOrNull(byType('Regulatory')) || tsOrNull(byType('regulatory review')) || tsOrNull(byType('Regulatory Review'))
+
+    // Approval/rejection uses the regulatory review event timestamp (or reviewDate) when decision present
+    const regEvtForDecision = byType('regulatory review') || byType('Regulatory Review') || byType('regulatory') || byType('Regulatory')
+    const approvalEvtTs = (regEvtForDecision && (regEvtForDecision.details?.reviewDate || regEvtForDecision.timestamp || regEvtForDecision.time)) || null
 
 
     const steps = [
@@ -155,11 +158,11 @@ const FastBatchTracking = ({ batchId, onBack }) => {
         title: 'REJECTED ❌',
         description: 'Batch rejected - cannot proceed',
         status: 'rejected',
-        timestamp: batch.rejectedDate || batch.finalReviewDate || approvalEvtTs || now.toISOString(),
+        timestamp: batch.rejectedDate || batch.finalReviewDate || batch.reviewDate || batch.regulatoryTimestamp || approvalEvtTs || regulatoryEvtTs || now.toISOString(),
         details: batch.rejectionReason || batch.finalNotes || 'Failed to meet quality or regulatory standards. Please contact support for detailed feedback.',
         icon: '❌',
         isRejection: true,
-        actualTimestamp: !!(batch.rejectedDate || batch.finalReviewDate || approvalEvtTs),
+        actualTimestamp: !!(batch.rejectedDate || batch.finalReviewDate || batch.reviewDate || batch.regulatoryTimestamp || approvalEvtTs || regulatoryEvtTs),
         portalSource: batch.rejectedBy || 'Regulatory Portal'
       })
     }
@@ -305,24 +308,37 @@ const FastBatchTracking = ({ batchId, onBack }) => {
   const mapBackendBatchToFarmerBatch = (backendBatch, qr) => {
     if (!backendBatch) return null
     const events = Array.isArray(backendBatch.events) ? backendBatch.events : []
-    const byType = (t) => events.find(e => (e.type || '').toLowerCase() === t.toLowerCase())
 
-    const collection = byType('Collection') || byType('collection')
-    const processing = byType('Processing') || byType('processing')
-    const testing = byType('Testing') || byType('testing')
-    const regulatory = byType('Regulatory') || byType('regulatory')
-    const approval = byType('Approval') || byType('approval')
+    const findEventTs = (keywords = []) => {
+      for (const e of events) {
+        const t = (e?.type || '').toLowerCase()
+        if (keywords.some(k => t.includes(k))) {
+          return e.timestamp || e.time || null
+        }
+      }
+      return null
+    }
 
-    const createdAt = backendBatch.createdAt || collection?.timestamp || collection?.time || null
-    const processingTs = processing?.timestamp || processing?.time || null
-    const testingTs = testing?.timestamp || testing?.time || null
-    const regulatoryTs = regulatory?.timestamp || regulatory?.time || null
-    const approvedTs = approval?.timestamp || approval?.time || (regulatory?.details?.decision === 'approve' ? regulatory?.timestamp : null)
+    // Event timestamps by stage (support multiple type variants)
+    const collectionTs = findEventTs(['collection'])
+    const processingTs = findEventTs(['processing'])
+    const testingTs = findEventTs(['testing', 'laboratory'])
+    const regulatoryTs = findEventTs(['regulatory']) // includes 'regulatory review'
+
+    // Final decision time: use regulatory event time if decision present or status finalized
+    let approvedTs = null
+    const regEvent = events.find(e => (e?.type || '').toLowerCase().includes('regulatory'))
+    if (regEvent && (regEvent?.details?.decision === 'approved' || regEvent?.details?.decision === 'rejected')) {
+      approvedTs = regEvent.details.reviewDate || regEvent.timestamp || regEvent.time || regulatoryTs
+    } else if (['approved', 'rejected'].includes((backendBatch.status || '').toLowerCase())) {
+      approvedTs = regulatoryTs
+    }
+
+    const createdAt = backendBatch.createdAt || collectionTs
 
     // Determine status conservatively
     const status = backendBatch.workflowStatus || backendBatch.status || (
-      approvedTs ? 'approved' :
-      (testingTs ? 'tested' : (processingTs ? 'processed' : 'pending'))
+      approvedTs ? 'approved' : (testingTs ? 'tested' : (processingTs ? 'processed' : 'pending'))
     )
 
     return {
@@ -331,10 +347,10 @@ const FastBatchTracking = ({ batchId, onBack }) => {
       qrCode: qr || backendBatch.qrCode || backendBatch.target?.qrCode,
       botanicalName: backendBatch.botanicalName || backendBatch.product?.botanicalName || backendBatch.target?.productName || 'Unknown',
       commonName: backendBatch.commonName || backendBatch.product?.name || backendBatch.target?.productName || 'Unknown',
-      quantity: backendBatch.quantity || backendBatch.events?.find(e => e.type === 'Collection')?.details?.quantity || '0',
-      unit: backendBatch.unit || backendBatch.events?.find(e => e.type === 'Collection')?.details?.unit || 'kg',
-      farmerName: backendBatch.farmerName || backendBatch.events?.find(e => e.type === 'Collection')?.performer?.name || 'Unknown',
-      farmLocation: backendBatch.farmLocation || backendBatch.events?.find(e => e.type === 'Collection')?.location || 'Unknown',
+      quantity: backendBatch.quantity || events.find(e => (e.type||'').toLowerCase().includes('collection'))?.details?.quantity || '0',
+      unit: backendBatch.unit || events.find(e => (e.type||'').toLowerCase().includes('collection'))?.details?.unit || 'kg',
+      farmerName: backendBatch.farmerName || events.find(e => (e.type||'').toLowerCase().includes('collection'))?.performer?.name || 'Unknown',
+      farmLocation: backendBatch.farmLocation || events.find(e => (e.type||'').toLowerCase().includes('collection'))?.location || 'Unknown',
 
       status,
       createdAt: createdAt || new Date().toISOString(),
@@ -356,12 +372,12 @@ const FastBatchTracking = ({ batchId, onBack }) => {
       regulatoryReviewCompleted: regulatoryTs || null,
 
       approvedDate: approvedTs || null,
-      regulatoryNotes: regulatory?.details?.notes || backendBatch.regulatoryComments || null,
-      approvalReason: backendBatch.approvalReason || 'Approved via workflow',
+      regulatoryNotes: regEvent?.details?.notes || backendBatch.regulatoryComments || null,
+      approvalReason: backendBatch.approvalReason || (regEvent?.details?.reason) || 'Approved via workflow',
 
       processingData: backendBatch.processingData || null,
       testResults: backendBatch.testResults || null,
-      regulatoryDecision: backendBatch.regulatory?.decision || null,
+      regulatoryDecision: backendBatch.regulatory?.decision || regEvent?.details?.decision || null,
 
       lastUpdated: backendBatch.lastUpdated || new Date().toISOString(),
       synced: true

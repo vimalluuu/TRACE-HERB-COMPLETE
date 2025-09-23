@@ -14,6 +14,7 @@ import QRCode from 'qrcode'
 import { v4 as uuidv4 } from 'uuid'
 import axios from 'axios'
 import { useStandaloneAuth } from '../hooks/useAuth'
+import mobileSync, { queueBatchForSync, getSyncStatus } from '../utils/mobileBlockchainSync'
 import LoginForm from '../components/LoginForm'
 import SignupForm from '../components/SignupForm'
 import ProfileView from '../components/ProfileView'
@@ -21,6 +22,7 @@ import FarmerDashboard from '../components/FarmerDashboard'
 import FastFarmerDashboard from '../components/FastFarmerDashboard'
 import BatchTrackingView from '../components/BatchTrackingView'
 import FastBatchTracking from '../components/FastBatchTracking'
+import MobileBatchTracking from '../components/MobileBatchTracking'
 import AIVerificationWidget from '../components/AIVerificationWidget'
 import RuralConnectivityWidget from '../components/RuralConnectivityWidget'
 import SMSBlockchainGateway from '../components/SMSBlockchainGateway'
@@ -37,6 +39,7 @@ export default function FarmerDApp() {
   const [showBatchTracking, setShowBatchTracking] = useState(false)
   const [selectedBatchId, setSelectedBatchId] = useState(null)
   const [loginLoading, setLoginLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   // Form state
   const [currentStep, setCurrentStep] = useState(1)
@@ -98,7 +101,9 @@ export default function FarmerDApp() {
   const handleUpdateProfile = async (profileData) => {
     try {
       const result = await updateProfile(profileData)
-      if (!result.success) {
+      if (result.success) {
+        alert('Profile updated successfully!')
+      } else {
         alert(result.error || 'Profile update failed')
       }
     } catch (error) {
@@ -164,6 +169,19 @@ export default function FarmerDApp() {
       }))
     }
   }, [user])
+
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent
+      const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
+      setIsMobile(mobile)
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Get current location with optimized settings
   const getCurrentLocation = () => {
@@ -370,33 +388,65 @@ export default function FarmerDApp() {
       })
       setQrCodeUrl(qrCodeDataUrl)
 
-      // Try to submit to backend API, but continue even if it fails
+      // Enhanced mobile blockchain sync
       let apiSubmissionSuccess = false
-      try {
-        const response = await axios.post('http://localhost:3000/api/collection/events', collectionEventData, {
-          timeout: 5000 // 5 second timeout
-        })
-        apiSubmissionSuccess = true
-        console.log('Successfully submitted to blockchain:', response.data)
-      } catch (apiError) {
-        console.warn('API submission failed, continuing with local storage:', apiError.message)
-        // Store locally for later sync
-        const localData = JSON.parse(localStorage.getItem('trace-herb-pending-submissions') || '[]')
-        localData.push({
-          ...collectionEventData,
-          submittedAt: new Date().toISOString(),
-          syncStatus: 'pending'
-        })
-        localStorage.setItem('trace-herb-pending-submissions', JSON.stringify(localData))
+
+      // Check if we're on mobile
+      if (isMobile) {
+        console.log('📱 Mobile: Using mobile blockchain sync')
+        try {
+          // Queue for mobile sync (handles offline/online automatically)
+          const syncId = queueBatchForSync(batchData)
+          console.log('📱 Mobile: Batch queued for sync with ID:', syncId)
+
+          // Try immediate sync if online
+          if (navigator.onLine) {
+            await mobileSync.processSyncQueue()
+            const status = getSyncStatus()
+            apiSubmissionSuccess = status.completed > 0
+          }
+        } catch (mobileError) {
+          console.warn('📱 Mobile: Mobile sync failed, using fallback:', mobileError.message)
+        }
+      } else {
+        // Desktop/standard sync
+        try {
+          const response = await axios.post('http://localhost:3000/api/collection/events', collectionEventData, {
+            timeout: 5000 // 5 second timeout
+          })
+          apiSubmissionSuccess = true
+          console.log('Successfully submitted to blockchain:', response.data)
+        } catch (apiError) {
+          console.warn('API submission failed, continuing with local storage:', apiError.message)
+          // Store locally for later sync
+          const localData = JSON.parse(localStorage.getItem('trace-herb-pending-submissions') || '[]')
+          localData.push({
+            ...collectionEventData,
+            submittedAt: new Date().toISOString(),
+            syncStatus: 'pending'
+          })
+          localStorage.setItem('trace-herb-pending-submissions', JSON.stringify(localData))
+        }
       }
+
+      // Enhanced success message for mobile
+      const successMessage = isMobile
+        ? (navigator.onLine
+          ? (apiSubmissionSuccess
+            ? '✅ Collection synced to blockchain successfully!'
+            : '📱 Collection saved! Syncing to blockchain...')
+          : '📱 Collection saved offline! Will sync when online.')
+        : (apiSubmissionSuccess
+          ? 'Collection event recorded successfully on blockchain!'
+          : 'Collection data saved locally. Will sync to blockchain when connection is available.')
 
       setSubmissionResult({
         success: true,
         qrCode: qrCode,
         collectionId: collectionId,
-        message: apiSubmissionSuccess
-          ? 'Collection event recorded successfully on blockchain!'
-          : 'Collection data saved locally. Will sync to blockchain when connection is available.'
+        message: successMessage,
+        isMobile: isMobile,
+        syncStatus: getSyncStatus()
       })
 
     } catch (error) {
@@ -535,14 +585,25 @@ export default function FarmerDApp() {
           <meta name="description" content="Track your batch progress in real-time" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
         </Head>
-        <FastBatchTracking
-          key={selectedBatchId} // Force re-render when batchId changes
-          batchId={selectedBatchId}
-          onBack={() => {
-            setShowBatchTracking(false)
-            setSelectedBatchId(null)
-          }}
-        />
+        {isMobile ? (
+          <MobileBatchTracking
+            key={selectedBatchId}
+            batch={{ qrCode: selectedBatchId, ...{} }} // You might need to fetch full batch data
+            onBack={() => {
+              setShowBatchTracking(false)
+              setSelectedBatchId(null)
+            }}
+          />
+        ) : (
+          <FastBatchTracking
+            key={selectedBatchId} // Force re-render when batchId changes
+            batchId={selectedBatchId}
+            onBack={() => {
+              setShowBatchTracking(false)
+              setSelectedBatchId(null)
+            }}
+          />
+        )}
       </>
     )
   }
@@ -921,10 +982,10 @@ export default function FarmerDApp() {
 
               <div className="flex justify-between mt-6">
                 <button
-                  onClick={() => setCurrentStep(1)}
+                  onClick={handleBackToDashboard}
                   className="btn-secondary"
                 >
-                  Back
+                  Back to Dashboard
                 </button>
                 <button
                   onClick={() => setCurrentStep(3)}
@@ -1524,8 +1585,7 @@ export default function FarmerDApp() {
                         <button
                           onClick={() => {
                             resetForm()
-                            // Refresh the farmer portal by reloading the page
-                            window.location.reload()
+                            setCurrentStep(2) // Go directly to herb collection details
                           }}
                           className="btn-secondary"
                         >
