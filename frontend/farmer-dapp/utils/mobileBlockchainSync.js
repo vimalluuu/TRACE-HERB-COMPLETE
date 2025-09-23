@@ -3,33 +3,50 @@
 
 class MobileBlockchainSync {
   constructor() {
+    // Check if we're in browser environment
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      // Server-side rendering - initialize with defaults
+      this.isOnline = false
+      this.syncQueue = []
+      this.retryAttempts = 3
+      this.retryDelay = 2000
+      this.baseURL = 'http://localhost:3000'
+      this.syncInProgress = false
+      return
+    }
+
     this.isOnline = navigator.onLine
     this.syncQueue = []
     this.retryAttempts = 3
     this.retryDelay = 2000
     this.baseURL = this.getBaseURL()
     this.syncInProgress = false
-    
+
     // Listen for network changes
     window.addEventListener('online', () => {
       console.log('📱 Mobile: Network online - starting sync')
       this.isOnline = true
       this.processSyncQueue()
     })
-    
+
     window.addEventListener('offline', () => {
       console.log('📱 Mobile: Network offline - queuing operations')
       this.isOnline = false
     })
-    
+
     // Start periodic sync
     this.startPeriodicSync()
   }
   
   // Detect if we're on mobile and get appropriate base URL
   getBaseURL() {
+    // Check if we're in browser environment
+    if (typeof window === 'undefined') {
+      return 'http://localhost:3000' // Default for server-side rendering
+    }
+
     const hostname = window.location.hostname
-    
+
     // If we're on localhost, try to detect the computer's IP
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       // For mobile testing, we need the computer's IP address
@@ -40,7 +57,7 @@ class MobileBlockchainSync {
       }
       return 'http://localhost:3000'
     }
-    
+
     // Use current hostname with backend port
     return `http://${hostname}:3000`
   }
@@ -246,15 +263,19 @@ class MobileBlockchainSync {
   
   // Save sync queue to localStorage
   saveSyncQueue() {
+    if (typeof localStorage === 'undefined') return
+
     try {
       localStorage.setItem('mobile-sync-queue', JSON.stringify(this.syncQueue))
     } catch (error) {
       console.error('📱 Mobile: Failed to save sync queue:', error)
     }
   }
-  
+
   // Load sync queue from localStorage
   loadSyncQueue() {
+    if (typeof localStorage === 'undefined') return
+
     try {
       const saved = localStorage.getItem('mobile-sync-queue')
       if (saved) {
@@ -269,6 +290,8 @@ class MobileBlockchainSync {
   
   // Start periodic sync every 30 seconds
   startPeriodicSync() {
+    if (typeof setInterval === 'undefined') return
+
     setInterval(() => {
       if (this.isOnline && this.syncQueue.length > 0) {
         console.log('📱 Mobile: Periodic sync check...')
@@ -307,22 +330,41 @@ class MobileBlockchainSync {
   }
 }
 
-// Create global instance
-const mobileSync = new MobileBlockchainSync()
+// Create global instance only in browser environment
+let mobileSync = null
 
-// Load existing queue on startup
-mobileSync.loadSyncQueue()
+if (typeof window !== 'undefined') {
+  mobileSync = new MobileBlockchainSync()
+
+  // Load existing queue on startup
+  mobileSync.loadSyncQueue()
+
+  // Auto-start sync when online
+  if (navigator.onLine) {
+    setTimeout(() => mobileSync.processSyncQueue(), 1000)
+  }
+}
 
 // Export for use in components
 export default mobileSync
 
-// Export utility functions
-export const queueBatchForSync = (batchData) => mobileSync.queueBatchSync(batchData)
-export const getSyncStatus = () => mobileSync.getSyncStatus()
-export const forceSyncAll = () => mobileSync.forceSyncAll()
-export const clearCompleted = () => mobileSync.clearCompleted()
+// Export utility functions with null checks
+export const queueBatchForSync = (batchData) => {
+  if (!mobileSync) return null
+  return mobileSync.queueBatchSync(batchData)
+}
 
-// Auto-start sync when online
-if (navigator.onLine) {
-  setTimeout(() => mobileSync.processSyncQueue(), 1000)
+export const getSyncStatus = () => {
+  if (!mobileSync) return { total: 0, pending: 0, completed: 0, failed: 0, isOnline: false, syncInProgress: false }
+  return mobileSync.getSyncStatus()
+}
+
+export const forceSyncAll = () => {
+  if (!mobileSync) return Promise.resolve()
+  return mobileSync.forceSyncAll()
+}
+
+export const clearCompleted = () => {
+  if (!mobileSync) return
+  return mobileSync.clearCompleted()
 }

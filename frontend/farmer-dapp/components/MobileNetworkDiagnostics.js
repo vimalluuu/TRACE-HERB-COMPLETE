@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 
 const MobileNetworkDiagnostics = ({ isVisible, onClose }) => {
   const [diagnostics, setDiagnostics] = useState({
-    isOnline: navigator.onLine,
+    isOnline: typeof navigator !== 'undefined' ? navigator.onLine : false,
     backendReachable: false,
     blockchainReachable: false,
     latency: null,
@@ -13,9 +13,11 @@ const MobileNetworkDiagnostics = ({ isVisible, onClose }) => {
 
   // Run network diagnostics
   const runDiagnostics = async () => {
+    if (typeof window === 'undefined') return
+
     setIsRunning(true)
     const results = {
-      isOnline: navigator.onLine,
+      isOnline: typeof navigator !== 'undefined' ? navigator.onLine : false,
       backendReachable: false,
       blockchainReachable: false,
       latency: null,
@@ -25,7 +27,7 @@ const MobileNetworkDiagnostics = ({ isVisible, onClose }) => {
 
     try {
       // Test backend connectivity
-      const backendIP = localStorage.getItem('mobile-backend-ip') || 'localhost'
+      const backendIP = (typeof localStorage !== 'undefined' ? localStorage.getItem('mobile-backend-ip') : null) || 'localhost'
       const backendURL = `http://${backendIP}:3000`
       
       console.log('📱 Testing backend connectivity:', backendURL)

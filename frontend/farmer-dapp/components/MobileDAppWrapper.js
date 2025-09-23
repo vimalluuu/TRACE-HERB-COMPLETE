@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import MobileSyncStatus from './MobileSyncStatus'
 
 const MobileDAppWrapper = ({ children }) => {
   const [deferredPrompt, setDeferredPrompt] = useState(null)
@@ -192,11 +191,6 @@ const MobileDAppWrapper = ({ children }) => {
       <div className={`${!isOnline ? 'pt-10' : ''} ${showInstallPrompt && !isStandalone ? 'pb-20' : ''}`}>
         {children}
       </div>
-
-      {/* Mobile Sync Status - only show on mobile */}
-      {deviceInfo.isMobile && (
-        <MobileSyncStatus isVisible={true} />
-      )}
 
       {/* Mobile-specific styles */}
       <style jsx>{`

@@ -8,7 +8,7 @@ const MobileSyncStatus = ({ isVisible = true }) => {
     pending: 0,
     completed: 0,
     failed: 0,
-    isOnline: navigator.onLine,
+    isOnline: typeof navigator !== 'undefined' ? navigator.onLine : false,
     syncInProgress: false
   })
   const [showDetails, setShowDetails] = useState(false)
@@ -23,6 +23,8 @@ const MobileSyncStatus = ({ isVisible = true }) => {
 
   // Force sync all pending items
   const handleForceSync = async () => {
+    if (typeof window === 'undefined') return
+
     if (!syncStatus.isOnline) {
       alert('📱 No internet connection. Please check your network and try again.')
       return
@@ -49,17 +51,19 @@ const MobileSyncStatus = ({ isVisible = true }) => {
 
   // Update status periodically
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
     updateSyncStatus()
-    
+
     const interval = setInterval(updateSyncStatus, 5000) // Update every 5 seconds
-    
+
     // Listen for online/offline events
     const handleOnline = () => updateSyncStatus()
     const handleOffline = () => updateSyncStatus()
-    
+
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
-    
+
     return () => {
       clearInterval(interval)
       window.removeEventListener('online', handleOnline)
