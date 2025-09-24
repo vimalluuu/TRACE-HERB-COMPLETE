@@ -28,6 +28,9 @@ import SustainabilityWidget from '../components/SustainabilityWidget'
 import SecurityWidget from '../components/SecurityWidget'
 import RegulatoryWidget from '../components/RegulatoryWidget'
 
+// Simple in-memory cache for reverse geocoding results (keyed by rounded lat,lon)
+const reverseGeocodeCache = new Map()
+
 export default function FarmerDApp() {
   // Authentication
   const { user, loading: authLoading, login, signup, updateProfile, logout } = useStandaloneAuth()
@@ -229,9 +232,9 @@ export default function FarmerDApp() {
         if (location.placeName) {
           const placeLabel = window.L.divIcon({
             className: 'place-name-label',
-            html: `<div style="background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; font-weight: bold; color: #333; text-align: center; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${location.placeName}</div>`,
-            iconSize: [200, 20],
-            iconAnchor: [100, 35]
+            html: `<div style="background: rgba(59, 130, 246, 0.95); padding: 6px 12px; border-radius: 6px; border: 2px solid white; font-size: 13px; font-weight: bold; color: white; text-align: center; white-space: nowrap; box-shadow: 0 4px 8px rgba(0,0,0,0.3); max-width: 250px; overflow: hidden; text-overflow: ellipsis;">${location.placeName}</div>`,
+            iconSize: [250, 30],
+            iconAnchor: [125, 45]
           })
 
           window.L.marker([location.latitude, location.longitude], { icon: placeLabel })
@@ -276,9 +279,9 @@ export default function FarmerDApp() {
       if (location.placeName) {
         const placeLabel = window.L.divIcon({
           className: 'place-name-label',
-          html: `<div style="background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; font-weight: bold; color: #333; text-align: center; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${location.placeName}</div>`,
-          iconSize: [200, 20],
-          iconAnchor: [100, 35]
+          html: `<div style="background: rgba(59, 130, 246, 0.95); padding: 6px 12px; border-radius: 6px; border: 2px solid white; font-size: 13px; font-weight: bold; color: white; text-align: center; white-space: nowrap; box-shadow: 0 4px 8px rgba(0,0,0,0.3); max-width: 250px; overflow: hidden; text-overflow: ellipsis;">${location.placeName}</div>`,
+          iconSize: [250, 30],
+          iconAnchor: [125, 45]
         })
 
         window.L.marker([location.latitude, location.longitude], { icon: placeLabel })
@@ -331,25 +334,77 @@ export default function FarmerDApp() {
             timestamp: new Date().toISOString()
           }
 
-          // Try reverse geocoding to get place name
-          try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
-            )
-            if (response.ok) {
-              const data = await response.json()
-              if (data && data.display_name) {
-                locationData.placeName = data.display_name
-                locationData.village = data.address?.village || data.address?.town || data.address?.city
-                locationData.district = data.address?.state_district || data.address?.county
-                locationData.state = data.address?.state
-                locationData.country = data.address?.country
+          // Convert coordinates to place name using reverse geocoding
+          await new Promise(resolve => {
+            // Try multiple geocoding services for better reliability (Tamil-first)
+            const tryGeocoding = async () => {
+              try {
+                const key = `${position.coords.latitude.toFixed(4)},${position.coords.longitude.toFixed(4)}`
+                const cached = reverseGeocodeCache.get(key)
+                if (cached) {
+                  locationData.placeName = cached.placeName
+                  locationData.village = cached.village || ''
+                  locationData.district = cached.district || ''
+                  locationData.state = cached.state || ''
+                  locationData.country = cached.country || ''
+                  resolve(); return
+                }
+
+                // Nominatim (demo) with Tamil-first language
+                const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=16&addressdetails=1&accept-language=ta,en`
+                const nominatimResponse = await fetch(url, {
+                  headers: {
+                    'User-Agent': 'TraceHerbApp/1.0',
+                    'Accept-Language': 'ta,en'
+                  }
+                })
+
+                if (nominatimResponse.ok) {
+                  const data = await nominatimResponse.json()
+                  console.log('Nominatim geocoding response:', data)
+
+                  if (data) {
+                    const addr = data.address || {}
+                    const state = addr.state || ''
+                    const city = addr.city || addr.town || addr.municipality || addr.county || addr.district || ''
+                    const locality = addr.suburb || addr.neighbourhood || addr.village || addr.hamlet || addr.locality || addr.quarter || ''
+
+                    // Build "State, City, Locality"
+                    const formatted = [state, city, locality].filter(Boolean).join(', ')
+
+                    if (formatted) {
+                      locationData.placeName = formatted
+                      locationData.village = city || ''
+                      locationData.district = addr.state_district || addr.district || addr.county || ''
+                      locationData.state = state || ''
+                      locationData.country = addr.country || ''
+                      reverseGeocodeCache.set(key, { placeName: locationData.placeName, village: locationData.village, district: locationData.district, state: locationData.state, country: locationData.country })
+                      resolve(); return
+                    } else if (data.display_name) {
+                      locationData.placeName = data.display_name
+                      locationData.village = city || ''
+                      locationData.district = addr.state_district || addr.district || addr.county || ''
+                      locationData.state = state || ''
+                      locationData.country = addr.country || ''
+                      reverseGeocodeCache.set(key, { placeName: locationData.placeName, village: locationData.village, district: locationData.district, state: locationData.state, country: locationData.country })
+                      resolve(); return
+                    }
+                  }
+                }
+
+                // Fallback: Use a simple location description
+                locationData.placeName = `Location near ${position.coords.latitude.toFixed(4)}°N, ${position.coords.longitude.toFixed(4)}°E`
+                resolve()
+
+              } catch (error) {
+                console.warn('Geocoding failed:', error)
+                locationData.placeName = `Location at ${position.coords.latitude.toFixed(4)}°N, ${position.coords.longitude.toFixed(4)}°E`
+                resolve()
               }
             }
-          } catch (geocodeError) {
-            console.warn('Reverse geocoding failed:', geocodeError)
-            locationData.placeName = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`
-          }
+
+            tryGeocoding()
+          })
 
           setLocation(locationData)
           setLoading(false)
@@ -376,25 +431,77 @@ export default function FarmerDApp() {
             timestamp: new Date().toISOString()
           }
 
-          // Try reverse geocoding to get place name
-          try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
-            )
-            if (response.ok) {
-              const data = await response.json()
-              if (data && data.display_name) {
-                locationData.placeName = data.display_name
-                locationData.village = data.address?.village || data.address?.town || data.address?.city
-                locationData.district = data.address?.state_district || data.address?.county
-                locationData.state = data.address?.state
-                locationData.country = data.address?.country
+          // Convert coordinates to place name using reverse geocoding
+          await new Promise(resolve => {
+            // Try multiple geocoding services for better reliability (Tamil-first)
+            const tryGeocoding = async () => {
+              try {
+                const key = `${position.coords.latitude.toFixed(4)},${position.coords.longitude.toFixed(4)}`
+                const cached = reverseGeocodeCache.get(key)
+                if (cached) {
+                  locationData.placeName = cached.placeName
+                  locationData.village = cached.village || ''
+                  locationData.district = cached.district || ''
+                  locationData.state = cached.state || ''
+                  locationData.country = cached.country || ''
+                  resolve(); return
+                }
+
+                // Nominatim (demo) with Tamil-first language
+                const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=16&addressdetails=1&accept-language=ta,en`
+                const nominatimResponse = await fetch(url, {
+                  headers: {
+                    'User-Agent': 'TraceHerbApp/1.0',
+                    'Accept-Language': 'ta,en'
+                  }
+                })
+
+                if (nominatimResponse.ok) {
+                  const data = await nominatimResponse.json()
+                  console.log('Nominatim geocoding response:', data)
+
+                  if (data) {
+                    const addr = data.address || {}
+                    const state = addr.state || ''
+                    const city = addr.city || addr.town || addr.municipality || addr.county || addr.district || ''
+                    const locality = addr.suburb || addr.neighbourhood || addr.village || addr.hamlet || addr.locality || addr.quarter || ''
+
+                    // Build "State, City, Locality"
+                    const formatted = [state, city, locality].filter(Boolean).join(', ')
+
+                    if (formatted) {
+                      locationData.placeName = formatted
+                      locationData.village = city || ''
+                      locationData.district = addr.state_district || addr.district || addr.county || ''
+                      locationData.state = state || ''
+                      locationData.country = addr.country || ''
+                      reverseGeocodeCache.set(key, { placeName: locationData.placeName, village: locationData.village, district: locationData.district, state: locationData.state, country: locationData.country })
+                      resolve(); return
+                    } else if (data.display_name) {
+                      locationData.placeName = data.display_name
+                      locationData.village = city || ''
+                      locationData.district = addr.state_district || addr.district || addr.county || ''
+                      locationData.state = state || ''
+                      locationData.country = addr.country || ''
+                      reverseGeocodeCache.set(key, { placeName: locationData.placeName, village: locationData.village, district: locationData.district, state: locationData.state, country: locationData.country })
+                      resolve(); return
+                    }
+                  }
+                }
+
+                // Fallback: Use a simple location description
+                locationData.placeName = `Location near ${position.coords.latitude.toFixed(4)}°N, ${position.coords.longitude.toFixed(4)}°E`
+                resolve()
+
+              } catch (error) {
+                console.warn('Geocoding failed:', error)
+                locationData.placeName = `Location at ${position.coords.latitude.toFixed(4)}°N, ${position.coords.longitude.toFixed(4)}°E`
+                resolve()
               }
             }
-          } catch (geocodeError) {
-            console.warn('Reverse geocoding failed:', geocodeError)
-            locationData.placeName = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`
-          }
+
+            tryGeocoding()
+          })
 
           setLocation(locationData)
           setLoading(false)
@@ -441,7 +548,7 @@ export default function FarmerDApp() {
       accuracy: 10,
       timestamp: new Date().toISOString(),
       isDemoLocation: true,
-      placeName: 'MG Road, Bengaluru, Karnataka, India',
+      placeName: 'Karnataka, Bengaluru, MG Road',
       village: 'Bengaluru',
       district: 'Bengaluru Urban',
       state: 'Karnataka',
@@ -626,7 +733,7 @@ export default function FarmerDApp() {
         message: 'Unable to process collection data. Please check your internet connection and try again.'
       })
     }
-    
+
     setLoading(false)
   }
 
