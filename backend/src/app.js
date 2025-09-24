@@ -44,23 +44,28 @@ app.use(helmet({
   },
 }));
 
-// CORS configuration
+// CORS configuration (allow same-machine and same-LAN origins in dev)
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [
-    'http://localhost:3001', // Consumer Portal
-    'http://localhost:3002', // Farmer Portal
-    'http://localhost:3003', // Stakeholder Dashboard (Legacy)
-    'http://localhost:3004', // Processor Portal
-    'http://localhost:3005', // Lab Portal
-    'http://localhost:3006', // Supply Chain Overview
-    'http://localhost:3007', // Regulator Portal
-    'http://localhost:3008', // Management Portal
-    'http://localhost:3009', // Supply Chain Overview (Alt Port)
-    'http://localhost:3010'  // Enhanced Consumer Portal
-  ],
+  origin: (origin, callback) => {
+    try {
+      if (!origin) return callback(null, true) // curl, mobile apps
+      // If explicit allowlist provided, honor it
+      if (process.env.CORS_ORIGIN) {
+        const allow = process.env.CORS_ORIGIN.split(',').map(s => s.trim())
+        return allow.includes(origin) ? callback(null, true) : callback(null, false)
+      }
+      const { hostname } = new URL(origin)
+      const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1'
+      const isPrivateLAN = /^192\.168\./.test(hostname) || /^10\./.test(hostname) || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname)
+      if (isLocalhost || isPrivateLAN) return callback(null, true)
+      return callback(null, false)
+    } catch (e) {
+      return callback(null, false)
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200
-};
+}
 app.use(cors(corsOptions));
 
 // Compression middleware

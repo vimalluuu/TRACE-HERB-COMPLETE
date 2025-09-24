@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Farmer Portal Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f8f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid;
+        }
+        .success { background-color: #d4edda; border-color: #28a745; color: #155724; }
+        .error { background-color: #f8d7da; border-color: #dc3545; color: #721c24; }
+        .warning { background-color: #fff3cd; border-color: #ffc107; color: #856404; }
+        .info { background-color: #d1ecf1; border-color: #17a2b8; color: #0c5460; }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #22c55e;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        button {
+            background-color: #22c55e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #16a34a;
+        }
+        button:disabled {
+            background-color: #6b7280;
+            cursor: not-allowed;
+        }
+        .batch-list {
+            margin-top: 20px;
+        }
+        .batch-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        .batch-qr {
+            font-family: monospace;
+            font-weight: bold;
+            color: #16a34a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌿 TRACE HERB - Farmer Portal</h1>
+            <p>Simple Test Version</p>
+        </div>
+
+        <div id="status-container">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Initializing farmer portal...</p>
+            </div>
+        </div>
+
+        <div id="main-content" style="display: none;">
+            <h2>📱 Farmer Dashboard</h2>
+            
+            <div class="status info">
+                <strong>Welcome!</strong> This is a simplified version of the farmer portal for testing.
+            </div>
+
+            <div style="margin: 20px 0;">
+                <button onclick="testBackendConnection()">🔗 Test Backend</button>
+                <button onclick="loadBatches()">📦 Load Batches</button>
+                <button onclick="testBatchAccess()">🔍 Test Batch Access</button>
+                <button onclick="clearData()">🧹 Clear Data</button>
+            </div>
+
+            <div id="batch-container" class="batch-list">
+                <h3>📋 Your Batches</h3>
+                <div id="batch-list">No batches loaded yet.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const backendURL = 'http://172.16.126.195:3000';
+        const testBatchId = 'QR_COL_1758658303156_B7603EA1';
+
+        function log(message, type = 'info') {
+            const container = document.getElementById('status-container');
+            const statusClass = type === 'success' ? 'success' : 
+                               type === 'error' ? 'error' : 
+                               type === 'warning' ? 'warning' : 'info';
+            container.innerHTML += `<div class="status ${statusClass}">${message}</div>`;
+        }
+
+        function clearLog() {
+            document.getElementById('status-container').innerHTML = '';
+        }
+
+        async function initialize() {
+            try {
+                log('🔄 Checking backend connection...', 'info');
+                
+                const response = await fetch(`${backendURL}/api/health`, { 
+                    method: 'GET',
+                    timeout: 5000 
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Backend connected: ${data.data.status}`, 'success');
+                    
+                    // Show main content
+                    document.getElementById('main-content').style.display = 'block';
+                    
+                    // Auto-load batches
+                    setTimeout(loadBatches, 1000);
+                    
+                } else {
+                    log(`❌ Backend error: HTTP ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Connection failed: ${error.message}`, 'error');
+                log('💡 Make sure the backend is running on port 3000', 'warning');
+            }
+        }
+
+        async function testBackendConnection() {
+            clearLog();
+            log('🔄 Testing backend connection...', 'info');
+            
+            try {
+                const response = await fetch(`${backendURL}/api/health`);
+                const data = await response.json();
+                log(`✅ Backend healthy: ${JSON.stringify(data.data)}`, 'success');
+            } catch (error) {
+                log(`❌ Backend test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadBatches() {
+            log('🔄 Loading batches...', 'info');
+            
+            try {
+                // Check localStorage first
+                const localBatches = localStorage.getItem('farmerBatches');
+                if (localBatches) {
+                    const batches = JSON.parse(localBatches);
+                    displayBatches(batches, 'localStorage');
+                    log(`📦 Found ${batches.length} batches in localStorage`, 'success');
+                }
+
+                // Try to load from backend
+                const response = await fetch(`${backendURL}/api/workflow/batches/farmer`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data.batches) {
+                        displayBatches(data.data.batches, 'backend');
+                        log(`🌐 Loaded ${data.data.batches.length} batches from backend`, 'success');
+                    } else {
+                        log('⚠️ No batches found in backend', 'warning');
+                    }
+                } else {
+                    log(`❌ Failed to load from backend: HTTP ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error loading batches: ${error.message}`, 'error');
+            }
+        }
+
+        async function testBatchAccess() {
+            log(`🔍 Testing access to batch: ${testBatchId}`, 'info');
+            
+            try {
+                const response = await fetch(`${backendURL}/api/workflow/access/farmer/${encodeURIComponent(testBatchId)}?accessType=view`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data.accessAllowed) {
+                        log(`✅ Batch access successful: ${data.data.batch?.target?.productName || 'Unknown'}`, 'success');
+                        log(`📊 Status: ${data.data.currentStatus}`, 'info');
+                    } else {
+                        log(`❌ Batch access denied: ${data.data.reason}`, 'error');
+                    }
+                } else {
+                    log(`❌ Batch access failed: HTTP ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Batch access error: ${error.message}`, 'error');
+            }
+        }
+
+        function displayBatches(batches, source) {
+            const container = document.getElementById('batch-list');
+            
+            if (!batches || batches.length === 0) {
+                container.innerHTML = `<div class="status info">No batches found in ${source}</div>`;
+                return;
+            }
+
+            let html = `<h4>📦 Batches from ${source} (${batches.length})</h4>`;
+            
+            batches.forEach(batch => {
+                html += `
+                    <div class="batch-item">
+                        <div class="batch-qr">${batch.qrCode || batch.target?.qrCode || 'No QR'}</div>
+                        <div><strong>${batch.commonName || batch.target?.productName || 'Unknown Herb'}</strong></div>
+                        <div>Status: <span style="color: #16a34a;">${batch.status || 'Unknown'}</span></div>
+                        <div>Farmer: ${batch.farmerName || batch.events?.[0]?.performer?.name || 'Unknown'}</div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function clearData() {
+            localStorage.clear();
+            log('🧹 Local storage cleared', 'warning');
+            document.getElementById('batch-list').innerHTML = 'No batches loaded yet.';
+        }
+
+        // Initialize on page load
+        window.onload = initialize;
+    </script>
+</body>
+</html>

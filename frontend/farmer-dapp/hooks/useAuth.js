@@ -326,16 +326,25 @@ export const useStandaloneAuth = () => {
 
   useEffect(() => {
     // Check for existing session
-    const savedUser = localStorage.getItem('traceHerbUser')
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser))
-      } catch (error) {
-        console.error('Error parsing saved user:', error)
-        localStorage.removeItem('traceHerbUser')
+    console.log('🔐 useStandaloneAuth: Initializing authentication...')
+
+    try {
+      const savedUser = localStorage.getItem('traceHerbUser')
+      if (savedUser) {
+        console.log('🔐 Found saved user, parsing...')
+        const parsedUser = JSON.parse(savedUser)
+        setUser(parsedUser)
+        console.log('🔐 User loaded successfully:', parsedUser.name || parsedUser.username)
+      } else {
+        console.log('🔐 No saved user found')
       }
+    } catch (error) {
+      console.error('🔐 Error parsing saved user:', error)
+      localStorage.removeItem('traceHerbUser')
+    } finally {
+      console.log('🔐 Setting loading to false')
+      setLoading(false)
     }
-    setLoading(false)
   }, [])
 
   const login = async (credentials, portalType) => {
