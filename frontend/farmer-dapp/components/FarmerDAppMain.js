@@ -1,154 +1,107 @@
+/**
+ * Main Farmer DApp Component
+ * This component contains the main logic and is imported dynamically to prevent SSR issues
+ */
+
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
-import {
-  MapPinIcon,
-  CameraIcon,
-  QrCodeIcon,
-  UserIcon,
-  BeakerIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon
-} from '@heroicons/react/24/outline'
 import QRCode from 'qrcode'
 import { v4 as uuidv4 } from 'uuid'
 import axios from 'axios'
-import { useStandaloneAuth } from '../hooks/useAuth'
-import LoginForm from '../components/LoginForm'
-import SignupForm from '../components/SignupForm'
-import ProfileView from '../components/ProfileView'
-import FarmerDashboard from '../components/FarmerDashboard'
-import FastFarmerDashboard from '../components/FastFarmerDashboard'
-import BatchTrackingView from '../components/BatchTrackingView'
-import FastBatchTracking from '../components/FastBatchTracking'
-import AIVerificationWidget from '../components/AIVerificationWidget'
-import RuralConnectivityWidget from '../components/RuralConnectivityWidget'
-import SMSBlockchainGateway from '../components/SMSBlockchainGateway'
-import SustainabilityWidget from '../components/SustainabilityWidget'
-import SecurityWidget from '../components/SecurityWidget'
-import RegulatoryWidget from '../components/RegulatoryWidget'
+import { UserIcon, BeakerIcon, MapPinIcon, CheckCircleIcon, ExclamationTriangleIcon, QrCodeIcon } from '@heroicons/react/24/outline'
 
-export default function FarmerDApp() {
-  // Authentication
-  const { user, loading: authLoading, login, signup, updateProfile, logout } = useStandaloneAuth()
+import AIVerificationWidget from './AIVerificationWidget'
+import RuralConnectivityWidget from './RuralConnectivityWidget'
+import SMSBlockchainGateway from './SMSBlockchainGateway'
+
+
+export default function FarmerDAppMain() {
+  // Client-side only state to prevent hydration issues
+  const [isClient, setIsClient] = useState(false)
+
+  // Authentication - simplified
+  const [user, setUser] = useState({
+    name: 'Demo Farmer',
+    id: 'farmer_001',
+    profile: {
+      phone: '+91 9876543210',
+      farmName: 'Green Valley Farm',
+      location: 'Keshavpur Village',
+      farmId: 'FARM_001',
+      certifications: ['Organic', 'Sustainable']
+    }
+  })
   const [showDashboard, setShowDashboard] = useState(true)
   const [showProfile, setShowProfile] = useState(false)
-  const [showSignup, setShowSignup] = useState(false)
   const [showBatchTracking, setShowBatchTracking] = useState(false)
   const [selectedBatchId, setSelectedBatchId] = useState(null)
-  const [loginLoading, setLoginLoading] = useState(false)
 
-  // Form state
+  // Collection states
   const [currentStep, setCurrentStep] = useState(1)
-  const [loading, setLoading] = useState(false)
-  const [location, setLocation] = useState(null)
-  const [locationError, setLocationError] = useState('')
-  const [qrCodeUrl, setQrCodeUrl] = useState('')
-  const [submissionResult, setSubmissionResult] = useState(null)
-  const [aiVerificationResult, setAiVerificationResult] = useState(null)
-  const [showAiVerification, setShowAiVerification] = useState(false)
-  const [ruralConnectivityResult, setRuralConnectivityResult] = useState(null)
-  const [showRuralConnectivity, setShowRuralConnectivity] = useState(false)
-  const [smsGatewayResult, setSMSGatewayResult] = useState(null)
-  const [showSMSGateway, setShowSMSGateway] = useState(false)
-  const [sustainabilityResult, setSustainabilityResult] = useState(null)
-  const [showSustainability, setShowSustainability] = useState(false)
-  const [securityResult, setSecurityResult] = useState(null)
-  const [showSecurity, setShowSecurity] = useState(false)
-  const [regulatoryResult, setRegulatoryResult] = useState(null)
-  const [showRegulatory, setShowRegulatory] = useState(false)
-
-  // Login handler
-  const handleLogin = async (credentials) => {
-    setLoginLoading(true)
-    try {
-      const result = await login(credentials, 'farmer')
-      if (result.success) {
-        setShowDashboard(true)
-        setShowSignup(false)
-      } else {
-        alert(result.error || 'Login failed')
-      }
-    } catch (error) {
-      alert('Login failed. Please try again.')
-    } finally {
-      setLoginLoading(false)
-    }
-  }
-
-  // Signup handler
-  const handleSignup = async (formData) => {
-    setLoginLoading(true)
-    try {
-      const result = await signup(formData)
-      if (result.success) {
-        setShowDashboard(true)
-        setShowSignup(false)
-      } else {
-        alert(result.error || 'Signup failed')
-      }
-    } catch (error) {
-      alert('Signup failed. Please try again.')
-    } finally {
-      setLoginLoading(false)
-    }
-  }
-
-  // Profile update handler
-  const handleUpdateProfile = async (profileData) => {
-    try {
-      const result = await updateProfile(profileData)
-      if (result.success) {
-        alert('Profile updated successfully!')
-      } else {
-        alert(result.error || 'Profile update failed')
-      }
-    } catch (error) {
-      alert('Profile update failed. Please try again.')
-    }
-  }
-
-  // Dashboard handlers
-  const handleCreateBatch = () => {
-    setShowDashboard(false)
-    setCurrentStep(2) // Skip farmer information step, go directly to herb collection details
-  }
-
-  const handleBackToDashboard = () => {
-    setShowDashboard(true)
-  }
-
-  const handleLogout = () => {
-    logout()
-    setShowDashboard(true)
-  }
-
-  // Farmer/Collector Information
   const [farmerData, setFarmerData] = useState({
     name: '',
-    phone: '',
-    farmerId: '',
-    village: '',
-    district: '',
-    state: '',
-    experience: '',
-    certification: ''
+    farmLocation: '',
+    contactInfo: '',
+    certifications: []
   })
-
-  // Herb Collection Information
   const [herbData, setHerbData] = useState({
-    botanicalName: '',
-    commonName: '',
-    ayurvedicName: '',
-    partUsed: '',
+    species: '',
+    variety: '',
+    harvestDate: '',
     quantity: '',
-    unit: 'kg',
-    collectionMethod: '',
-    season: '',
-    weatherConditions: '',
-    soilType: '',
-    notes: ''
+    qualityGrade: '',
+    processingMethod: '',
+    storageConditions: ''
   })
+  const [location, setLocation] = useState(null)
+  const [photos, setPhotos] = useState([])
+  const [qrCode, setQrCode] = useState('')
+  const [qrCodeUrl, setQrCodeUrl] = useState('')
+  const [collectionComplete, setCollectionComplete] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Enhanced features states
+  const [showAIVerification, setShowAIVerification] = useState(false)
+  const [showRuralConnectivity, setShowRuralConnectivity] = useState(false)
+  const [showSMSGateway, setShowSMSGateway] = useState(false)
+  const [showSustainability, setShowSustainability] = useState(false)
+  const [showSecurity, setShowSecurity] = useState(false)
+  const [showRegulatory, setShowRegulatory] = useState(false)
+
+  // Initialize client-side rendering
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  // Client-side only rendering to prevent hydration issues
+  if (!isClient) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Loading Farmer Portal...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Enhanced features results states
+  const [aiVerificationResult, setAiVerificationResult] = useState(null)
+  const [ruralConnectivityResult, setRuralConnectivityResult] = useState(null)
+  const [smsGatewayResult, setSMSGatewayResult] = useState(null)
+  const [sustainabilityResult, setSustainabilityResult] = useState(null)
+  const [securityResult, setSecurityResult] = useState(null)
+  const [regulatoryResult, setRegulatoryResult] = useState(null)
+
+  // Form submission states
+  const [submissionResult, setSubmissionResult] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [locationError, setLocationError] = useState('')
+
+  // Set client-side flag to prevent hydration issues
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Populate farmer data from logged-in user profile
   useEffect(() => {
@@ -181,13 +134,37 @@ export default function FarmerDApp() {
     // Try high accuracy first, then fallback to lower accuracy
     const tryHighAccuracy = () => {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
+        async (position) => {
+          const locationData = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy,
             timestamp: new Date().toISOString()
-          })
+          }
+
+          // Try to get place name using reverse geocoding
+          try {
+            const response = await fetch(
+              `https://api.opencagedata.com/geocode/v1/json?q=${position.coords.latitude}+${position.coords.longitude}&key=YOUR_API_KEY&limit=1`
+            )
+            if (response.ok) {
+              const data = await response.json()
+              if (data.results && data.results.length > 0) {
+                const place = data.results[0]
+                locationData.placeName = place.formatted
+                locationData.village = place.components.village || place.components.town || place.components.city
+                locationData.district = place.components.state_district || place.components.county
+                locationData.state = place.components.state
+                locationData.country = place.components.country
+              }
+            }
+          } catch (geocodeError) {
+            console.warn('Reverse geocoding failed:', geocodeError)
+            // Fallback to basic location info
+            locationData.placeName = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`
+          }
+
+          setLocation(locationData)
           setLoading(false)
         },
         (error) => {
@@ -204,13 +181,36 @@ export default function FarmerDApp() {
 
     const tryLowAccuracy = () => {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
+        async (position) => {
+          const locationData = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy,
             timestamp: new Date().toISOString()
-          })
+          }
+
+          // Try to get place name using reverse geocoding
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
+            )
+            if (response.ok) {
+              const data = await response.json()
+              if (data && data.display_name) {
+                locationData.placeName = data.display_name
+                locationData.village = data.address?.village || data.address?.town || data.address?.city
+                locationData.district = data.address?.state_district || data.address?.county
+                locationData.state = data.address?.state
+                locationData.country = data.address?.country
+              }
+            }
+          } catch (geocodeError) {
+            console.warn('Reverse geocoding failed:', geocodeError)
+            // Fallback to basic location info
+            locationData.placeName = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`
+          }
+
+          setLocation(locationData)
           setLoading(false)
         },
         (error) => {
@@ -267,78 +267,6 @@ export default function FarmerDApp() {
       // Generate unique collection ID
       const collectionId = `COL_${Date.now()}_${uuidv4().substr(0, 8).toUpperCase()}`
       const qrCode = `QR_${collectionId}`
-
-      // Prepare batch data for local storage
-      const batchData = {
-        id: collectionId,
-        collectionId: collectionId,
-        batchId: collectionId,
-        qrCode: qrCode,
-        botanicalName: herbData.botanicalName,
-        commonName: herbData.commonName,
-        quantity: herbData.quantity,
-        unit: herbData.unit,
-        farmerName: farmerData.name,
-        farmLocation: `${farmerData.village}, ${farmerData.district}`,
-        farmSize: '5 acres', // Default value
-        collectionMethod: herbData.collectionMethod,
-        season: herbData.season,
-        weatherConditions: herbData.weatherConditions,
-        soilType: herbData.soilType,
-        certifications: farmerData.certification,
-        farmerData: farmerData,
-        herbData: herbData,
-        location: location,
-        createdAt: new Date().toISOString(),
-        lastUpdated: new Date().toISOString(),
-        status: 'pending',
-        synced: false
-      }
-
-      // Save to both farmer-specific and shared storage
-      const existingFarmerBatches = JSON.parse(localStorage.getItem('farmerBatches') || '[]')
-      existingFarmerBatches.push(batchData)
-      localStorage.setItem('farmerBatches', JSON.stringify(existingFarmerBatches))
-
-      // Also save to shared batch storage for cross-portal sync
-      const existingSharedBatches = JSON.parse(localStorage.getItem('traceHerbBatches') || '[]')
-      existingSharedBatches.push(batchData)
-      localStorage.setItem('traceHerbBatches', JSON.stringify(existingSharedBatches))
-
-      // Trigger immediate update event
-      window.dispatchEvent(new CustomEvent('batchAdded', { detail: batchData }))
-      console.log('🎉 Batch added event dispatched:', batchData.qrCode)
-
-      // If offline, add to pending sync queue
-      if (!navigator.onLine) {
-        const pendingSyncs = JSON.parse(localStorage.getItem('pendingSyncs') || '[]')
-        pendingSyncs.push({
-          type: 'batch_creation',
-          data: batchData,
-          timestamp: Date.now()
-        })
-        localStorage.setItem('pendingSyncs', JSON.stringify(pendingSyncs))
-
-        // Generate QR code for offline use
-        const qrCodeDataUrl = await QRCode.toDataURL(qrCode, {
-          width: 256,
-          margin: 2,
-          color: { dark: '#000000', light: '#FFFFFF' }
-        })
-        setQrCodeUrl(qrCodeDataUrl)
-
-        setSubmissionResult({
-          success: true,
-          message: 'Batch saved locally. Will sync when online.',
-          collectionId: collectionId,
-          qrCode: qrCode,
-          offline: true
-        })
-
-        setCurrentStep(4)
-        setLoading(false)
-        return
-      }
 
       // Prepare collection event data for backend API
       const collectionEventData = {
@@ -435,7 +363,7 @@ export default function FarmerDApp() {
         message: 'Unable to process collection data. Please check your internet connection and try again.'
       })
     }
-    
+
     setLoading(false)
   }
 
@@ -455,122 +383,9 @@ export default function FarmerDApp() {
     setLocationError('')
   }
 
-  // Show loading while checking authentication
-  if (authLoading) {
-    return (
-      <div className="mobile-container bg-gradient-to-br from-herb-green-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-herb-green-600 mx-auto mb-4"></div>
-          <p className="text-herb-green-600 font-medium">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Show login/signup forms if user is not authenticated
-  if (!user) {
-    if (showSignup) {
-      return (
-        <>
-          <Head>
-            <title>TRACE HERB - Farmer Registration</title>
-            <meta name="description" content="Register as a farmer to access the collection portal" />
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
-          </Head>
-          <SignupForm
-            onSignup={handleSignup}
-            onSwitchToLogin={() => setShowSignup(false)}
-            loading={loginLoading}
-          />
-        </>
-      )
-    }
-
-    return (
-      <>
-        <Head>
-          <title>TRACE HERB - Farmer Portal Login</title>
-          <meta name="description" content="Login to access the farmer collection portal" />
-          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-          <meta name="mobile-web-app-capable" content="yes" />
-          <meta name="apple-mobile-web-app-capable" content="yes" />
-          <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-          <meta name="theme-color" content="#16a34a" />
-          <link rel="manifest" href="/manifest.json" />
-        </Head>
-        <LoginForm
-          onLogin={handleLogin}
-          onSwitchToSignup={() => setShowSignup(true)}
-          portalName="Farmer Portal"
-          portalIcon="🧑‍🌾"
-          loading={loginLoading}
-        />
-      </>
-    )
-  }
-
-  // Show profile view
-  if (showProfile) {
-    return (
-      <>
-        <Head>
-          <title>TRACE HERB - Farmer Profile</title>
-          <meta name="description" content="Manage your farmer profile" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-        </Head>
-        <ProfileView
-          user={user}
-          onUpdateProfile={handleUpdateProfile}
-          onBack={() => setShowProfile(false)}
-          onLogout={logout}
-        />
-      </>
-    )
-  }
-
-  // Show batch tracking view
-  if (showBatchTracking && selectedBatchId) {
-    return (
-      <>
-        <Head>
-          <title>TRACE HERB - Batch Tracking</title>
-          <meta name="description" content="Track your batch progress in real-time" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-        </Head>
-        <FastBatchTracking
-          key={selectedBatchId} // Force re-render when batchId changes
-          batchId={selectedBatchId}
-          onBack={() => {
-            setShowBatchTracking(false)
-            setSelectedBatchId(null)
-          }}
-        />
-      </>
-    )
-  }
-
-  // Show dashboard if user is authenticated and showDashboard is true
-  if (user && showDashboard) {
-    return (
-      <>
-        <Head>
-          <title>TRACE HERB - Farmer Dashboard</title>
-          <meta name="description" content="Farmer dashboard for batch management" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-        </Head>
-        <FastFarmerDashboard
-          user={user}
-          onCreateBatch={handleCreateBatch}
-          onShowProfile={() => setShowProfile(true)}
-          onShowBatchTracking={(batchId) => {
-            console.log('📋 FARMER PORTAL: Setting selected batch ID:', batchId)
-            setSelectedBatchId(batchId)
-            setShowBatchTracking(true)
-          }}
-          onLogout={handleLogout}
-        />
-      </>
-    )
+  // Simple logout function
+  const logout = () => {
+    setUser(null)
   }
 
   return (
@@ -581,43 +396,37 @@ export default function FarmerDApp() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div className="mobile-container bg-gradient-to-br from-herb-green-50 to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-herb-green-50 to-blue-50">
         {/* Header */}
-        <header className="mobile-header bg-white/90 backdrop-blur-sm shadow-xl">
-          <div className="px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={handleBackToDashboard}
-                  className="bg-gray-100 hover:bg-gray-200 p-2 rounded-lg transition-colors touch-manipulation"
-                  title="Back to Dashboard"
-                >
-                  ←
-                </button>
-                <div className="w-10 h-10 bg-gradient-to-br from-herb-green-600 to-herb-green-700 rounded-lg flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-xl">🌿</span>
+        <header className="bg-white/90 backdrop-blur-sm shadow-xl sticky top-0 z-50">
+          <div className="container mx-auto px-4 md:px-6 py-4 md:py-8">
+            <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+              <div className="flex items-center space-x-3 md:space-x-6">
+                <div className="w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br from-green-600 to-green-700 rounded-xl md:rounded-2xl flex items-center justify-center shadow-xl">
+                  <span className="text-white font-bold text-2xl md:text-4xl">🌿</span>
                 </div>
                 <div>
-                  <h1 className="text-lg font-black bg-gradient-to-r from-herb-green-600 to-herb-green-800 bg-clip-text text-transparent">TRACE HERB</h1>
-                  <p className="text-sm text-gray-600 font-medium">Farmer DApp</p>
+                  <h1 className="text-2xl md:text-4xl lg:text-5xl font-black bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">TRACE HERB</h1>
+                  <p className="text-sm md:text-xl lg:text-2xl text-gray-600 font-medium">Farmer Collection DApp</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="text-right">
-                  <p className="text-xs text-gray-500">Welcome</p>
-                  <p className="text-sm font-semibold text-herb-green-700">{user.name}</p>
+              <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 w-full md:w-auto">
+                <div className="text-center md:text-right">
+                  <p className="text-xs md:text-sm text-gray-500">Welcome back,</p>
+                  <p className="text-sm md:text-lg font-semibold text-green-700">{user.name}</p>
+                  <p className="text-xs text-gray-400">{user.profile?.farmName}</p>
                 </div>
                 <button
                   onClick={logout}
-                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200 text-sm font-medium"
+                  className="px-3 py-2 md:px-4 md:py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200 text-xs md:text-sm font-medium"
                 >
                   Logout
                 </button>
-                <div className="text-right">
-                  <p className="text-lg md:text-xl text-gray-600 font-medium">Step {currentStep} of 5</p>
-                  <div className="w-32 bg-gray-200 rounded-full h-4 mt-2">
+                <div className="text-center md:text-right">
+                  <p className="text-sm md:text-lg lg:text-xl text-gray-600 font-medium">Step {currentStep} of 5</p>
+                  <div className="w-24 md:w-32 bg-gray-200 rounded-full h-3 md:h-4 mt-2">
                     <div
-                      className="bg-herb-green-600 h-4 rounded-full transition-all duration-300 shadow-lg"
+                      className="bg-green-600 h-3 md:h-4 rounded-full transition-all duration-300 shadow-lg"
                       style={{ width: `${(currentStep / 5) * 100}%` }}
                     ></div>
                   </div>
@@ -627,21 +436,464 @@ export default function FarmerDApp() {
           </div>
         </header>
 
-        <main className="container mx-auto px-6 py-12">
-          {/* Step 1: Farmer Information */}
-          {currentStep === 1 && (
-            <div className="bg-white rounded-3xl shadow-2xl p-12 max-w-5xl mx-auto">
-              <div className="flex items-center space-x-6 mb-12">
-                <UserIcon className="w-16 h-16 text-herb-green-600" />
-                <h2 className="text-4xl md:text-5xl font-black text-gray-900">Farmer Information</h2>
+        {/* Navigation */}
+        <nav className="bg-white border-b border-gray-200 sticky top-20 md:top-24 z-40">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="flex space-x-4 md:space-x-8 overflow-x-auto">
+              <button
+                onClick={() => {
+                  setShowDashboard(true)
+                  setShowProfile(false)
+                  setShowBatchTracking(false)
+                  setCurrentStep(1)
+                }}
+                className={`py-3 md:py-4 px-3 md:px-2 border-b-2 font-medium text-sm md:text-base whitespace-nowrap ${
+                  showDashboard
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                📊 Dashboard
+              </button>
+              <button
+                onClick={() => {
+                  setShowDashboard(false)
+                  setShowProfile(false)
+                  setShowBatchTracking(false)
+                  setCurrentStep(1)
+                }}
+                className={`py-3 md:py-4 px-3 md:px-2 border-b-2 font-medium text-sm md:text-base whitespace-nowrap ${
+                  !showDashboard && !showProfile && !showBatchTracking
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                🌿 New Collection
+              </button>
+              <button
+                onClick={() => {
+                  setShowDashboard(false)
+                  setShowProfile(false)
+                  setShowBatchTracking(true)
+                }}
+                className={`py-3 md:py-4 px-3 md:px-2 border-b-2 font-medium text-sm md:text-base whitespace-nowrap ${
+                  showBatchTracking
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                📦 Batch Tracking
+              </button>
+              <button
+                onClick={() => {
+                  setShowDashboard(false)
+                  setShowProfile(true)
+                  setShowBatchTracking(false)
+                }}
+                className={`py-3 md:py-4 px-3 md:px-2 border-b-2 font-medium text-sm md:text-base whitespace-nowrap ${
+                  showProfile
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                👤 Profile
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        <main className="container mx-auto px-4 md:px-6 py-6 md:py-12">
+          {/* Dashboard View */}
+          {showDashboard && (
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-8">Farmer Dashboard</h2>
+
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Total Collections</p>
+                      <p className="text-2xl font-bold text-gray-900">12</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                      </svg>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">This Month</p>
+                      <p className="text-2xl font-bold text-gray-900">3</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-yellow-100 rounded-lg">
+                      <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                      </svg>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Total Quantity</p>
+                      <p className="text-2xl font-bold text-gray-900">45 kg</p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Recent Collections */}
+              <div className="bg-white rounded-lg shadow">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-medium text-gray-900">Recent Collections</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Collection ID</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Herb</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      <tr>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">COL_001</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Ashwagandha</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">5 kg</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            Approved
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="bg-green-600 h-2 rounded-full" style={{width: '100%'}}></div>
+                          </div>
+                          <span className="text-xs text-gray-500 mt-1">Complete</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">COL_002</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Turmeric</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">10 kg</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                            Processing
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="bg-blue-600 h-2 rounded-full" style={{width: '60%'}}></div>
+                          </div>
+                          <span className="text-xs text-gray-500 mt-1">In Progress</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">COL_003</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Neem</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8 kg</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                            Pending
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="bg-yellow-600 h-2 rounded-full" style={{width: '20%'}}></div>
+                          </div>
+                          <span className="text-xs text-gray-500 mt-1">Started</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Profile View */}
+          {showProfile && (
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-8">Farmer Profile</h2>
+
+              <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
+                <div className="flex items-center mb-8">
+                  <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                    {user.name.charAt(0)}
+                  </div>
+                  <div className="ml-6">
+                    <h3 className="text-2xl font-bold text-gray-900">{user.name}</h3>
+                    <p className="text-gray-600">{user.profile?.phone}</p>
+                    <p className="text-sm text-gray-500">{user.profile?.farmName}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Farm ID</label>
+                    <p className="text-gray-900">{user.profile?.farmId}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                    <p className="text-gray-900">{user.profile?.location}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                    <p className="text-gray-900">{user.profile?.phone}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Member Since</label>
+                    <p className="text-gray-900">January 2024</p>
+                  </div>
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Certifications</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {user.profile?.certifications?.map((cert, index) => (
+                      <span key={index} className="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800">
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Collection Statistics</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-green-600">12</p>
+                      <p className="text-sm text-gray-600">Total Collections</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-blue-600">45</p>
+                      <p className="text-sm text-gray-600">Total Quantity (kg)</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-yellow-600">5</p>
+                      <p className="text-sm text-gray-600">Herb Varieties</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 text-center">
+                  <button
+                    onClick={() => setShowProfile(false)}
+                    className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                  >
+                    Back to Dashboard
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Batch Tracking View */}
+          {showBatchTracking && (
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-8">Batch Tracking</h2>
+
+              {/* Filter Options */}
+              <div className="bg-white rounded-lg shadow p-6 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Filter Batches</h3>
+                <div className="flex flex-wrap gap-4">
+                  <button className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium">All Batches</button>
+                  <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300">Pending</button>
+                  <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300">Processing</button>
+                  <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300">Approved</button>
+                  <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300">Completed</button>
+                </div>
+              </div>
+
+              {/* Batch List with Progress Timeline */}
+              <div className="space-y-6">
+                {/* Batch 1 */}
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900">COL_001 - Ashwagandha</h4>
+                      <p className="text-gray-600">5 kg • Collected on Jan 15, 2024</p>
+                    </div>
+                    <span className="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800">
+                      Approved
+                    </span>
+                  </div>
+
+                  {/* Progress Timeline */}
+                  <div className="mt-6">
+                    <h5 className="text-sm font-medium text-gray-700 mb-3">Progress Timeline</h5>
+                    <div className="space-y-3">
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                        <div className="ml-3 flex-1">
+                          <p className="text-sm font-medium text-gray-900">Collection Submitted</p>
+                          <p className="text-xs text-gray-500">Jan 15, 2024 - 10:30 AM</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                        <div className="ml-3 flex-1">
+                          <p className="text-sm font-medium text-gray-900">Quality Testing</p>
+                          <p className="text-xs text-gray-500">Jan 16, 2024 - 2:15 PM</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                        <div className="ml-3 flex-1">
+                          <p className="text-sm font-medium text-gray-900">Approved</p>
+                          <p className="text-xs text-gray-500">Jan 17, 2024 - 11:45 AM</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                        <div className="ml-3 flex-1">
+                          <p className="text-sm font-medium text-gray-900">Payment Processed</p>
+                          <p className="text-xs text-gray-500">Jan 18, 2024 - 9:20 AM</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Batch 2 */}
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900">COL_002 - Turmeric</h4>
+                      <p className="text-gray-600">10 kg • Collected on Jan 20, 2024</p>
+                    </div>
+                    <span className="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800">
+                      Processing
+                    </span>
+                  </div>
+
+                  {/* Progress Timeline */}
+                  <div className="mt-6">
+                    <h5 className="text-sm font-medium text-gray-700 mb-3">Progress Timeline</h5>
+                    <div className="space-y-3">
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                        <div className="ml-3 flex-1">
+                          <p className="text-sm font-medium text-gray-900">Collection Submitted</p>
+                          <p className="text-xs text-gray-500">Jan 20, 2024 - 3:45 PM</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                        <div className="ml-3 flex-1">
+                          <p className="text-sm font-medium text-gray-900">Quality Testing</p>
+                          <p className="text-xs text-gray-500">In Progress</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
+                        <div className="ml-3 flex-1">
+                          <p className="text-sm text-gray-500">Pending Approval</p>
+                          <p className="text-xs text-gray-400">Waiting</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
+                        <div className="ml-3 flex-1">
+                          <p className="text-sm text-gray-500">Payment Processing</p>
+                          <p className="text-xs text-gray-400">Waiting</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Batch 3 */}
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900">COL_003 - Neem</h4>
+                      <p className="text-gray-600">8 kg • Collected on Jan 22, 2024</p>
+                    </div>
+                    <span className="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-yellow-100 text-yellow-800">
+                      Pending
+                    </span>
+                  </div>
+
+                  {/* Progress Timeline */}
+                  <div className="mt-6">
+                    <h5 className="text-sm font-medium text-gray-700 mb-3">Progress Timeline</h5>
+                    <div className="space-y-3">
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                        <div className="ml-3 flex-1">
+                          <p className="text-sm font-medium text-gray-900">Collection Submitted</p>
+                          <p className="text-xs text-gray-500">Jan 22, 2024 - 1:20 PM</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
+                        <div className="ml-3 flex-1">
+                          <p className="text-sm text-gray-500">Quality Testing</p>
+                          <p className="text-xs text-gray-400">Waiting</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
+                        <div className="ml-3 flex-1">
+                          <p className="text-sm text-gray-500">Pending Approval</p>
+                          <p className="text-xs text-gray-400">Waiting</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
+                        <div className="ml-3 flex-1">
+                          <p className="text-sm text-gray-500">Payment Processing</p>
+                          <p className="text-xs text-gray-400">Waiting</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 text-center">
+                <button
+                  onClick={() => setShowBatchTracking(false)}
+                  className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                >
+                  Back to Dashboard
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Collection Workflow */}
+          {!showDashboard && !showProfile && !showBatchTracking && (
+            <>
+              {/* Step 1: Farmer Information */}
+              {currentStep === 1 && (
+            <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl p-6 md:p-12 max-w-5xl mx-auto">
+              <div className="flex items-center space-x-3 md:space-x-6 mb-8 md:mb-12">
+                <UserIcon className="w-10 h-10 md:w-16 md:h-16 text-green-600" />
+                <h2 className="text-2xl md:text-4xl lg:text-5xl font-black text-gray-900">Farmer Information</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 <div>
-                  <label className="block text-xl font-bold text-gray-700 mb-4">Full Name *</label>
+                  <label className="block text-lg md:text-xl font-bold text-gray-700 mb-3 md:mb-4">Full Name *</label>
                   <input
                     type="text"
-                    className="w-full px-6 py-5 border-4 border-gray-300 rounded-2xl focus:ring-4 focus:ring-herb-green-500 focus:border-herb-green-500 text-xl font-medium transition-all duration-300"
+                    className="w-full px-4 py-3 md:px-6 md:py-5 border-2 md:border-4 border-gray-300 rounded-xl md:rounded-2xl focus:ring-2 md:focus:ring-4 focus:ring-green-500 focus:border-green-500 text-lg md:text-xl font-medium transition-all duration-300"
                     value={farmerData.name}
                     onChange={(e) => setFarmerData({...farmerData, name: e.target.value})}
                     placeholder="Enter your full name"
@@ -650,10 +902,10 @@ export default function FarmerDApp() {
                 </div>
 
                 <div>
-                  <label className="block text-xl font-bold text-gray-700 mb-4">Phone Number *</label>
+                  <label className="block text-lg md:text-xl font-bold text-gray-700 mb-3 md:mb-4">Phone Number *</label>
                   <input
                     type="tel"
-                    className="w-full px-6 py-5 border-4 border-gray-300 rounded-2xl focus:ring-4 focus:ring-herb-green-500 focus:border-herb-green-500 text-xl font-medium transition-all duration-300"
+                    className="w-full px-4 py-3 md:px-6 md:py-5 border-2 md:border-4 border-gray-300 rounded-xl md:rounded-2xl focus:ring-2 md:focus:ring-4 focus:ring-green-500 focus:border-green-500 text-lg md:text-xl font-medium transition-all duration-300"
                     value={farmerData.phone}
                     onChange={(e) => setFarmerData({...farmerData, phone: e.target.value})}
                     placeholder="+91 9876543210"
@@ -923,10 +1175,10 @@ export default function FarmerDApp() {
 
               <div className="flex justify-between mt-6">
                 <button
-                  onClick={handleBackToDashboard}
+                  onClick={() => setCurrentStep(1)}
                   className="btn-secondary"
                 >
-                  Back to Dashboard
+                  Back
                 </button>
                 <button
                   onClick={() => setCurrentStep(3)}
@@ -996,6 +1248,17 @@ export default function FarmerDApp() {
                       Location Captured! {location.isDemoLocation && '(Demo)'}
                     </h3>
                     <div className="bg-green-50 p-4 rounded-lg text-left max-w-md mx-auto">
+                      {location.placeName && (
+                        <div className="mb-3 p-2 bg-blue-50 rounded border-l-4 border-blue-400">
+                          <div className="text-sm font-medium text-blue-800">📍 Location</div>
+                          <div className="text-sm text-blue-700">{location.placeName}</div>
+                          {location.village && (
+                            <div className="text-xs text-blue-600 mt-1">
+                              {location.village}, {location.district}, {location.state}
+                            </div>
+                          )}
+                        </div>
+                      )}
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div><strong>Latitude:</strong></div>
                         <div>{location.latitude.toFixed(6)}</div>
@@ -1089,10 +1352,10 @@ export default function FarmerDApp() {
                   <h2 className="text-2xl font-bold text-gray-900">AI Verification</h2>
                 </div>
                 <button
-                  onClick={() => setShowAiVerification(!showAiVerification)}
+                  onClick={() => setShowAIVerification(!showAIVerification)}
                   className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
                 >
-                  {showAiVerification ? 'Hide AI Tools' : 'Show AI Tools'}
+                  {showAIVerification ? 'Hide AI Tools' : 'Show AI Tools'}
                 </button>
               </div>
 
@@ -1119,7 +1382,7 @@ export default function FarmerDApp() {
                   </div>
                 </div>
 
-                {showAiVerification && (
+                {showAIVerification && (
                   <AIVerificationWidget
                     onVerificationComplete={(result) => {
                       setAiVerificationResult(result);
@@ -1255,180 +1518,6 @@ export default function FarmerDApp() {
                   />
                 )}
 
-                {/* Sustainability & Incentives Section */}
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="font-semibold text-green-800 mb-2">🌱 Sustainability & Incentives</h3>
-                      <p className="text-green-700 text-sm mb-3">
-                        Earn Green Tokens, build reputation, and generate carbon credits for sustainable practices.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setShowSustainability(!showSustainability)}
-                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      {showSustainability ? 'Hide Incentives' : 'Show Incentives'}
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
-                      <span>Green Token Economy</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
-                      <span>Reputation Scoring</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                      <span>Carbon Credits Marketplace</span>
-                    </div>
-                  </div>
-                </div>
-
-                {showSustainability && (
-                  <SustainabilityWidget
-                    onSustainabilityComplete={(result) => {
-                      setSustainabilityResult(result);
-                      console.log('Sustainability Result:', result);
-                    }}
-                    batchData={{
-                      ...herbData,
-                      ...farmerData,
-                      location,
-                      collectionDate: new Date().toISOString()
-                    }}
-                    farmerId={farmerData.farmerId || 'F001'}
-                  />
-                )}
-
-                {sustainabilityResult && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-green-800 mb-2">🌱 Sustainability Action Complete</h4>
-                    <p className="text-green-700 text-sm">
-                      Your sustainable action has been recorded and rewards have been calculated.
-                    </p>
-                  </div>
-                )}
-
-                {/* Security & Cyber Innovation Section */}
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="font-semibold text-red-800 mb-2">🔐 Security & Cyber Innovation</h3>
-                      <p className="text-red-700 text-sm mb-3">
-                        Zero-Knowledge Proofs, end-to-end encryption, and advanced threat detection for maximum security.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setShowSecurity(!showSecurity)}
-                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      {showSecurity ? 'Hide Security' : 'Show Security'}
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
-                      <span>Zero-Knowledge Proofs</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                      <span>End-to-End Encryption</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-                      <span>Threat Detection</span>
-                    </div>
-                  </div>
-                </div>
-
-                {showSecurity && (
-                  <SecurityWidget
-                    onSecurityComplete={(result) => {
-                      setSecurityResult(result);
-                      console.log('Security Result:', result);
-                    }}
-                    batchData={{
-                      ...herbData,
-                      ...farmerData,
-                      location,
-                      collectionDate: new Date().toISOString()
-                    }}
-                    farmerId={farmerData.farmerId || 'F001'}
-                  />
-                )}
-
-                {securityResult && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-red-800 mb-2">🔐 Security Operation Complete</h4>
-                    <p className="text-red-700 text-sm">
-                      Security operation has been completed successfully with advanced cryptographic protection.
-                    </p>
-                  </div>
-                )}
-
-                {/* Regulatory & Export Ready Section */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="font-semibold text-blue-800 mb-2">📋 Regulatory & Export Ready</h3>
-                      <p className="text-blue-700 text-sm mb-3">
-                        GS1/FHIR compliance and automated export certificate generation for global markets.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setShowRegulatory(!showRegulatory)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      {showRegulatory ? 'Hide Regulatory' : 'Show Regulatory'}
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                      <span>GS1 Global Standards</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      <span>FHIR Healthcare</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
-                      <span>Export Certificates</span>
-                    </div>
-                  </div>
-                </div>
-
-                {showRegulatory && (
-                  <RegulatoryWidget
-                    onRegulatoryComplete={(result) => {
-                      setRegulatoryResult(result);
-                      console.log('Regulatory Result:', result);
-                    }}
-                    batchData={{
-                      ...herbData,
-                      ...farmerData,
-                      location,
-                      collectionDate: new Date().toISOString()
-                    }}
-                    farmerId={farmerData.farmerId || 'F001'}
-                  />
-                )}
-
-                {regulatoryResult && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-blue-800 mb-2">📋 Regulatory Compliance Complete</h4>
-                    <p className="text-blue-700 text-sm">
-                      Regulatory compliance has been generated successfully and is ready for global export.
-                    </p>
-                  </div>
-                )}
-
                 <div className="flex justify-between pt-6">
                   <button
                     onClick={() => setCurrentStep(3)}
@@ -1468,6 +1557,9 @@ export default function FarmerDApp() {
                       <div><strong>Method:</strong> {herbData.collectionMethod}</div>
                       <div><strong>Season:</strong> {herbData.season}</div>
                       <div><strong>GPS:</strong> {location?.latitude.toFixed(4)}, {location?.longitude.toFixed(4)}</div>
+                      {location?.placeName && (
+                        <div><strong>Location:</strong> {location.placeName}</div>
+                      )}
                     </div>
                   </div>
 
@@ -1524,24 +1616,10 @@ export default function FarmerDApp() {
                           📱 Download QR Code
                         </button>
                         <button
-                          onClick={() => {
-                            resetForm()
-                            setCurrentStep(2) // Go directly to herb collection details
-                          }}
+                          onClick={resetForm}
                           className="btn-secondary"
                         >
                           ➕ Add New Collection
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowDashboard(true)
-                            // Refresh the farmer portal
-                            window.location.reload()
-                          }}
-                          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
-                        >
-                          <span>🏠</span>
-                          <span>Return to Home Page</span>
                         </button>
                       </div>
                     </>
@@ -1621,6 +1699,8 @@ export default function FarmerDApp() {
                 </div>
               )}
             </div>
+          )}
+          </>
           )}
         </main>
       </div>

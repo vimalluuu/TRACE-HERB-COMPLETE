@@ -767,7 +767,7 @@ export default function WorkingFarmerPortal({ user: authUser, onLogout, onUpdate
                   submissionResult={submissionResult}
                   qrCodeDataURL={qrCodeUrl}
                   setCurrentStep={setCurrentStep}
-                  setCurrentView={setCurrentView}
+                  resetForm={resetForm}
                 />
               )}
             </div>
