@@ -43,6 +43,8 @@ export default function FarmerDApp() {
   const [loading, setLoading] = useState(false)
   const [location, setLocation] = useState(null)
   const [locationError, setLocationError] = useState('')
+  const [mapLoaded, setMapLoaded] = useState(false)
+  const [leafletMap, setLeafletMap] = useState(null)
   const [qrCodeUrl, setQrCodeUrl] = useState('')
   const [submissionResult, setSubmissionResult] = useState(null)
   const [aiVerificationResult, setAiVerificationResult] = useState(null)
@@ -167,8 +169,124 @@ export default function FarmerDApp() {
     }
   }, [user])
 
-  // Get current location with optimized settings
-  const getCurrentLocation = () => {
+  // Load Leaflet dynamically
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    // Check if Leaflet is already loaded
+    if (window.L) {
+      setMapLoaded(true)
+      return
+    }
+
+    // Load Leaflet CSS
+    const link = document.createElement('link')
+    link.rel = 'stylesheet'
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+    link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY='
+    link.crossOrigin = ''
+    document.head.appendChild(link)
+
+    // Load Leaflet JS
+    const script = document.createElement('script')
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+    script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo='
+    script.crossOrigin = ''
+    script.onload = () => {
+      setMapLoaded(true)
+    }
+    document.head.appendChild(script)
+
+    return () => {
+      // Cleanup on unmount
+      if (link.parentNode) link.parentNode.removeChild(link)
+      if (script.parentNode) script.parentNode.removeChild(script)
+    }
+  }, [])
+
+  // Initialize or update map when location changes
+  useEffect(() => {
+    if (!mapLoaded || !location || !window.L) return
+
+    const mapContainer = document.getElementById('location-map')
+    if (!mapContainer) return
+
+    try {
+      // If map already exists, update it
+      if (leafletMap) {
+        leafletMap.setView([location.latitude, location.longitude], 15)
+        leafletMap.eachLayer((layer) => {
+          if (layer instanceof window.L.Marker) {
+            leafletMap.removeLayer(layer)
+          }
+        })
+
+        // Add new marker
+        const marker = window.L.marker([location.latitude, location.longitude])
+          .addTo(leafletMap)
+          .bindPopup(`
+            <div style="text-align: center;">
+              <strong>📍 Location Captured</strong><br/>
+              <small>${location.placeName || 'Location detected'}</small><br/>
+              <small>Lat: ${location.latitude.toFixed(6)}</small><br/>
+              <small>Lng: ${location.longitude.toFixed(6)}</small>
+            </div>
+          `)
+          .openPopup()
+
+        return
+      }
+
+      // Create new map
+      const map = window.L.map(mapContainer, {
+        center: [location.latitude, location.longitude],
+        zoom: 15,
+        zoomControl: true,
+        scrollWheelZoom: true,
+        doubleClickZoom: true,
+        boxZoom: true,
+        keyboard: true,
+        dragging: true,
+        touchZoom: true
+      })
+
+      // Add tile layer
+      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+      }).addTo(map)
+
+      // Add marker
+      const marker = window.L.marker([location.latitude, location.longitude])
+        .addTo(map)
+        .bindPopup(`
+          <div style="text-align: center;">
+            <strong>📍 Location Captured</strong><br/>
+            <small>${location.placeName || 'Location detected'}</small><br/>
+            <small>Lat: ${location.latitude.toFixed(6)}</small><br/>
+            <small>Lng: ${location.longitude.toFixed(6)}</small>
+          </div>
+        `)
+        .openPopup()
+
+      setLeafletMap(map)
+    } catch (error) {
+      console.warn('Map initialization failed:', error)
+    }
+  }, [mapLoaded, location, leafletMap])
+
+  // Cleanup map on unmount
+  useEffect(() => {
+    return () => {
+      if (leafletMap) {
+        leafletMap.remove()
+        setLeafletMap(null)
+      }
+    }
+  }, [leafletMap])
+
+  // Get current location with optimized settings and reverse geocoding
+  const getCurrentLocation = async () => {
     setLoading(true)
     setLocationError('')
 
@@ -181,13 +299,35 @@ export default function FarmerDApp() {
     // Try high accuracy first, then fallback to lower accuracy
     const tryHighAccuracy = () => {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
+        async (position) => {
+          const locationData = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy,
             timestamp: new Date().toISOString()
-          })
+          }
+
+          // Try reverse geocoding to get place name
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
+            )
+            if (response.ok) {
+              const data = await response.json()
+              if (data && data.display_name) {
+                locationData.placeName = data.display_name
+                locationData.village = data.address?.village || data.address?.town || data.address?.city
+                locationData.district = data.address?.state_district || data.address?.county
+                locationData.state = data.address?.state
+                locationData.country = data.address?.country
+              }
+            }
+          } catch (geocodeError) {
+            console.warn('Reverse geocoding failed:', geocodeError)
+            locationData.placeName = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`
+          }
+
+          setLocation(locationData)
           setLoading(false)
         },
         (error) => {
@@ -204,13 +344,35 @@ export default function FarmerDApp() {
 
     const tryLowAccuracy = () => {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
+        async (position) => {
+          const locationData = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy,
             timestamp: new Date().toISOString()
-          })
+          }
+
+          // Try reverse geocoding to get place name
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
+            )
+            if (response.ok) {
+              const data = await response.json()
+              if (data && data.display_name) {
+                locationData.placeName = data.display_name
+                locationData.village = data.address?.village || data.address?.town || data.address?.city
+                locationData.district = data.address?.state_district || data.address?.county
+                locationData.state = data.address?.state
+                locationData.country = data.address?.country
+              }
+            }
+          } catch (geocodeError) {
+            console.warn('Reverse geocoding failed:', geocodeError)
+            locationData.placeName = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`
+          }
+
+          setLocation(locationData)
           setLoading(false)
         },
         (error) => {
@@ -254,7 +416,12 @@ export default function FarmerDApp() {
       longitude: 77.5946,
       accuracy: 10,
       timestamp: new Date().toISOString(),
-      isDemoLocation: true
+      isDemoLocation: true,
+      placeName: 'MG Road, Bengaluru, Karnataka, India',
+      village: 'Bengaluru',
+      district: 'Bengaluru Urban',
+      state: 'Karnataka',
+      country: 'India'
     })
     setLocationError('')
   }
@@ -995,30 +1162,65 @@ export default function FarmerDApp() {
                     <h3 className="text-lg font-semibold text-green-900">
                       Location Captured! {location.isDemoLocation && '(Demo)'}
                     </h3>
-                    <div className="bg-green-50 p-4 rounded-lg text-left max-w-md mx-auto">
+
+                    {/* Place/Area Name Display */}
+                    {location.placeName && (
+                      <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400 max-w-lg mx-auto">
+                        <div className="text-lg font-semibold text-blue-800 mb-2">📍 Place/Area Name</div>
+                        <div className="text-base text-blue-700 font-medium">{location.placeName}</div>
+                        {location.village && (
+                          <div className="text-sm text-blue-600 mt-2">
+                            {location.village}, {location.district}, {location.state}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Coordinates Display */}
+                    <div className="bg-green-50 p-4 rounded-lg text-left max-w-lg mx-auto">
+                      <h5 className="text-sm font-semibold text-gray-800 mb-3">GPS Coordinates</h5>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div><strong>Latitude:</strong></div>
-                        <div>{location.latitude.toFixed(6)}</div>
+                        <div className="font-mono">{location.latitude.toFixed(6)}</div>
                         <div><strong>Longitude:</strong></div>
-                        <div>{location.longitude.toFixed(6)}</div>
+                        <div className="font-mono">{location.longitude.toFixed(6)}</div>
                         <div><strong>Accuracy:</strong></div>
                         <div>{Math.round(location.accuracy)}m</div>
                         <div><strong>Time:</strong></div>
                         <div>{new Date(location.timestamp).toLocaleTimeString()}</div>
-                        {location.isDemoLocation && (
-                          <>
-                            <div><strong>Location:</strong></div>
-                            <div>Bangalore, India</div>
-                          </>
-                        )}
                       </div>
                     </div>
+
+                    {/* Interactive Map */}
+                    <div className="max-w-lg mx-auto">
+                      <h5 className="text-lg font-semibold text-gray-800 mb-3 text-center">📍 Location on Map</h5>
+                      <div className="border border-gray-300 rounded-lg overflow-hidden shadow-sm">
+                        <div
+                          id="location-map"
+                          style={{ height: '300px', width: '100%' }}
+                          className="bg-gray-100"
+                        >
+                          {!mapLoaded && (
+                            <div className="h-full flex items-center justify-center">
+                              <div className="text-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto mb-2"></div>
+                                <p className="text-gray-600 text-sm">Loading map...</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        Interactive map showing your captured location with marker
+                      </p>
+                    </div>
+
                     <div className="flex flex-col sm:flex-row gap-2 justify-center">
                       <button
                         onClick={getCurrentLocation}
                         className="btn-secondary text-sm"
                       >
-                        📍 Get Real Location
+                        📍 Update Location
                       </button>
                       {!location.isDemoLocation && (
                         <button
