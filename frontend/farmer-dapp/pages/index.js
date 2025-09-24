@@ -98,7 +98,9 @@ export default function FarmerDApp() {
   const handleUpdateProfile = async (profileData) => {
     try {
       const result = await updateProfile(profileData)
-      if (!result.success) {
+      if (result.success) {
+        alert('Profile updated successfully!')
+      } else {
         alert(result.error || 'Profile update failed')
       }
     } catch (error) {
@@ -165,22 +167,13 @@ export default function FarmerDApp() {
     }
   }, [user])
 
-  // Get current location with mobile-safe settings and HTTPS detection
+  // Get current location with optimized settings
   const getCurrentLocation = () => {
     setLoading(true)
     setLocationError('')
 
     if (!navigator.geolocation) {
       setLocationError('Geolocation is not supported by this browser')
-      setLoading(false)
-      return
-    }
-
-    // Check if we're on HTTPS or localhost (required for geolocation on mobile)
-    const isSecureContext = window.isSecureContext || window.location.protocol === 'https:' || window.location.hostname === 'localhost'
-
-    if (!isSecureContext) {
-      setLocationError('Location Error: only secure origins are allowed here. Please use HTTPS or try the demo location below.')
       setLoading(false)
       return
     }
@@ -254,25 +247,14 @@ export default function FarmerDApp() {
     tryHighAccuracy()
   }
 
-  // Use demo location for testing (enhanced with multiple options)
+  // Use demo location for testing
   const useDemoLocation = () => {
-    const demoLocations = [
-      { name: 'Bangalore, Karnataka', latitude: 12.9716, longitude: 77.5946 },
-      { name: 'Mysore, Karnataka', latitude: 12.2958, longitude: 76.6394 },
-      { name: 'Coorg, Karnataka', latitude: 12.3375, longitude: 75.8069 },
-      { name: 'Ooty, Tamil Nadu', latitude: 11.4064, longitude: 76.6932 },
-      { name: 'Munnar, Kerala', latitude: 10.0889, longitude: 77.0595 }
-    ]
-
-    const randomLocation = demoLocations[Math.floor(Math.random() * demoLocations.length)]
-
     setLocation({
-      latitude: randomLocation.latitude,
-      longitude: randomLocation.longitude,
+      latitude: 12.9716,  // Bangalore coordinates
+      longitude: 77.5946,
       accuracy: 10,
       timestamp: new Date().toISOString(),
-      isDemoLocation: true,
-      demoLocationName: randomLocation.name
+      isDemoLocation: true
     })
     setLocationError('')
   }
@@ -390,15 +372,10 @@ export default function FarmerDApp() {
       })
       setQrCodeUrl(qrCodeDataUrl)
 
-      // Mobile-safe API base URL (avoid localhost on mobile devices)
-      const API_BASE = (typeof window !== 'undefined')
-        ? `${window.location.protocol}//${window.location.hostname}:3000`
-        : 'http://localhost:3000'
-
       // Try to submit to backend API, but continue even if it fails
       let apiSubmissionSuccess = false
       try {
-        const response = await axios.post(`${API_BASE}/api/collection/events`, collectionEventData, {
+        const response = await axios.post('http://localhost:3000/api/collection/events', collectionEventData, {
           timeout: 5000 // 5 second timeout
         })
         apiSubmissionSuccess = true
@@ -946,10 +923,10 @@ export default function FarmerDApp() {
 
               <div className="flex justify-between mt-6">
                 <button
-                  onClick={() => setCurrentStep(1)}
+                  onClick={handleBackToDashboard}
                   className="btn-secondary"
                 >
-                  Back
+                  Back to Dashboard
                 </button>
                 <button
                   onClick={() => setCurrentStep(3)}
@@ -1030,8 +1007,8 @@ export default function FarmerDApp() {
                         <div>{new Date(location.timestamp).toLocaleTimeString()}</div>
                         {location.isDemoLocation && (
                           <>
-                            <div><strong>Demo Location:</strong></div>
-                            <div>{location.demoLocationName || 'Bangalore, India'}</div>
+                            <div><strong>Location:</strong></div>
+                            <div>Bangalore, India</div>
                           </>
                         )}
                       </div>
@@ -1043,12 +1020,14 @@ export default function FarmerDApp() {
                       >
                         📍 Get Real Location
                       </button>
-                      <button
-                        onClick={useDemoLocation}
-                        className="btn-secondary text-sm"
-                      >
-                        🎯 Use Demo Location (for testing)
-                      </button>
+                      {!location.isDemoLocation && (
+                        <button
+                          onClick={useDemoLocation}
+                          className="btn-secondary text-sm"
+                        >
+                          🎯 Use Demo Location
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1071,14 +1050,12 @@ export default function FarmerDApp() {
                         onClick={useDemoLocation}
                         className="btn-secondary"
                       >
-                        🎯 Use Demo Location (for testing)
+                        🎯 Use Demo Location
                       </button>
                     </div>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4 max-w-md mx-auto">
-                      <p className="text-xs text-blue-800 font-medium">
-                        📱 Mobile Tip: If you see "only secure origins are allowed", use the Demo Location button above for testing purposes.
-                      </p>
-                    </div>
+                    <p className="text-xs text-gray-500 max-w-md mx-auto">
+                      For demo purposes, you can use a sample location (Bangalore, India)
+                    </p>
                   </div>
                 )}
               </div>
@@ -1549,8 +1526,7 @@ export default function FarmerDApp() {
                         <button
                           onClick={() => {
                             resetForm()
-                            // Refresh the farmer portal by reloading the page
-                            window.location.reload()
+                            setCurrentStep(2) // Go directly to herb collection details
                           }}
                           className="btn-secondary"
                         >

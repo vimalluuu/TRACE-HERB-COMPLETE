@@ -24,6 +24,20 @@ const FastBatchTracking = ({ batchId, onBack }) => {
       rejectedDate: batch.rejectedDate
     })
 
+    // Extract event timestamps from backend batch if available
+    const events = Array.isArray(batch.events) ? batch.events : []
+    const byType = (t) => events.find(e => (e.type || '').toLowerCase() === t.toLowerCase())
+    const tsOrNull = (e) => (e?.timestamp || e?.time || null)
+
+    const processingEvtTs = tsOrNull(byType('processing')) || tsOrNull(byType('Processing'))
+    const testingEvtTs = tsOrNull(byType('testing')) || tsOrNull(byType('Testing')) || tsOrNull(byType('Laboratory Testing')) || tsOrNull(byType('laboratory testing'))
+    const regulatoryEvtTs = tsOrNull(byType('regulatory')) || tsOrNull(byType('Regulatory')) || tsOrNull(byType('regulatory review')) || tsOrNull(byType('Regulatory Review'))
+
+    // Approval/rejection uses the regulatory review event timestamp (or reviewDate) when decision present
+    const regEvtForDecision = byType('regulatory review') || byType('Regulatory Review') || byType('regulatory') || byType('Regulatory')
+    const approvalEvtTs = (regEvtForDecision && (regEvtForDecision.details?.reviewDate || regEvtForDecision.timestamp || regEvtForDecision.time)) || null
+
+
     const steps = [
       {
         id: 1,
@@ -55,10 +69,10 @@ const FastBatchTracking = ({ batchId, onBack }) => {
           return 'pending'
         })(),
         timestamp: batch.processingDate || batch.processingTimestamp || batch.processingStarted || batch.processingCompleted ||
-                  (batch.status === 'processing' ? now.toISOString() : null),
+                  processingEvtTs || (batch.status === 'processing' ? now.toISOString() : null),
         details: batch.processingNotes || 'Cleaning, sorting, and initial quality assessment',
         icon: '🏭',
-        actualTimestamp: !!(batch.processingDate || batch.processingTimestamp || batch.processingStarted || batch.processingCompleted),
+        actualTimestamp: !!(batch.processingDate || batch.processingTimestamp || batch.processingStarted || batch.processingCompleted || processingEvtTs),
         portalSource: 'Processor Portal'
       },
       {
@@ -85,10 +99,10 @@ const FastBatchTracking = ({ batchId, onBack }) => {
           return 'pending'
         })(),
         timestamp: batch.testingDate || batch.labTimestamp || batch.testingStarted || batch.testingCompleted ||
-                  (batch.status === 'testing' ? now.toISOString() : null),
+                  testingEvtTs || (batch.status === 'testing' ? now.toISOString() : null),
         details: batch.testingNotes || batch.labResults || 'Chemical composition, purity, and safety testing',
         icon: '🧪',
-        actualTimestamp: !!(batch.testingDate || batch.labTimestamp || batch.testingStarted || batch.testingCompleted),
+        actualTimestamp: !!(batch.testingDate || batch.labTimestamp || batch.testingStarted || batch.testingCompleted || testingEvtTs),
         portalSource: 'Lab Portal'
       },
       {
@@ -115,11 +129,11 @@ const FastBatchTracking = ({ batchId, onBack }) => {
           return 'pending'
         })(),
         timestamp: batch.reviewDate || batch.regulatoryTimestamp || batch.regulatoryReviewStarted || batch.regulatoryReviewCompleted ||
-                  batch.approvedDate || batch.rejectedDate ||
+                  batch.approvedDate || batch.rejectedDate || approvalEvtTs || regulatoryEvtTs ||
                   (['approved', 'rejected'].includes(batch.status) ? now.toISOString() : null),
         details: batch.regulatoryNotes || 'Regulatory compliance verification',
         icon: '📋',
-        actualTimestamp: !!(batch.reviewDate || batch.regulatoryTimestamp || batch.regulatoryReviewStarted || batch.regulatoryReviewCompleted),
+        actualTimestamp: !!(batch.reviewDate || batch.regulatoryTimestamp || batch.regulatoryReviewStarted || batch.regulatoryReviewCompleted || batch.approvedDate || batch.rejectedDate || approvalEvtTs || regulatoryEvtTs),
         portalSource: 'Regulatory Portal'
       }
     ]
@@ -131,11 +145,11 @@ const FastBatchTracking = ({ batchId, onBack }) => {
         title: 'APPROVED ✅',
         description: 'Batch approved for distribution',
         status: 'approved',
-        timestamp: batch.approvedDate || batch.finalReviewDate || now.toISOString(),
+        timestamp: batch.approvedDate || batch.finalReviewDate || approvalEvtTs || now.toISOString(),
         details: batch.approvalReason || batch.finalNotes || 'All quality and regulatory requirements met successfully. Batch cleared for market distribution.',
         icon: '✅',
         isSuccess: true,
-        actualTimestamp: !!batch.approvedDate || !!batch.finalReviewDate,
+        actualTimestamp: !!(batch.approvedDate || batch.finalReviewDate || approvalEvtTs),
         portalSource: 'Regulatory Portal'
       })
     } else if (batch.status === 'rejected') {
@@ -144,11 +158,11 @@ const FastBatchTracking = ({ batchId, onBack }) => {
         title: 'REJECTED ❌',
         description: 'Batch rejected - cannot proceed',
         status: 'rejected',
-        timestamp: batch.rejectedDate || batch.finalReviewDate || now.toISOString(),
+        timestamp: batch.rejectedDate || batch.finalReviewDate || batch.reviewDate || batch.regulatoryTimestamp || approvalEvtTs || regulatoryEvtTs || now.toISOString(),
         details: batch.rejectionReason || batch.finalNotes || 'Failed to meet quality or regulatory standards. Please contact support for detailed feedback.',
         icon: '❌',
         isRejection: true,
-        actualTimestamp: !!batch.rejectedDate || !!batch.finalReviewDate,
+        actualTimestamp: !!(batch.rejectedDate || batch.finalReviewDate || batch.reviewDate || batch.regulatoryTimestamp || approvalEvtTs || regulatoryEvtTs),
         portalSource: batch.rejectedBy || 'Regulatory Portal'
       })
     }
@@ -290,6 +304,114 @@ const FastBatchTracking = ({ batchId, onBack }) => {
     }
   }
 
+  // Map backend workflow batch to farmer portal batch shape
+  const mapBackendBatchToFarmerBatch = (backendBatch, qr) => {
+    if (!backendBatch) return null
+    const events = Array.isArray(backendBatch.events) ? backendBatch.events : []
+
+    const findEventTs = (keywords = []) => {
+      for (const e of events) {
+        const t = (e?.type || '').toLowerCase()
+        if (keywords.some(k => t.includes(k))) {
+          return e.timestamp || e.time || null
+        }
+      }
+      return null
+    }
+
+    // Event timestamps by stage (support multiple type variants)
+    const collectionTs = findEventTs(['collection'])
+    const processingTs = findEventTs(['processing'])
+    const testingTs = findEventTs(['testing', 'laboratory'])
+    const regulatoryTs = findEventTs(['regulatory']) // includes 'regulatory review'
+
+    // Final decision time: use regulatory event time if decision present or status finalized
+    let approvedTs = null
+    const regEvent = events.find(e => (e?.type || '').toLowerCase().includes('regulatory'))
+    if (regEvent && (regEvent?.details?.decision === 'approved' || regEvent?.details?.decision === 'rejected')) {
+      approvedTs = regEvent.details.reviewDate || regEvent.timestamp || regEvent.time || regulatoryTs
+    } else if (['approved', 'rejected'].includes((backendBatch.status || '').toLowerCase())) {
+      approvedTs = regulatoryTs
+    }
+
+    const createdAt = backendBatch.createdAt || collectionTs
+
+    // Determine status conservatively
+    const status = backendBatch.workflowStatus || backendBatch.status || (
+      approvedTs ? 'approved' : (testingTs ? 'tested' : (processingTs ? 'processed' : 'pending'))
+    )
+
+    return {
+      id: backendBatch.collectionId || backendBatch.id || qr?.replace('QR_COL_', ''),
+      collectionId: backendBatch.collectionId || backendBatch.id || qr?.replace('QR_COL_', ''),
+      qrCode: qr || backendBatch.qrCode || backendBatch.target?.qrCode,
+      botanicalName: backendBatch.botanicalName || backendBatch.product?.botanicalName || backendBatch.target?.productName || 'Unknown',
+      commonName: backendBatch.commonName || backendBatch.product?.name || backendBatch.target?.productName || 'Unknown',
+      quantity: backendBatch.quantity || events.find(e => (e.type||'').toLowerCase().includes('collection'))?.details?.quantity || '0',
+      unit: backendBatch.unit || events.find(e => (e.type||'').toLowerCase().includes('collection'))?.details?.unit || 'kg',
+      farmerName: backendBatch.farmerName || events.find(e => (e.type||'').toLowerCase().includes('collection'))?.performer?.name || 'Unknown',
+      farmLocation: backendBatch.farmLocation || events.find(e => (e.type||'').toLowerCase().includes('collection'))?.location || 'Unknown',
+
+      status,
+      createdAt: createdAt || new Date().toISOString(),
+
+      // Timeline timestamps (check all variations used in UI)
+      processingDate: processingTs || null,
+      processingTimestamp: processingTs || null,
+      processingStarted: processingTs || null,
+      processingCompleted: processingTs || null,
+
+      testingDate: testingTs || null,
+      labTimestamp: testingTs || null,
+      testingStarted: testingTs || null,
+      testingCompleted: testingTs || null,
+
+      reviewDate: regulatoryTs || null,
+      regulatoryTimestamp: regulatoryTs || null,
+      regulatoryReviewStarted: regulatoryTs || null,
+      regulatoryReviewCompleted: regulatoryTs || null,
+
+      approvedDate: approvedTs || null,
+      regulatoryNotes: regEvent?.details?.notes || backendBatch.regulatoryComments || null,
+      approvalReason: backendBatch.approvalReason || (regEvent?.details?.reason) || 'Approved via workflow',
+
+      processingData: backendBatch.processingData || null,
+      testResults: backendBatch.testResults || null,
+      regulatoryDecision: backendBatch.regulatory?.decision || regEvent?.details?.decision || null,
+
+      lastUpdated: backendBatch.lastUpdated || new Date().toISOString(),
+      synced: true
+    }
+  }
+
+  // Fetch batch from backend workflow API (preferred over localStorage)
+  const fetchBatchFromBackend = async (qr) => {
+    try {
+      const resp = await fetch(`http://localhost:3000/api/workflow/access/farmer/${encodeURIComponent(qr)}?accessType=view`)
+      if (!resp.ok) return null
+      const json = await resp.json()
+      if (!json?.success || !json?.data?.accessAllowed) return null
+      const backendBatch = json.data.batch
+      const mapped = mapBackendBatchToFarmerBatch(backendBatch, qr)
+
+      // Store/merge into farmerBatches so other parts of UI get updates
+      try {
+        const existing = JSON.parse(localStorage.getItem('farmerBatches') || '[]')
+        const idx = existing.findIndex(b => b.qrCode === mapped.qrCode)
+        if (idx >= 0) existing[idx] = { ...existing[idx], ...mapped }
+        else existing.push(mapped)
+        localStorage.setItem('farmerBatches', JSON.stringify(existing))
+        window.dispatchEvent(new StorageEvent('storage', { key: 'farmerBatches', newValue: JSON.stringify(existing), storageArea: localStorage }))
+      } catch (e) { /* noop */ }
+
+      return mapped
+    } catch (e) {
+      console.log('Backend fetch failed:', e?.message || e)
+      return null
+    }
+  }
+
+
   useEffect(() => {
     console.log('🔄 FastBatchTracking useEffect triggered with batchId:', batchId)
 
@@ -350,15 +472,23 @@ const FastBatchTracking = ({ batchId, onBack }) => {
       return null
     }
 
-    // Load the specific batch immediately
-    const foundBatch = findSpecificBatch(batchId)
-    if (foundBatch) {
-      setBatch(foundBatch)
-      console.log('🎉 SET CORRECT BATCH:', foundBatch.qrCode, foundBatch.commonName)
-    } else {
-      console.log('💔 NO BATCH FOUND FOR:', batchId)
-    }
-    setLoading(false)
+    // Load the specific batch, preferring backend API over localStorage
+    ;(async () => {
+      const fromBackend = await fetchBatchFromBackend(batchId)
+      if (fromBackend) {
+        setBatch(fromBackend)
+        console.log('✅ Loaded batch from backend:', fromBackend.qrCode)
+      } else {
+        const foundBatch = findSpecificBatch(batchId)
+        if (foundBatch) {
+          setBatch(foundBatch)
+          console.log('🎉 SET CORRECT BATCH (local fallback):', foundBatch.qrCode, foundBatch.commonName)
+        } else {
+          console.log('💔 NO BATCH FOUND FOR:', batchId)
+        }
+      }
+      setLoading(false)
+    })()
 
     // Set up real-time listeners
     const handleStorageChange = (e) => {
@@ -391,15 +521,24 @@ const FastBatchTracking = ({ batchId, onBack }) => {
     window.addEventListener('batchUpdated', handleBatchUpdate)
     window.addEventListener('batchStatusChanged', handleBatchUpdate)
 
-    // Set up frequent periodic sync every 2 seconds for real-time updates
+    // Set up frequent periodic sync every 2 seconds for real-time updates (localStorage)
     const syncInterval = setInterval(() => {
-      console.log('⏰ Periodic sync check for batch:', batchId, new Date().toLocaleTimeString())
+      console.log('⏰ Periodic local sync check for batch:', batchId, new Date().toLocaleTimeString())
       const updatedBatch = findSpecificBatch(batchId)
       if (updatedBatch && updatedBatch.qrCode === batchId) {
         setBatch(updatedBatch)
-        console.log('✅ Periodic update for correct batch:', updatedBatch.qrCode)
+        console.log('✅ Periodic local update for correct batch:', updatedBatch.qrCode)
       }
     }, 2000)
+
+    // Also refresh from Backend API every 15 seconds for cross-portal updates
+    const backendInterval = setInterval(async () => {
+      const updated = await fetchBatchFromBackend(batchId)
+      if (updated) {
+        setBatch(updated)
+        console.log('🌐 Periodic backend refresh applied for batch:', updated.qrCode)
+      }
+    }, 15000)
 
     // Also sync when page becomes visible (user switches back to tab)
     const handleVisibilityChange = () => {
@@ -421,6 +560,7 @@ const FastBatchTracking = ({ batchId, onBack }) => {
       window.removeEventListener('batchStatusChanged', handleBatchUpdate)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       clearInterval(syncInterval)
+      clearInterval(backendInterval)
     }
   }, [batchId])
 
@@ -529,7 +669,7 @@ const FastBatchTracking = ({ batchId, onBack }) => {
         {/* Progress Timeline */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-6">Progress Timeline</h2>
-          
+
           <div className="space-y-6">
             {trackingSteps.map((step, index) => (
               <div key={step.id} className="flex items-start space-x-4">
@@ -566,14 +706,14 @@ const FastBatchTracking = ({ batchId, onBack }) => {
                        'Pending'}
                     </span>
                   </div>
-                  
+
                   <p className="text-gray-600 mt-1">{step.description}</p>
                   <p className={`text-sm mt-2 ${
                     step.isRejection ? 'text-red-600 font-medium' : 'text-gray-500'
                   }`}>
                     {step.details}
                   </p>
-                  
+
                   <div className="text-xs mt-2">
                     <p className={step.actualTimestamp ? 'text-green-600 font-medium' : 'text-gray-400'}>
                       {step.timestamp ? new Date(step.timestamp).toLocaleString() : 'Pending'}
@@ -602,7 +742,7 @@ const FastBatchTracking = ({ batchId, onBack }) => {
                 <h4 className="text-green-800 font-semibold">Batch Approved!</h4>
               </div>
               <p className="text-green-700 text-sm mt-1">
-                This batch has successfully passed all quality checks and regulatory requirements. 
+                This batch has successfully passed all quality checks and regulatory requirements.
                 It is now approved for distribution and sale.
               </p>
             </div>
@@ -615,7 +755,7 @@ const FastBatchTracking = ({ batchId, onBack }) => {
                 <h4 className="text-red-800 font-semibold">Batch Rejected</h4>
               </div>
               <p className="text-red-700 text-sm mt-1">
-                This batch has been rejected and cannot proceed to market. 
+                This batch has been rejected and cannot proceed to market.
                 Please review the rejection reason above and contact support if needed.
               </p>
             </div>
