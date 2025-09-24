@@ -26,7 +26,6 @@ const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTr
   const [loading, setLoading] = useState(true)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
   const [lastSyncTime, setLastSyncTime] = useState(null)
-  const [filterStatus, setFilterStatus] = useState('all') // all, approved, rejected, in-progress
 
   // INSTANT batch loading - no delays
   const loadBatchesInstantly = () => {
@@ -258,68 +257,26 @@ const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTr
         {/* Your Herb Batches */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Your Herb Batches</h2>
-                <p className="text-sm text-gray-600">Click on any batch to view its progress and status</p>
-              </div>
-
-              {/* Filter Dropdown */}
-              <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">Filter:</label>
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                >
-                  <option value="all">All Batches</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                  <option value="in-progress">In Progress</option>
-                </select>
-              </div>
-            </div>
+            <h2 className="text-xl font-bold text-gray-900">Your Herb Batches</h2>
+            <p className="text-sm text-gray-600">Click on any batch to view its progress and status</p>
           </div>
 
           <div className="p-6">
-            {(() => {
-              // Filter batches based on selected filter
-              const filteredBatches = batches.filter(batch => {
-                if (filterStatus === 'all') return true
-                if (filterStatus === 'approved') return batch.status === 'approved'
-                if (filterStatus === 'rejected') return batch.status === 'rejected'
-                if (filterStatus === 'in-progress') return !['approved', 'rejected'].includes(batch.status)
-                return true
-              })
-
-              if (filteredBatches.length === 0) {
-                return (
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">🌿</div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {filterStatus === 'all' ? 'No batches yet' : `No ${filterStatus} batches`}
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                      {filterStatus === 'all'
-                        ? 'Start by creating your first herb batch'
-                        : `You don't have any ${filterStatus} batches at the moment`
-                      }
-                    </p>
-                    {filterStatus === 'all' && (
-                      <button
-                        onClick={onCreateBatch}
-                        className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700"
-                      >
-                        Create First Batch
-                      </button>
-                    )}
-                  </div>
-                )
-              }
-
-              return (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredBatches.map((batch, index) => (
+            {batches.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🌿</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No batches yet</h3>
+                <p className="text-gray-600 mb-6">Start by creating your first herb batch</p>
+                <button
+                  onClick={onCreateBatch}
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700"
+                >
+                  Create First Batch
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {batches.map((batch, index) => (
                   <div
                     key={batch.qrCode || batch.id || index}
                     onClick={() => handleBatchClick(batch)}
@@ -373,10 +330,8 @@ const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTr
                         <span className="font-medium">
                           {batch.status === 'approved' ? '100%' :
                            batch.status === 'rejected' ? 'Rejected' :
-                           batch.status === 'tested' ? '85%' :
                            batch.status === 'testing' ? '75%' :
-                           batch.status === 'processed' ? '60%' :
-                           batch.status === 'processing' ? '40%' :
+                           batch.status === 'processing' ? '50%' :
                            '25%'}
                         </span>
                       </div>
@@ -385,29 +340,17 @@ const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTr
                           className={`h-2 rounded-full transition-all duration-300 ${
                             batch.status === 'approved' ? 'bg-green-500 w-full' :
                             batch.status === 'rejected' ? 'bg-red-500 w-full' :
-                            batch.status === 'tested' ? 'bg-blue-500' :
-                            batch.status === 'testing' ? 'bg-blue-500' :
-                            batch.status === 'processed' ? 'bg-yellow-500' :
-                            batch.status === 'processing' ? 'bg-yellow-500' :
-                            'bg-gray-400'
+                            batch.status === 'testing' ? 'bg-blue-500 w-3/4' :
+                            batch.status === 'processing' ? 'bg-yellow-500 w-1/2' :
+                            'bg-gray-400 w-1/4'
                           }`}
-                          style={{
-                            width: batch.status === 'approved' ? '100%' :
-                                   batch.status === 'rejected' ? '100%' :
-                                   batch.status === 'tested' ? '85%' :
-                                   batch.status === 'testing' ? '75%' :
-                                   batch.status === 'processed' ? '60%' :
-                                   batch.status === 'processing' ? '40%' :
-                                   '25%'
-                          }}
                         ></div>
                       </div>
                     </div>
                   </div>
                 ))}
-                </div>
-              )
-            })()}
+              </div>
+            )}
           </div>
         </div>
       </div>

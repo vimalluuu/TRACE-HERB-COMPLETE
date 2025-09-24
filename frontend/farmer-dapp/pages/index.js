@@ -98,9 +98,7 @@ export default function FarmerDApp() {
   const handleUpdateProfile = async (profileData) => {
     try {
       const result = await updateProfile(profileData)
-      if (result.success) {
-        alert('Profile updated successfully!')
-      } else {
+      if (!result.success) {
         alert(result.error || 'Profile update failed')
       }
     } catch (error) {
@@ -923,10 +921,10 @@ export default function FarmerDApp() {
 
               <div className="flex justify-between mt-6">
                 <button
-                  onClick={handleBackToDashboard}
+                  onClick={() => setCurrentStep(1)}
                   className="btn-secondary"
                 >
-                  Back to Dashboard
+                  Back
                 </button>
                 <button
                   onClick={() => setCurrentStep(3)}
@@ -1526,7 +1524,8 @@ export default function FarmerDApp() {
                         <button
                           onClick={() => {
                             resetForm()
-                            setCurrentStep(2) // Go directly to herb collection details
+                            // Refresh the farmer portal by reloading the page
+                            window.location.reload()
                           }}
                           className="btn-secondary"
                         >
