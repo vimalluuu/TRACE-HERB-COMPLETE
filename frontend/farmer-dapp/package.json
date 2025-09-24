@@ -7,9 +7,7 @@
     "dev": "next dev -p 3002",
     "build": "next build",
     "start": "next start -p 3002",
-    "lint": "next lint",
-    "mobile": "next dev -p 3002 --hostname 0.0.0.0",
-    "build:mobile": "next build && next export"
+    "lint": "next lint"
   },
   "dependencies": {
     "next": "14.2.32",
@@ -18,9 +16,7 @@
     "@heroicons/react": "^2.0.18",
     "qrcode": "^1.5.3",
     "uuid": "^9.0.0",
-    "axios": "^1.6.0",
-    "next-pwa": "^5.6.0",
-    "workbox-webpack-plugin": "^7.0.0"
+    "axios": "^1.6.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",

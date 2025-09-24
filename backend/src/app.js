@@ -44,37 +44,20 @@ app.use(helmet({
   },
 }));
 
-// CORS configuration - Enhanced for mobile access
+// CORS configuration
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-
-    // Define allowed origins
-    const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [
-      'http://localhost:3001', // Consumer Portal
-      'http://localhost:3002', // Farmer Portal
-      'http://localhost:3003', // Stakeholder Dashboard (Legacy)
-      'http://localhost:3004', // Processor Portal
-      'http://localhost:3005', // Lab Portal
-      'http://localhost:3006', // Supply Chain Overview
-      'http://localhost:3007', // Regulator Portal
-      'http://localhost:3008', // Management Portal
-      'http://localhost:3009', // Supply Chain Overview (Alt Port)
-      'http://localhost:3010'  // Enhanced Consumer Portal
-    ];
-
-    // Allow any origin that matches the pattern for mobile access
-    // This allows access from any IP on the local network
-    const mobileOriginPattern = /^http:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:(300[0-9]|301[0-9])$/;
-
-    if (allowedOrigins.includes(origin) || mobileOriginPattern.test(origin)) {
-      callback(null, true);
-    } else {
-      console.log('🚫 CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [
+    'http://localhost:3001', // Consumer Portal
+    'http://localhost:3002', // Farmer Portal
+    'http://localhost:3003', // Stakeholder Dashboard (Legacy)
+    'http://localhost:3004', // Processor Portal
+    'http://localhost:3005', // Lab Portal
+    'http://localhost:3006', // Supply Chain Overview
+    'http://localhost:3007', // Regulator Portal
+    'http://localhost:3008', // Management Portal
+    'http://localhost:3009', // Supply Chain Overview (Alt Port)
+    'http://localhost:3010'  // Enhanced Consumer Portal
+  ],
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -159,34 +142,6 @@ app.get('/', (req, res) => {
     version: process.env.npm_package_version || '1.0.0',
     documentation: process.env.ENABLE_SWAGGER === 'true' ? '/api-docs' : 'Not available',
     health: '/health'
-  });
-});
-
-// Mobile connectivity test endpoint
-app.get('/api/mobile/test', (req, res) => {
-  const clientInfo = {
-    ip: req.ip || req.connection.remoteAddress,
-    userAgent: req.get('User-Agent'),
-    origin: req.get('Origin'),
-    timestamp: new Date().toISOString(),
-    headers: {
-      'x-mobile-client': req.get('X-Mobile-Client'),
-      'x-source': req.get('X-Source')
-    }
-  };
-
-  console.log('📱 Mobile connectivity test from:', clientInfo.ip, clientInfo.origin);
-
-  res.json({
-    success: true,
-    message: 'Mobile connectivity test successful!',
-    server: 'TRACE HERB Backend API',
-    client: clientInfo,
-    endpoints: {
-      collection: '/api/collection/events',
-      health: '/api/health',
-      blockchain: '/api/blockchain/status'
-    }
   });
 });
 

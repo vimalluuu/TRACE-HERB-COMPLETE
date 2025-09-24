@@ -21,7 +21,6 @@ import FarmerDashboard from '../components/FarmerDashboard'
 import FastFarmerDashboard from '../components/FastFarmerDashboard'
 import BatchTrackingView from '../components/BatchTrackingView'
 import FastBatchTracking from '../components/FastBatchTracking'
-import MobileBatchTracking from '../components/MobileBatchTracking'
 import AIVerificationWidget from '../components/AIVerificationWidget'
 import RuralConnectivityWidget from '../components/RuralConnectivityWidget'
 import SMSBlockchainGateway from '../components/SMSBlockchainGateway'
@@ -38,7 +37,6 @@ export default function FarmerDApp() {
   const [showBatchTracking, setShowBatchTracking] = useState(false)
   const [selectedBatchId, setSelectedBatchId] = useState(null)
   const [loginLoading, setLoginLoading] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
 
   // Form state
   const [currentStep, setCurrentStep] = useState(1)
@@ -47,7 +45,6 @@ export default function FarmerDApp() {
   const [locationError, setLocationError] = useState('')
   const [qrCodeUrl, setQrCodeUrl] = useState('')
   const [submissionResult, setSubmissionResult] = useState(null)
-  const [connectivityTest, setConnectivityTest] = useState(null)
   const [aiVerificationResult, setAiVerificationResult] = useState(null)
   const [showAiVerification, setShowAiVerification] = useState(false)
   const [ruralConnectivityResult, setRuralConnectivityResult] = useState(null)
@@ -169,70 +166,6 @@ export default function FarmerDApp() {
       }))
     }
   }, [user])
-
-  // Mobile detection
-  useEffect(() => {
-    const checkMobile = () => {
-      const userAgent = navigator.userAgent
-      const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
-      setIsMobile(mobile)
-    }
-
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
-  // Mobile connectivity test function
-  const testMobileConnectivity = async () => {
-    const getBackendURL = () => {
-      if (typeof window === 'undefined') return 'http://localhost:3000'
-      const hostname = window.location.hostname
-      if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-        return `http://${hostname}:3000`
-      }
-      return 'http://localhost:3000'
-    }
-
-    const backendURL = getBackendURL()
-
-    try {
-      console.log('📱 Testing mobile connectivity to:', backendURL)
-
-      const response = await axios.get(`${backendURL}/api/mobile/test`, {
-        timeout: 10000,
-        headers: {
-          'X-Mobile-Client': 'true',
-          'X-Source': 'farmer-mobile-dapp'
-        }
-      })
-
-      setConnectivityTest({
-        success: true,
-        message: 'Mobile connectivity test successful!',
-        backendURL: backendURL,
-        data: response.data,
-        timestamp: new Date().toISOString()
-      })
-
-      console.log('✅ Mobile connectivity test passed:', response.data)
-
-    } catch (error) {
-      console.error('❌ Mobile connectivity test failed:', error)
-
-      setConnectivityTest({
-        success: false,
-        message: `Mobile connectivity test failed: ${error.message}`,
-        backendURL: backendURL,
-        error: {
-          code: error.code,
-          message: error.message,
-          response: error.response?.data
-        },
-        timestamp: new Date().toISOString()
-      })
-    }
-  }
 
   // Get current location with optimized settings
   const getCurrentLocation = () => {
@@ -439,126 +372,33 @@ export default function FarmerDApp() {
       })
       setQrCodeUrl(qrCodeDataUrl)
 
-      // Enhanced mobile blockchain sync with multiple fallback strategies
+      // Try to submit to backend API, but continue even if it fails
       let apiSubmissionSuccess = false
-
-      // Determine the correct backend URL based on device
-      const getBackendURL = () => {
-        if (typeof window === 'undefined') return 'http://localhost:3000'
-
-        const hostname = window.location.hostname
-
-        // If accessing from mobile (not localhost), use the same IP for backend
-        if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-          return `http://${hostname}:3000`
-        }
-
-        return 'http://localhost:3000'
-      }
-
-      const backendURL = getBackendURL()
-      console.log('📱 Mobile: Using backend URL:', backendURL)
-
-      // Try multiple endpoints and strategies for better mobile connectivity
-      const trySubmitToBlockchain = async () => {
-        const endpoints = [
-          `${backendURL}/api/collection/events`,
-          `${backendURL}/api/collection/submit`,
-          `${backendURL}/api/batches`
-        ]
-
-        for (const endpoint of endpoints) {
-          try {
-            console.log(`📱 Mobile: Trying endpoint: ${endpoint}`)
-
-            const response = await axios.post(endpoint, collectionEventData, {
-              timeout: 15000, // 15 second timeout for mobile
-              headers: {
-                'Content-Type': 'application/json',
-                'X-Mobile-Client': 'true',
-                'X-Source': 'farmer-mobile-dapp'
-              }
-            })
-
-            if (response.data && (response.data.success || response.status === 200)) {
-              console.log('✅ Successfully submitted to blockchain via:', endpoint)
-              return true
-            }
-          } catch (error) {
-            console.warn(`❌ Endpoint ${endpoint} failed:`, error.message)
-
-            // Log detailed error information for debugging
-            if (error.code === 'ECONNREFUSED') {
-              console.error('📱 Connection refused - backend server may not be accessible from mobile')
-            } else if (error.code === 'ETIMEDOUT') {
-              console.error('📱 Request timeout - slow network connection')
-            } else if (error.response) {
-              console.error('📱 Server responded with error:', error.response.status, error.response.data)
-            }
-          }
-        }
-
-        return false
-      }
-
       try {
-        apiSubmissionSuccess = await trySubmitToBlockchain()
-
-        if (!apiSubmissionSuccess) {
-          console.warn('❌ All blockchain endpoints failed, storing locally')
-          console.log('📱 Backend URL attempted:', backendURL)
-          console.log('📱 Network status:', navigator.onLine ? 'Online' : 'Offline')
-
-          // Additional mobile-specific debugging
-          if (typeof window !== 'undefined') {
-            console.log('📱 Current hostname:', window.location.hostname)
-            console.log('📱 Current protocol:', window.location.protocol)
-            console.log('📱 User agent:', navigator.userAgent)
-          }
-        }
-      } catch (error) {
-        console.error('❌ Blockchain submission completely failed:', error)
-        apiSubmissionSuccess = false
-      }
-
-      // Store locally for later sync if blockchain submission failed
-      if (!apiSubmissionSuccess) {
+        const response = await axios.post('http://localhost:3000/api/collection/events', collectionEventData, {
+          timeout: 5000 // 5 second timeout
+        })
+        apiSubmissionSuccess = true
+        console.log('Successfully submitted to blockchain:', response.data)
+      } catch (apiError) {
+        console.warn('API submission failed, continuing with local storage:', apiError.message)
+        // Store locally for later sync
         const localData = JSON.parse(localStorage.getItem('trace-herb-pending-submissions') || '[]')
         localData.push({
           ...collectionEventData,
           submittedAt: new Date().toISOString(),
-          syncStatus: 'pending',
-          backendURL: backendURL,
-          error: apiError.message
+          syncStatus: 'pending'
         })
         localStorage.setItem('trace-herb-pending-submissions', JSON.stringify(localData))
-      }
-
-      // Enhanced success message with mobile-specific information
-      const getSuccessMessage = () => {
-        if (apiSubmissionSuccess) {
-          return isMobile
-            ? '✅ Collection synced to blockchain successfully from mobile!'
-            : '✅ Collection event recorded successfully on blockchain!'
-        } else {
-          const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
-          const isMobileDevice = hostname !== 'localhost' && hostname !== '127.0.0.1'
-
-          if (isMobileDevice) {
-            return `📱 Collection saved locally on mobile. Backend: ${backendURL}. Check network connection and try again.`
-          } else {
-            return '💾 Collection data saved locally. Will sync to blockchain when connection is available.'
-          }
-        }
       }
 
       setSubmissionResult({
         success: true,
         qrCode: qrCode,
         collectionId: collectionId,
-        message: getSuccessMessage(),
-        backendURL: backendURL,
-        isMobile: isMobile
+        message: apiSubmissionSuccess
+          ? 'Collection event recorded successfully on blockchain!'
+          : 'Collection data saved locally. Will sync to blockchain when connection is available.'
       })
 
     } catch (error) {
@@ -697,25 +537,14 @@ export default function FarmerDApp() {
           <meta name="description" content="Track your batch progress in real-time" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
         </Head>
-        {isMobile ? (
-          <MobileBatchTracking
-            key={selectedBatchId}
-            batch={{ qrCode: selectedBatchId, ...{} }} // You might need to fetch full batch data
-            onBack={() => {
-              setShowBatchTracking(false)
-              setSelectedBatchId(null)
-            }}
-          />
-        ) : (
-          <FastBatchTracking
-            key={selectedBatchId} // Force re-render when batchId changes
-            batchId={selectedBatchId}
-            onBack={() => {
-              setShowBatchTracking(false)
-              setSelectedBatchId(null)
-            }}
-          />
-        )}
+        <FastBatchTracking
+          key={selectedBatchId} // Force re-render when batchId changes
+          batchId={selectedBatchId}
+          onBack={() => {
+            setShowBatchTracking(false)
+            setSelectedBatchId(null)
+          }}
+        />
       </>
     )
   }
@@ -739,9 +568,6 @@ export default function FarmerDApp() {
             setShowBatchTracking(true)
           }}
           onLogout={handleLogout}
-          onTestConnectivity={testMobileConnectivity}
-          connectivityTest={connectivityTest}
-          isMobile={isMobile}
         />
       </>
     )

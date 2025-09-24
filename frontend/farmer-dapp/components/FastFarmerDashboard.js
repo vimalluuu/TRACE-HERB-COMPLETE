@@ -21,7 +21,7 @@ const getStatusColors = (status) => {
   return STATUS_COLORS[status] || 'bg-gray-100 text-gray-800'
 }
 
-const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTracking, onLogout, onTestConnectivity, connectivityTest, isMobile }) => {
+const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTracking, onLogout }) => {
   const [batches, setBatches] = useState([])
   const [loading, setLoading] = useState(true)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
@@ -166,27 +166,6 @@ const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTr
                 🔄 Refresh
               </button>
 
-              {/* Mobile Connectivity Test */}
-              {isMobile && onTestConnectivity && (
-                <button
-                  onClick={onTestConnectivity}
-                  className={`px-3 py-1 rounded-lg text-xs font-medium ${
-                    connectivityTest?.success === true
-                      ? 'bg-green-100 text-green-800'
-                      : connectivityTest?.success === false
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-blue-500 hover:bg-blue-600 text-white'
-                  }`}
-                >
-                  {connectivityTest?.success === true
-                    ? '✅ Connected'
-                    : connectivityTest?.success === false
-                    ? '❌ Failed'
-                    : '📱 Test Connection'
-                  }
-                </button>
-              )}
-
               {/* User Actions */}
               <div className="flex items-center space-x-2">
                 <button
@@ -265,46 +244,6 @@ const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTr
             </div>
           </div>
         </div>
-
-        {/* Mobile Connectivity Status */}
-        {isMobile && connectivityTest && (
-          <div className={`mb-6 p-4 rounded-lg border ${
-            connectivityTest.success
-              ? 'bg-green-50 border-green-200'
-              : 'bg-red-50 border-red-200'
-          }`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">
-                  {connectivityTest.success ? '✅' : '❌'}
-                </span>
-                <div>
-                  <h3 className={`font-medium ${
-                    connectivityTest.success ? 'text-green-800' : 'text-red-800'
-                  }`}>
-                    Mobile Blockchain Connectivity
-                  </h3>
-                  <p className={`text-sm ${
-                    connectivityTest.success ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {connectivityTest.message}
-                  </p>
-                  {connectivityTest.backendURL && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Backend: {connectivityTest.backendURL}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={onTestConnectivity}
-                className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs"
-              >
-                Test Again
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Add Batch Button */}
         <div className="mb-8">
