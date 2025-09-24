@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
-import { HerbDetailsStep, LocationStep, QRStep } from './CollectionSteps'
+import HerbDetailsStep from './HerbDetailsStep'
+import LocationStep from './LocationStep'
+import QRStep from './QRStep'
 import ProfileView from './ProfileView'
 import FastFarmerDashboard from './FastFarmerDashboard'
 import FastBatchTracking from './FastBatchTracking'
@@ -763,8 +765,8 @@ export default function WorkingFarmerPortal({ user: authUser, onLogout, onUpdate
               {currentStep === 4 && (
                 <QRStep
                   submissionResult={submissionResult}
-                  qrCodeUrl={qrCodeUrl}
-                  resetForm={resetForm}
+                  qrCodeDataURL={qrCodeUrl}
+                  setCurrentStep={setCurrentStep}
                   setCurrentView={setCurrentView}
                 />
               )}

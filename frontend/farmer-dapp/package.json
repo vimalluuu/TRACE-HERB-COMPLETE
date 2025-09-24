@@ -17,7 +17,9 @@
     "@heroicons/react": "^2.0.18",
     "qrcode": "^1.5.3",
     "uuid": "^9.0.0",
-    "axios": "^1.6.0"
+    "axios": "^1.6.0",
+    "leaflet": "^1.9.4",
+    "react-leaflet": "^4.2.1"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",
