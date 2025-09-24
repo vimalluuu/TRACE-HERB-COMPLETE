@@ -221,18 +221,30 @@ export default function FarmerDApp() {
           }
         })
 
-        // Add new marker
+        // Add new marker with place name above
         const marker = window.L.marker([location.latitude, location.longitude])
           .addTo(leafletMap)
-          .bindPopup(`
-            <div style="text-align: center;">
-              <strong>📍 Location Captured</strong><br/>
-              <small>${location.placeName || 'Location detected'}</small><br/>
-              <small>Lat: ${location.latitude.toFixed(6)}</small><br/>
-              <small>Lng: ${location.longitude.toFixed(6)}</small>
-            </div>
-          `)
-          .openPopup()
+
+        // Add place name as a permanent label above the marker
+        if (location.placeName) {
+          const placeLabel = window.L.divIcon({
+            className: 'place-name-label',
+            html: `<div style="background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; font-weight: bold; color: #333; text-align: center; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${location.placeName}</div>`,
+            iconSize: [200, 20],
+            iconAnchor: [100, 35]
+          })
+
+          window.L.marker([location.latitude, location.longitude], { icon: placeLabel })
+            .addTo(leafletMap)
+        }
+
+        marker.bindPopup(`
+          <div style="text-align: center;">
+            <strong>📍 Location Captured</strong><br/>
+            <small>Lat: ${location.latitude.toFixed(6)}</small><br/>
+            <small>Lng: ${location.longitude.toFixed(6)}</small>
+          </div>
+        `).openPopup()
 
         return
       }
@@ -256,18 +268,30 @@ export default function FarmerDApp() {
         maxZoom: 19
       }).addTo(map)
 
-      // Add marker
+      // Add marker with place name above
       const marker = window.L.marker([location.latitude, location.longitude])
         .addTo(map)
-        .bindPopup(`
-          <div style="text-align: center;">
-            <strong>📍 Location Captured</strong><br/>
-            <small>${location.placeName || 'Location detected'}</small><br/>
-            <small>Lat: ${location.latitude.toFixed(6)}</small><br/>
-            <small>Lng: ${location.longitude.toFixed(6)}</small>
-          </div>
-        `)
-        .openPopup()
+
+      // Add place name as a permanent label above the marker
+      if (location.placeName) {
+        const placeLabel = window.L.divIcon({
+          className: 'place-name-label',
+          html: `<div style="background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; font-weight: bold; color: #333; text-align: center; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${location.placeName}</div>`,
+          iconSize: [200, 20],
+          iconAnchor: [100, 35]
+        })
+
+        window.L.marker([location.latitude, location.longitude], { icon: placeLabel })
+          .addTo(map)
+      }
+
+      marker.bindPopup(`
+        <div style="text-align: center;">
+          <strong>📍 Location Captured</strong><br/>
+          <small>Lat: ${location.latitude.toFixed(6)}</small><br/>
+          <small>Lng: ${location.longitude.toFixed(6)}</small>
+        </div>
+      `).openPopup()
 
       setLeafletMap(map)
     } catch (error) {
@@ -1167,29 +1191,9 @@ export default function FarmerDApp() {
                     {location.placeName && (
                       <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400 max-w-lg mx-auto">
                         <div className="text-lg font-semibold text-blue-800 mb-2">📍 Place/Area Name</div>
-                        <div className="text-base text-blue-700 font-medium">{location.placeName}</div>
-                        {location.village && (
-                          <div className="text-sm text-blue-600 mt-2">
-                            {location.village}, {location.district}, {location.state}
-                          </div>
-                        )}
+                        <div className="text-xl text-blue-900 font-bold">{location.placeName}</div>
                       </div>
                     )}
-
-                    {/* Coordinates Display */}
-                    <div className="bg-green-50 p-4 rounded-lg text-left max-w-lg mx-auto">
-                      <h5 className="text-sm font-semibold text-gray-800 mb-3">GPS Coordinates</h5>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div><strong>Latitude:</strong></div>
-                        <div className="font-mono">{location.latitude.toFixed(6)}</div>
-                        <div><strong>Longitude:</strong></div>
-                        <div className="font-mono">{location.longitude.toFixed(6)}</div>
-                        <div><strong>Accuracy:</strong></div>
-                        <div>{Math.round(location.accuracy)}m</div>
-                        <div><strong>Time:</strong></div>
-                        <div>{new Date(location.timestamp).toLocaleTimeString()}</div>
-                      </div>
-                    </div>
 
                     {/* Interactive Map */}
                     <div className="max-w-lg mx-auto">
