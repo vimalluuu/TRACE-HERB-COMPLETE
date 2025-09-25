@@ -44,8 +44,8 @@ echo.
 echo Step 3: Starting Frontend Portals...
 echo.
 
-REM Start Farmer Portal
-start "Farmer Portal (Port 3002)" cmd /k "cd frontend\farmer-dapp && npm run dev"
+REM Start Enhanced Farmer Portal with Multilingual Support
+start "Enhanced Farmer Portal (Port 4005)" cmd /k "cd frontend\farmer-dapp && npx next dev -p 4005"
 
 REM Start Enhanced Consumer Portal
 start "Enhanced Consumer Portal (Port 3001)" cmd /k "cd frontend\enhanced-consumer-portal && npm run dev"
@@ -80,7 +80,7 @@ echo.
 echo 🌐 Access Points:
 echo.
 echo 👥 Enhanced Consumer Portal:  http://localhost:3001
-echo 🧑‍🌾 Farmer Portal:           http://localhost:3002
+echo 🧑‍🌾 Enhanced Farmer Portal:   http://localhost:4005
 echo 🏭 Processor Portal:          http://localhost:3003
 echo 🔬 Laboratory Portal:         http://localhost:3004
 echo 🏛️ Regulatory Portal:         http://localhost:3005
@@ -98,6 +98,13 @@ echo   • CouchDB:                  Ports 5984, 7984, 9984, 11984
 echo.
 echo 🎯 System Mode: CA-CONNECTED (Real Certificate Authorities)
 echo.
+echo ✨ ENHANCED FEATURES:
+echo   • Multilingual Farmer Portal (Tamil, Hindi, English, etc.)
+echo   • Offline Batch Sync Notifications
+echo   • Mobile-Responsive Design
+echo   • Dropdown-Based Herb Collection Forms
+echo   • Real-time Progress Tracking
+echo.
 echo ⚠️ IMPORTANT: System uses real Certificate Authorities for enhanced
 echo    blockchain operations with CA-Connected mode!
 echo.
@@ -113,7 +120,7 @@ pause >nul
 REM Open monitoring dashboard
 start http://localhost:3000
 start http://localhost:3001
-start http://localhost:3002
+start http://localhost:4005
 start http://localhost:3008
 
 echo.

@@ -40,6 +40,11 @@ export default function FarmerDApp() {
   const [showLanguageSelector, setShowLanguageSelector] = useState(false)
   const [languageSelected, setLanguageSelected] = useState(false)
 
+  // Offline state and sync notifications
+  const [isOnline, setIsOnline] = useState(true)
+  const [pendingSyncBatches, setPendingSyncBatches] = useState([])
+  const [showSyncNotification, setShowSyncNotification] = useState(false)
+
   // Authentication
   const { user, loading: authLoading, login, signup, updateProfile, logout } = useStandaloneAuth()
   const [showDashboard, setShowDashboard] = useState(true)
@@ -82,6 +87,40 @@ export default function FarmerDApp() {
     }
   }, [])
 
+  // Offline detection and sync management
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true)
+      // Try to sync pending batches when coming back online
+      syncPendingBatches()
+    }
+
+    const handleOffline = () => {
+      setIsOnline(false)
+    }
+
+    // Load pending sync batches from localStorage
+    const loadPendingSyncBatches = () => {
+      const saved = localStorage.getItem('pendingSyncBatches')
+      if (saved) {
+        const batches = JSON.parse(saved)
+        setPendingSyncBatches(batches)
+        if (batches.length > 0) {
+          setShowSyncNotification(true)
+        }
+      }
+    }
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    loadPendingSyncBatches()
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
+
   // Language change handler
   const handleLanguageChange = (language) => {
     setCurrentLanguage(language)
@@ -95,6 +134,47 @@ export default function FarmerDApp() {
     setCurrentLanguage(language)
     localStorage.setItem('farmerPortalLanguage', language)
     setLanguageSelected(true)
+  }
+
+  // Sync pending batches to blockchain
+  const syncPendingBatches = async () => {
+    if (pendingSyncBatches.length === 0) return
+
+    try {
+      for (const batch of pendingSyncBatches) {
+        // Try to submit to blockchain
+        const response = await axios.post('/api/herb-batches', batch)
+        if (response.status === 200) {
+          // Remove from pending list if successful
+          const updatedPending = pendingSyncBatches.filter(b => b.id !== batch.id)
+          setPendingSyncBatches(updatedPending)
+          localStorage.setItem('pendingSyncBatches', JSON.stringify(updatedPending))
+        }
+      }
+
+      if (pendingSyncBatches.length === 0) {
+        setShowSyncNotification(false)
+      }
+    } catch (error) {
+      console.log('Sync failed, will retry later:', error)
+    }
+  }
+
+  // Add batch to pending sync when offline
+  const addToPendingSync = (batchData) => {
+    const newBatch = {
+      ...batchData,
+      id: uuidv4(),
+      createdOffline: true,
+      timestamp: new Date().toISOString()
+    }
+
+    const updated = [...pendingSyncBatches, newBatch]
+    setPendingSyncBatches(updated)
+    localStorage.setItem('pendingSyncBatches', JSON.stringify(updated))
+    setShowSyncNotification(true)
+
+    return newBatch
   }
 
   // Login handler
@@ -714,7 +794,14 @@ export default function FarmerDApp() {
         console.log('Successfully submitted to blockchain:', response.data)
       } catch (apiError) {
         console.warn('API submission failed, continuing with local storage:', apiError.message)
-        // Store locally for later sync
+        // Store locally for later sync using our new notification system
+        const offlineBatch = addToPendingSync({
+          ...collectionEventData,
+          submittedAt: new Date().toISOString(),
+          syncStatus: 'pending'
+        })
+
+        // Also keep the old system for backward compatibility
         const localData = JSON.parse(localStorage.getItem('trace-herb-pending-submissions') || '[]')
         localData.push({
           ...collectionEventData,
@@ -941,48 +1028,56 @@ export default function FarmerDApp() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-herb-green-50 to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-herb-green-50 via-white to-blue-50">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm shadow-xl border-b border-gray-200">
+        <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-xl border-b border-gray-200/50">
           <div className="px-3 sm:px-4 py-3 sm:py-4">
             <div className="flex items-center justify-between max-w-7xl mx-auto">
-              <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="flex items-center space-x-2 sm:space-x-4">
                 <button
                   onClick={handleBackToDashboard}
-                  className="bg-gray-100 hover:bg-gray-200 p-2 rounded-lg transition-colors touch-manipulation"
+                  className="bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 p-2.5 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md touch-manipulation"
                   title="Back to Dashboard"
                 >
-                  ←
+                  <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </button>
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-herb-green-600 to-herb-green-700 rounded-lg flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-lg sm:text-xl">🌿</span>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-herb-green-500 via-herb-green-600 to-herb-green-700 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200">
+                  <span className="text-white font-bold text-xl sm:text-2xl">🌿</span>
                 </div>
                 <div className="min-w-0">
-                  <h1 className="text-base sm:text-lg font-black bg-gradient-to-r from-herb-green-600 to-herb-green-800 bg-clip-text text-transparent truncate">TRACE HERB</h1>
-                  <p className="text-xs sm:text-sm text-gray-600 font-medium">Farmer DApp</p>
+                  <h1 className="text-lg sm:text-xl font-black bg-gradient-to-r from-herb-green-600 via-herb-green-700 to-herb-green-800 bg-clip-text text-transparent truncate">TRACE HERB</h1>
+                  <p className="text-xs sm:text-sm text-gray-600 font-semibold">Farmer Portal</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-1 sm:space-x-2">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                {!isOnline && (
+                  <div className="flex items-center space-x-1 px-2 py-1 bg-red-100 text-red-800 rounded-lg text-xs font-medium">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span>Offline</span>
+                  </div>
+                )}
                 <LanguageSwitchButton
                   currentLanguage={currentLanguage}
                   onLanguageChange={handleLanguageChange}
                 />
-                <div className="text-right hidden sm:block">
-                  <p className="text-xs text-gray-500">Welcome</p>
-                  <p className="text-sm font-semibold text-herb-green-700 truncate max-w-20">{user.name}</p>
+                <div className="text-right hidden sm:block bg-gradient-to-r from-herb-green-50 to-herb-green-100 px-3 py-2 rounded-lg border border-herb-green-200">
+                  <p className="text-xs text-herb-green-600 font-medium">Welcome</p>
+                  <p className="text-sm font-bold text-herb-green-800 truncate max-w-24">{user.name}</p>
                 </div>
                 <button
                   onClick={logout}
-                  className="px-2 sm:px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200 text-xs sm:text-sm font-medium"
+                  className="px-3 sm:px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg transition-all duration-200 text-xs sm:text-sm font-semibold shadow-md hover:shadow-lg"
                 >
                   <span className="hidden sm:inline">Logout</span>
                   <span className="sm:hidden">🚪</span>
                 </button>
-                <div className="text-right">
-                  <p className="text-lg md:text-xl text-gray-600 font-medium">Step {currentStep} of 5</p>
-                  <div className="w-32 bg-gray-200 rounded-full h-4 mt-2">
+                <div className="text-right bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-200">
+                  <p className="text-sm md:text-base text-gray-700 font-semibold">Step {currentStep} of 5</p>
+                  <div className="w-28 sm:w-32 bg-gray-200 rounded-full h-2.5 mt-1.5">
                     <div
-                      className="bg-herb-green-600 h-4 rounded-full transition-all duration-300 shadow-lg"
+                      className="bg-gradient-to-r from-herb-green-500 to-herb-green-600 h-2.5 rounded-full transition-all duration-500 shadow-sm"
                       style={{ width: `${(currentStep / 5) * 100}%` }}
                     ></div>
                   </div>
@@ -992,21 +1087,62 @@ export default function FarmerDApp() {
           </div>
         </header>
 
+        {/* Offline Sync Notification */}
+        {showSyncNotification && pendingSyncBatches.length > 0 && (
+          <div className="sticky top-16 z-30 mx-3 sm:mx-4 lg:mx-6 mt-4">
+            <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-3 rounded-lg shadow-lg border border-yellow-300 max-w-7xl mx-auto">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">
+                      {isOnline ? 'Syncing to Blockchain...' : 'Offline Mode'}
+                    </p>
+                    <p className="text-xs opacity-90">
+                      {pendingSyncBatches.length} batch{pendingSyncBatches.length !== 1 ? 'es' : ''} pending sync
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSyncNotification(false)}
+                  className="text-white/80 hover:text-white transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 max-w-7xl">
           {/* Step 1: Farmer Information */}
           {currentStep === 1 && (
-            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl p-6 sm:p-12 max-w-5xl mx-auto">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl border border-gray-200/50 p-6 sm:p-12 max-w-5xl mx-auto">
               <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-8 sm:mb-12">
-                <UserIcon className="w-12 h-12 sm:w-16 sm:h-16 text-herb-green-600" />
-                <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-gray-900 text-center sm:text-left">{t('farmerInformation', currentLanguage)}</h2>
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-herb-green-500 to-herb-green-700 rounded-2xl flex items-center justify-center shadow-lg">
+                  <UserIcon className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                </div>
+                <div className="text-center sm:text-left">
+                  <h2 className="text-2xl sm:text-4xl md:text-5xl font-black bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">{t('farmerInformation', currentLanguage)}</h2>
+                  <p className="text-sm sm:text-base text-gray-600 font-medium mt-2">Complete your profile information</p>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-                <div>
-                  <label className="block text-lg sm:text-xl font-bold text-gray-700 mb-3 sm:mb-4">{t('fullName', currentLanguage)} *</label>
+                <div className="space-y-2">
+                  <label className="block text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                    <span className="w-2 h-2 bg-herb-green-500 rounded-full mr-3"></span>
+                    {t('fullName', currentLanguage)} *
+                  </label>
                   <input
                     type="text"
-                    className="w-full px-4 py-4 sm:px-6 sm:py-5 border-2 sm:border-4 border-gray-300 rounded-xl sm:rounded-2xl focus:ring-4 focus:ring-herb-green-500 focus:border-herb-green-500 text-lg sm:text-xl font-medium transition-all duration-300"
+                    className="w-full px-4 py-4 sm:px-6 sm:py-5 border-2 border-gray-300 rounded-xl sm:rounded-2xl focus:ring-4 focus:ring-herb-green-500 focus:border-herb-green-500 text-lg sm:text-xl font-medium transition-all duration-300 bg-gray-50 focus:bg-white shadow-sm"
                     value={farmerData.name}
                     onChange={(e) => setFarmerData({...farmerData, name: e.target.value})}
                     placeholder={t('enterFullName', currentLanguage)}

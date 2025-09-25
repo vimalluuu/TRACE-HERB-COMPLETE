@@ -4,8 +4,8 @@ import { LANGUAGES, t } from '../utils/simpleTranslations';
 // Language selection modal/screen
 export const LanguageSelectionModal = ({ onLanguageSelect, currentLanguage = 'en' }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
-      <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999] p-4">
+      <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl border border-gray-200">
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">🌿</span>
@@ -55,7 +55,7 @@ export const LanguageSwitchButton = ({ currentLanguage, onLanguageChange }) => {
     <div className="relative">
       <button
         onClick={() => setShowSelector(true)}
-        className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-lg bg-white shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors text-xs sm:text-sm"
+        className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2.5 rounded-lg bg-white shadow-md border border-gray-200 hover:bg-gray-50 hover:shadow-lg transition-all duration-200 text-xs sm:text-sm relative z-50"
       >
         <span className="text-sm sm:text-lg">{LANGUAGES[currentLanguage]?.flag}</span>
         <span className="hidden sm:inline text-sm font-medium text-gray-700">
