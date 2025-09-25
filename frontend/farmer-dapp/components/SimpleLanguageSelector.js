@@ -4,8 +4,8 @@ import { LANGUAGES, t } from '../utils/simpleTranslations';
 // Language selection modal/screen
 export const LanguageSelectionModal = ({ onLanguageSelect, currentLanguage = 'en' }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+      <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl">
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">🌿</span>
@@ -52,16 +52,19 @@ export const LanguageSwitchButton = ({ currentLanguage, onLanguageChange }) => {
   const [showSelector, setShowSelector] = useState(false);
 
   return (
-    <>
+    <div className="relative">
       <button
         onClick={() => setShowSelector(true)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+        className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-lg bg-white shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors text-xs sm:text-sm"
       >
-        <span className="text-lg">{LANGUAGES[currentLanguage]?.flag}</span>
-        <span className="text-sm font-medium text-gray-700">
+        <span className="text-sm sm:text-lg">{LANGUAGES[currentLanguage]?.flag}</span>
+        <span className="hidden sm:inline text-sm font-medium text-gray-700">
           {LANGUAGES[currentLanguage]?.nativeName}
         </span>
-        <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <span className="sm:hidden text-xs font-medium text-gray-700">
+          {LANGUAGES[currentLanguage]?.code?.toUpperCase()}
+        </span>
+        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
@@ -75,7 +78,7 @@ export const LanguageSwitchButton = ({ currentLanguage, onLanguageChange }) => {
           }}
         />
       )}
-    </>
+    </div>
   );
 };
 

@@ -927,6 +927,7 @@ export default function FarmerDApp() {
           }}
           onLogout={handleLogout}
           currentLanguage={currentLanguage}
+          onLanguageChange={handleLanguageChange}
         />
       </>
     )
@@ -940,12 +941,12 @@ export default function FarmerDApp() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div className="mobile-container bg-gradient-to-br from-herb-green-50 to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-herb-green-50 to-blue-50">
         {/* Header */}
-        <header className="mobile-header bg-white/90 backdrop-blur-sm shadow-xl">
-          <div className="px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
+        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm shadow-xl border-b border-gray-200">
+          <div className="px-3 sm:px-4 py-3 sm:py-4">
+            <div className="flex items-center justify-between max-w-7xl mx-auto">
+              <div className="flex items-center space-x-2 sm:space-x-3">
                 <button
                   onClick={handleBackToDashboard}
                   className="bg-gray-100 hover:bg-gray-200 p-2 rounded-lg transition-colors touch-manipulation"
@@ -953,28 +954,29 @@ export default function FarmerDApp() {
                 >
                   ←
                 </button>
-                <div className="w-10 h-10 bg-gradient-to-br from-herb-green-600 to-herb-green-700 rounded-lg flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-xl">🌿</span>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-herb-green-600 to-herb-green-700 rounded-lg flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-lg sm:text-xl">🌿</span>
                 </div>
-                <div>
-                  <h1 className="text-lg font-black bg-gradient-to-r from-herb-green-600 to-herb-green-800 bg-clip-text text-transparent">TRACE HERB</h1>
-                  <p className="text-sm text-gray-600 font-medium">Farmer DApp</p>
+                <div className="min-w-0">
+                  <h1 className="text-base sm:text-lg font-black bg-gradient-to-r from-herb-green-600 to-herb-green-800 bg-clip-text text-transparent truncate">TRACE HERB</h1>
+                  <p className="text-xs sm:text-sm text-gray-600 font-medium">Farmer DApp</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 <LanguageSwitchButton
                   currentLanguage={currentLanguage}
                   onLanguageChange={handleLanguageChange}
                 />
-                <div className="text-right">
+                <div className="text-right hidden sm:block">
                   <p className="text-xs text-gray-500">Welcome</p>
-                  <p className="text-sm font-semibold text-herb-green-700">{user.name}</p>
+                  <p className="text-sm font-semibold text-herb-green-700 truncate max-w-20">{user.name}</p>
                 </div>
                 <button
                   onClick={logout}
-                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200 text-sm font-medium"
+                  className="px-2 sm:px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200 text-xs sm:text-sm font-medium"
                 >
-                  Logout
+                  <span className="hidden sm:inline">Logout</span>
+                  <span className="sm:hidden">🚪</span>
                 </button>
                 <div className="text-right">
                   <p className="text-lg md:text-xl text-gray-600 font-medium">Step {currentStep} of 5</p>
@@ -990,7 +992,7 @@ export default function FarmerDApp() {
           </div>
         </header>
 
-        <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-12">
+        <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 max-w-7xl">
           {/* Step 1: Farmer Information */}
           {currentStep === 1 && (
             <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl p-6 sm:p-12 max-w-5xl mx-auto">
@@ -1111,14 +1113,14 @@ export default function FarmerDApp() {
 
           {/* Step 2: Herb Information */}
           {currentStep === 2 && (
-            <div className="card max-w-2xl mx-auto">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto">
               <div className="flex items-center space-x-3 mb-6">
                 <BeakerIcon className="w-8 h-8 text-herb-green-600" />
                 <h2 className="text-2xl font-bold text-gray-900">{t('herbDetails', currentLanguage)}</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <div className="sm:col-span-2">
                   <SimpleDropdown
                     label={t('selectHerb', currentLanguage)}
                     value={herbData.commonName ? `${herbData.commonName} (${herbData.ayurvedicName})` : ''}
@@ -1253,7 +1255,7 @@ export default function FarmerDApp() {
 
           {/* Step 3: Location Capture */}
           {currentStep === 3 && (
-            <div className="card max-w-2xl mx-auto">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto">
               <div className="flex items-center space-x-3 mb-6">
                 <MapPinIcon className="w-8 h-8 text-herb-green-600" />
                 <h2 className="text-2xl font-bold text-gray-900">Geo-Location Capture</h2>
@@ -1407,7 +1409,7 @@ export default function FarmerDApp() {
 
           {/* Step 4: AI Verification */}
           {currentStep === 4 && (
-            <div className="card max-w-4xl mx-auto">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center">
@@ -1776,7 +1778,7 @@ export default function FarmerDApp() {
 
           {/* Step 5: QR Code Generation and Submission */}
           {currentStep === 5 && (
-            <div className="card max-w-2xl mx-auto">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto">
               <div className="flex items-center space-x-3 mb-6">
                 <QrCodeIcon className="w-8 h-8 text-herb-green-600" />
                 <h2 className="text-2xl font-bold text-gray-900">{t('generateQRCode', currentLanguage)}</h2>

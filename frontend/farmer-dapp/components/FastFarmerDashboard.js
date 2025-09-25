@@ -10,6 +10,7 @@ import {
   getStatusIcon as getStatusIconFromUtils
 } from '../utils/batchStatusSync'
 import { t } from '../utils/simpleTranslations'
+import { LanguageSwitchButton } from './SimpleLanguageSelector'
 
 // Status icon helper function
 const getStatusIcon = (status) => {
@@ -22,7 +23,7 @@ const getStatusColors = (status) => {
   return STATUS_COLORS[status] || 'bg-gray-100 text-gray-800'
 }
 
-const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTracking, onLogout, currentLanguage = 'en' }) => {
+const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTracking, onLogout, currentLanguage = 'en', onLanguageChange }) => {
   const [batches, setBatches] = useState([])
   const [loading, setLoading] = useState(true)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
@@ -169,17 +170,25 @@ const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTr
 
               {/* User Actions */}
               <div className="flex items-center space-x-2">
+                {onLanguageChange && (
+                  <LanguageSwitchButton
+                    currentLanguage={currentLanguage}
+                    onLanguageChange={onLanguageChange}
+                  />
+                )}
                 <button
                   onClick={onShowProfile}
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium"
+                  className="px-2 sm:px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs sm:text-sm font-medium"
                 >
-                  Profile
+                  <span className="hidden sm:inline">{t('profile', currentLanguage)}</span>
+                  <span className="sm:hidden">👤</span>
                 </button>
                 <button
                   onClick={onLogout}
-                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium"
+                  className="px-2 sm:px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs sm:text-sm font-medium"
                 >
-                  Logout
+                  <span className="hidden sm:inline">{t('logout', currentLanguage)}</span>
+                  <span className="sm:hidden">🚪</span>
                 </button>
               </div>
             </div>
