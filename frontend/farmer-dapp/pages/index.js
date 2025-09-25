@@ -27,11 +27,19 @@ import SMSBlockchainGateway from '../components/SMSBlockchainGateway'
 import SustainabilityWidget from '../components/SustainabilityWidget'
 import SecurityWidget from '../components/SecurityWidget'
 import RegulatoryWidget from '../components/RegulatoryWidget'
+import { LanguageSelectionModal, LanguageSwitchButton, SimpleDropdown } from '../components/SimpleLanguageSelector'
+import { t, getHerbOptions, getDropdownOptions } from '../utils/simpleTranslations'
+import LanguageWelcomePage from '../components/LanguageWelcomePage'
 
 // Simple in-memory cache for reverse geocoding results (keyed by rounded lat,lon)
 const reverseGeocodeCache = new Map()
 
 export default function FarmerDApp() {
+  // Language state
+  const [currentLanguage, setCurrentLanguage] = useState('en')
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false)
+  const [languageSelected, setLanguageSelected] = useState(false)
+
   // Authentication
   const { user, loading: authLoading, login, signup, updateProfile, logout } = useStandaloneAuth()
   const [showDashboard, setShowDashboard] = useState(true)
@@ -62,6 +70,32 @@ export default function FarmerDApp() {
   const [showSecurity, setShowSecurity] = useState(false)
   const [regulatoryResult, setRegulatoryResult] = useState(null)
   const [showRegulatory, setShowRegulatory] = useState(false)
+
+  // Language initialization
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('farmerPortalLanguage')
+    if (savedLanguage) {
+      setCurrentLanguage(savedLanguage)
+      setLanguageSelected(true)
+    } else {
+      setLanguageSelected(false)
+    }
+  }, [])
+
+  // Language change handler
+  const handleLanguageChange = (language) => {
+    setCurrentLanguage(language)
+    localStorage.setItem('farmerPortalLanguage', language)
+    setShowLanguageSelector(false)
+    setLanguageSelected(true)
+  }
+
+  // Handle initial language selection from welcome page
+  const handleInitialLanguageSelect = (language) => {
+    setCurrentLanguage(language)
+    localStorage.setItem('farmerPortalLanguage', language)
+    setLanguageSelected(true)
+  }
 
   // Login handler
   const handleLogin = async (credentials) => {
@@ -753,6 +787,11 @@ export default function FarmerDApp() {
     setLocationError('')
   }
 
+  // Show language welcome page if language not selected
+  if (!languageSelected) {
+    return <LanguageWelcomePage onLanguageSelect={handleInitialLanguageSelect} />
+  }
+
   // Show loading while checking authentication
   if (authLoading) {
     return (
@@ -771,15 +810,25 @@ export default function FarmerDApp() {
       return (
         <>
           <Head>
-            <title>TRACE HERB - Farmer Registration</title>
+            <title>TRACE HERB - {t('farmerInformation', currentLanguage)}</title>
             <meta name="description" content="Register as a farmer to access the collection portal" />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
           </Head>
-          <SignupForm
-            onSignup={handleSignup}
-            onSwitchToLogin={() => setShowSignup(false)}
-            loading={loginLoading}
-          />
+          <div className="relative">
+            {/* Language Switch Button for Signup */}
+            <div className="absolute top-4 right-4 z-10">
+              <LanguageSwitchButton
+                currentLanguage={currentLanguage}
+                onLanguageChange={handleLanguageChange}
+              />
+            </div>
+            <SignupForm
+              onSignup={handleSignup}
+              onSwitchToLogin={() => setShowSignup(false)}
+              loading={loginLoading}
+              language={currentLanguage}
+            />
+          </div>
         </>
       )
     }
@@ -796,13 +845,23 @@ export default function FarmerDApp() {
           <meta name="theme-color" content="#16a34a" />
           <link rel="manifest" href="/manifest.json" />
         </Head>
-        <LoginForm
-          onLogin={handleLogin}
-          onSwitchToSignup={() => setShowSignup(true)}
-          portalName="Farmer Portal"
-          portalIcon="🧑‍🌾"
-          loading={loginLoading}
-        />
+        <div className="relative">
+          {/* Language Switch Button for Login */}
+          <div className="absolute top-4 right-4 z-10">
+            <LanguageSwitchButton
+              currentLanguage={currentLanguage}
+              onLanguageChange={handleLanguageChange}
+            />
+          </div>
+          <LoginForm
+            onLogin={handleLogin}
+            onSwitchToSignup={() => setShowSignup(true)}
+            portalName={t('farmerInformation', currentLanguage)}
+            portalIcon="🧑‍🌾"
+            loading={loginLoading}
+            language={currentLanguage}
+          />
+        </div>
       </>
     )
   }
@@ -842,6 +901,7 @@ export default function FarmerDApp() {
             setShowBatchTracking(false)
             setSelectedBatchId(null)
           }}
+          currentLanguage={currentLanguage}
         />
       </>
     )
@@ -866,6 +926,7 @@ export default function FarmerDApp() {
             setShowBatchTracking(true)
           }}
           onLogout={handleLogout}
+          currentLanguage={currentLanguage}
         />
       </>
     )
@@ -874,7 +935,7 @@ export default function FarmerDApp() {
   return (
     <>
       <Head>
-        <title>TRACE HERB - Farmer Collection DApp</title>
+        <title>TRACE HERB - {t('farmerInformation', currentLanguage)}</title>
         <meta name="description" content="Herb collection data entry with geo-tagging" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
@@ -901,6 +962,10 @@ export default function FarmerDApp() {
                 </div>
               </div>
               <div className="flex items-center space-x-2">
+                <LanguageSwitchButton
+                  currentLanguage={currentLanguage}
+                  onLanguageChange={handleLanguageChange}
+                />
                 <div className="text-right">
                   <p className="text-xs text-gray-500">Welcome</p>
                   <p className="text-sm font-semibold text-herb-green-700">{user.name}</p>
@@ -925,117 +990,105 @@ export default function FarmerDApp() {
           </div>
         </header>
 
-        <main className="container mx-auto px-6 py-12">
+        <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-12">
           {/* Step 1: Farmer Information */}
           {currentStep === 1 && (
-            <div className="bg-white rounded-3xl shadow-2xl p-12 max-w-5xl mx-auto">
-              <div className="flex items-center space-x-6 mb-12">
-                <UserIcon className="w-16 h-16 text-herb-green-600" />
-                <h2 className="text-4xl md:text-5xl font-black text-gray-900">Farmer Information</h2>
+            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl p-6 sm:p-12 max-w-5xl mx-auto">
+              <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-8 sm:mb-12">
+                <UserIcon className="w-12 h-12 sm:w-16 sm:h-16 text-herb-green-600" />
+                <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-gray-900 text-center sm:text-left">{t('farmerInformation', currentLanguage)}</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                 <div>
-                  <label className="block text-xl font-bold text-gray-700 mb-4">Full Name *</label>
+                  <label className="block text-lg sm:text-xl font-bold text-gray-700 mb-3 sm:mb-4">{t('fullName', currentLanguage)} *</label>
                   <input
                     type="text"
-                    className="w-full px-6 py-5 border-4 border-gray-300 rounded-2xl focus:ring-4 focus:ring-herb-green-500 focus:border-herb-green-500 text-xl font-medium transition-all duration-300"
+                    className="w-full px-4 py-4 sm:px-6 sm:py-5 border-2 sm:border-4 border-gray-300 rounded-xl sm:rounded-2xl focus:ring-4 focus:ring-herb-green-500 focus:border-herb-green-500 text-lg sm:text-xl font-medium transition-all duration-300"
                     value={farmerData.name}
                     onChange={(e) => setFarmerData({...farmerData, name: e.target.value})}
-                    placeholder="Enter your full name"
+                    placeholder={t('enterFullName', currentLanguage)}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xl font-bold text-gray-700 mb-4">Phone Number *</label>
+                  <label className="block text-lg sm:text-xl font-bold text-gray-700 mb-3 sm:mb-4">{t('phoneNumber', currentLanguage)} *</label>
                   <input
                     type="tel"
-                    className="w-full px-6 py-5 border-4 border-gray-300 rounded-2xl focus:ring-4 focus:ring-herb-green-500 focus:border-herb-green-500 text-xl font-medium transition-all duration-300"
+                    className="w-full px-4 py-4 sm:px-6 sm:py-5 border-2 sm:border-4 border-gray-300 rounded-xl sm:rounded-2xl focus:ring-4 focus:ring-herb-green-500 focus:border-herb-green-500 text-lg sm:text-xl font-medium transition-all duration-300"
                     value={farmerData.phone}
                     onChange={(e) => setFarmerData({...farmerData, phone: e.target.value})}
-                    placeholder="+91 9876543210"
+                    placeholder={t('enterPhone', currentLanguage)}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Farmer ID</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('farmerId', currentLanguage)}</label>
                   <input
                     type="text"
                     className="input-field"
                     value={farmerData.farmerId}
                     onChange={(e) => setFarmerData({...farmerData, farmerId: e.target.value})}
-                    placeholder="Government issued farmer ID"
+                    placeholder={t('farmerId', currentLanguage)}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Village *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('village', currentLanguage)} *</label>
                   <input
                     type="text"
                     className="input-field"
                     value={farmerData.village}
                     onChange={(e) => setFarmerData({...farmerData, village: e.target.value})}
-                    placeholder="Village name"
+                    placeholder={t('enterVillage', currentLanguage)}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">District *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('district', currentLanguage)} *</label>
                   <input
                     type="text"
                     className="input-field"
                     value={farmerData.district}
                     onChange={(e) => setFarmerData({...farmerData, district: e.target.value})}
-                    placeholder="District name"
+                    placeholder={t('enterDistrict', currentLanguage)}
                     required
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
-                  <select
-                    className="input-field"
-                    value={farmerData.state}
-                    onChange={(e) => setFarmerData({...farmerData, state: e.target.value})}
-                    required
-                  >
-                    <option value="">Select State</option>
-                    <option value="Maharashtra">Maharashtra</option>
-                    <option value="Karnataka">Karnataka</option>
-                    <option value="Kerala">Kerala</option>
-                    <option value="Tamil Nadu">Tamil Nadu</option>
-                    <option value="Rajasthan">Rajasthan</option>
-                    <option value="Gujarat">Gujarat</option>
-                    <option value="Madhya Pradesh">Madhya Pradesh</option>
-                    <option value="Uttarakhand">Uttarakhand</option>
-                    <option value="Himachal Pradesh">Himachal Pradesh</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
+                <SimpleDropdown
+                  label={t('state', currentLanguage)}
+                  value={farmerData.state}
+                  onChange={(state) => setFarmerData({...farmerData, state})}
+                  options={getDropdownOptions('states', currentLanguage)}
+                  placeholder={t('selectState', currentLanguage)}
+                  required={true}
+                  language={currentLanguage}
+                />
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Experience (Years)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('experience', currentLanguage)}</label>
                   <input
                     type="number"
                     className="input-field"
                     value={farmerData.experience}
                     onChange={(e) => setFarmerData({...farmerData, experience: e.target.value})}
-                    placeholder="Years of experience"
+                    placeholder={t('experience', currentLanguage)}
                     min="0"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Certification</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('certification', currentLanguage)}</label>
                   <select
                     className="input-field"
                     value={farmerData.certification}
                     onChange={(e) => setFarmerData({...farmerData, certification: e.target.value})}
                   >
-                    <option value="">Select Certification</option>
+                    <option value="">{t('certification', currentLanguage)}</option>
                     <option value="Organic">Organic Certified</option>
                     <option value="Fair Trade">Fair Trade Certified</option>
                     <option value="GAP">Good Agricultural Practices</option>
@@ -1044,13 +1097,13 @@ export default function FarmerDApp() {
                 </div>
               </div>
 
-              <div className="flex justify-end mt-12">
+              <div className="flex justify-center sm:justify-end mt-8 sm:mt-12">
                 <button
                   onClick={() => setCurrentStep(2)}
                   disabled={!farmerData.name || !farmerData.phone || !farmerData.village || !farmerData.district || !farmerData.state}
-                  className="px-12 py-6 bg-herb-green-600 text-white rounded-2xl font-black text-2xl md:text-3xl shadow-2xl hover:shadow-3xl hover:bg-herb-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto px-8 sm:px-12 py-4 sm:py-6 bg-herb-green-600 text-white rounded-xl sm:rounded-2xl font-black text-lg sm:text-2xl md:text-3xl shadow-2xl hover:shadow-3xl hover:bg-herb-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Next: Herb Details
+                  {t('next', currentLanguage)}: {t('herbDetails', currentLanguage)}
                 </button>
               </div>
             </div>
@@ -1061,68 +1114,47 @@ export default function FarmerDApp() {
             <div className="card max-w-2xl mx-auto">
               <div className="flex items-center space-x-3 mb-6">
                 <BeakerIcon className="w-8 h-8 text-herb-green-600" />
-                <h2 className="text-2xl font-bold text-gray-900">Herb Collection Details</h2>
+                <h2 className="text-2xl font-bold text-gray-900">{t('herbDetails', currentLanguage)}</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Botanical Name *</label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    value={herbData.botanicalName}
-                    onChange={(e) => setHerbData({...herbData, botanicalName: e.target.value})}
-                    placeholder="e.g., Withania somnifera"
-                    required
+                <div className="md:col-span-2">
+                  <SimpleDropdown
+                    label={t('selectHerb', currentLanguage)}
+                    value={herbData.commonName ? `${herbData.commonName} (${herbData.ayurvedicName})` : ''}
+                    onChange={(selectedHerb) => {
+                      const herbOptions = getHerbOptions(currentLanguage);
+                      // Extract common name from display format "Common (Ayurvedic)"
+                      const commonName = selectedHerb.split(' (')[0];
+                      const herb = herbOptions.find(h => h.common === commonName);
+                      if (herb) {
+                        setHerbData({
+                          ...herbData,
+                          botanicalName: herb.botanical,
+                          commonName: herb.common,
+                          ayurvedicName: herb.ayurvedic
+                        });
+                      }
+                    }}
+                    options={getHerbOptions(currentLanguage).map(h => `${h.common} (${h.ayurvedic})`)}
+                    placeholder={t('selectHerb', currentLanguage)}
+                    required={true}
+                    language={currentLanguage}
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Common Name *</label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    value={herbData.commonName}
-                    onChange={(e) => setHerbData({...herbData, commonName: e.target.value})}
-                    placeholder="e.g., Winter Cherry"
-                    required
-                  />
-                </div>
+                <SimpleDropdown
+                  label={t('partUsed', currentLanguage)}
+                  value={herbData.partUsed}
+                  onChange={(part) => setHerbData({...herbData, partUsed: part})}
+                  options={getDropdownOptions('partsUsed', currentLanguage)}
+                  placeholder={t('selectPart', currentLanguage)}
+                  required={true}
+                  language={currentLanguage}
+                />
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Ayurvedic Name *</label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    value={herbData.ayurvedicName}
-                    onChange={(e) => setHerbData({...herbData, ayurvedicName: e.target.value})}
-                    placeholder="e.g., Ashwagandha"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Part Used *</label>
-                  <select
-                    className="input-field"
-                    value={herbData.partUsed}
-                    onChange={(e) => setHerbData({...herbData, partUsed: e.target.value})}
-                    required
-                  >
-                    <option value="">Select Part Used</option>
-                    <option value="Root">Root</option>
-                    <option value="Leaf">Leaf</option>
-                    <option value="Stem">Stem</option>
-                    <option value="Flower">Flower</option>
-                    <option value="Fruit">Fruit</option>
-                    <option value="Seed">Seed</option>
-                    <option value="Bark">Bark</option>
-                    <option value="Whole Plant">Whole Plant</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('quantity', currentLanguage)} *</label>
                   <div className="flex space-x-2">
                     <input
                       type="number"
@@ -1134,104 +1166,86 @@ export default function FarmerDApp() {
                       step="0.1"
                       required
                     />
-                    <select
-                      className="input-field w-20"
-                      value={herbData.unit}
-                      onChange={(e) => setHerbData({...herbData, unit: e.target.value})}
-                    >
-                      <option value="kg">kg</option>
-                      <option value="g">g</option>
-                      <option value="ton">ton</option>
-                    </select>
+                    <div className="w-24">
+                      <SimpleDropdown
+                        label=""
+                        value={herbData.unit}
+                        onChange={(unit) => setHerbData({...herbData, unit})}
+                        options={getDropdownOptions('units', currentLanguage)}
+                        placeholder={t('unit', currentLanguage)}
+                        required={false}
+                        language={currentLanguage}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Collection Method *</label>
-                  <select
-                    className="input-field"
-                    value={herbData.collectionMethod}
-                    onChange={(e) => setHerbData({...herbData, collectionMethod: e.target.value})}
-                    required
-                  >
-                    <option value="">Select Method</option>
-                    <option value="Wild Harvesting">Wild Harvesting</option>
-                    <option value="Cultivated">Cultivated</option>
-                    <option value="Semi-Wild">Semi-Wild</option>
-                    <option value="Organic Farming">Organic Farming</option>
-                  </select>
-                </div>
+                <SimpleDropdown
+                  label={t('collectionMethod', currentLanguage)}
+                  value={herbData.collectionMethod}
+                  onChange={(method) => setHerbData({...herbData, collectionMethod: method})}
+                  options={getDropdownOptions('collectionMethods', currentLanguage)}
+                  placeholder={t('selectMethod', currentLanguage)}
+                  required={true}
+                  language={currentLanguage}
+                />
+
+                <SimpleDropdown
+                  label={t('season', currentLanguage)}
+                  value={herbData.season}
+                  onChange={(season) => setHerbData({...herbData, season})}
+                  options={getDropdownOptions('seasons', currentLanguage)}
+                  placeholder={t('selectSeason', currentLanguage)}
+                  required={true}
+                  language={currentLanguage}
+                />
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Season *</label>
-                  <select
-                    className="input-field"
-                    value={herbData.season}
-                    onChange={(e) => setHerbData({...herbData, season: e.target.value})}
-                    required
-                  >
-                    <option value="">Select Season</option>
-                    <option value="Spring">Spring (March-May)</option>
-                    <option value="Summer">Summer (June-August)</option>
-                    <option value="Monsoon">Monsoon (July-September)</option>
-                    <option value="Post-Monsoon">Post-Monsoon (October-November)</option>
-                    <option value="Winter">Winter (December-February)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Weather Conditions</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('weatherConditions', currentLanguage)}</label>
                   <input
                     type="text"
                     className="input-field"
                     value={herbData.weatherConditions}
                     onChange={(e) => setHerbData({...herbData, weatherConditions: e.target.value})}
-                    placeholder="e.g., Sunny, 25°C, Low humidity"
+                    placeholder={t('enterWeather', currentLanguage)}
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Soil Type</label>
-                  <select
-                    className="input-field"
-                    value={herbData.soilType}
-                    onChange={(e) => setHerbData({...herbData, soilType: e.target.value})}
-                  >
-                    <option value="">Select Soil Type</option>
-                    <option value="Clay">Clay</option>
-                    <option value="Sandy">Sandy</option>
-                    <option value="Loamy">Loamy</option>
-                    <option value="Rocky">Rocky</option>
-                    <option value="Alluvial">Alluvial</option>
-                    <option value="Black Cotton">Black Cotton</option>
-                  </select>
-                </div>
+                <SimpleDropdown
+                  label={t('soilType', currentLanguage)}
+                  value={herbData.soilType}
+                  onChange={(soil) => setHerbData({...herbData, soilType: soil})}
+                  options={getDropdownOptions('soilTypes', currentLanguage)}
+                  placeholder={t('enterSoil', currentLanguage)}
+                  required={false}
+                  language={currentLanguage}
+                />
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('notes', currentLanguage)}</label>
                   <textarea
                     className="input-field"
                     rows="3"
                     value={herbData.notes}
                     onChange={(e) => setHerbData({...herbData, notes: e.target.value})}
-                    placeholder="Any additional information about the collection..."
+                    placeholder={t('enterNotes', currentLanguage)}
                   />
                 </div>
               </div>
 
-              <div className="flex justify-between mt-6">
+              <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-0 mt-6">
                 <button
                   onClick={handleBackToDashboard}
-                  className="btn-secondary"
+                  className="btn-secondary w-full sm:w-auto order-2 sm:order-1"
                 >
-                  Back to Dashboard
+                  {t('backToDashboard', currentLanguage)}
                 </button>
                 <button
                   onClick={() => setCurrentStep(3)}
                   disabled={!herbData.botanicalName || !herbData.commonName || !herbData.ayurvedicName || !herbData.partUsed || !herbData.quantity || !herbData.collectionMethod || !herbData.season}
-                  className="btn-primary"
+                  className="btn-primary w-full sm:w-auto order-1 sm:order-2"
                 >
-                  Next: Location
+                  {t('next', currentLanguage)}: {t('locationDetails', currentLanguage)}
                 </button>
               </div>
             </div>
@@ -1251,25 +1265,25 @@ export default function FarmerDApp() {
                     <div className="w-24 h-24 bg-herb-green-100 rounded-full flex items-center justify-center mx-auto">
                       <MapPinIcon className="w-12 h-12 text-herb-green-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Capture Collection Location</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('captureLocation', currentLanguage)}</h3>
                     <p className="text-gray-600 max-w-md mx-auto">
-                      We need your precise location to ensure traceability. This helps verify the origin of the herbs.
+                      {t('preciseLocation', currentLanguage)}. {t('verifyOrigin', currentLanguage)}.
                     </p>
                     <div className="bg-green-50 p-4 rounded-lg text-sm text-green-800 max-w-md mx-auto mb-4">
-                      <p><strong>📍 Location Required:</strong> Please allow location access when prompted. We use advanced GPS techniques to get your exact coordinates even in challenging conditions.</p>
+                      <p><strong>📍 {t('locationRequired', currentLanguage)}:</strong> {t('allowLocationAccess', currentLanguage)}. {t('advancedGPS', currentLanguage)}.</p>
                     </div>
                     <button
                       onClick={getCurrentLocation}
                       className="btn-primary mb-3"
                     >
-                      📍 Get My Current Location
+                      📍 {t('getLocation', currentLanguage)}
                     </button>
                     <div className="text-xs text-gray-500">
                       <button
                         onClick={useDemoLocation}
                         className="text-blue-600 hover:text-blue-800 underline"
                       >
-                        Use demo location (for testing only)
+                        {t('useDemoLocation', currentLanguage)}
                       </button>
                     </div>
                   </div>
@@ -1280,8 +1294,8 @@ export default function FarmerDApp() {
                     <div className="w-24 h-24 bg-herb-green-100 rounded-full flex items-center justify-center mx-auto animate-pulse">
                       <MapPinIcon className="w-12 h-12 text-herb-green-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Getting Your Location...</h3>
-                    <p className="text-gray-600">Using advanced GPS techniques to find your exact coordinates. This may take a moment...</p>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('gettingLocation', currentLanguage)}</h3>
+                    <p className="text-gray-600">{t('advancedGPS', currentLanguage)}.</p>
                   </div>
                 )}
 
@@ -1304,7 +1318,7 @@ export default function FarmerDApp() {
 
                     {/* Interactive Map */}
                     <div className="max-w-lg mx-auto">
-                      <h5 className="text-lg font-semibold text-gray-800 mb-3 text-center">📍 Location on Map</h5>
+                      <h5 className="text-lg font-semibold text-gray-800 mb-3 text-center">📍 {t('locationOnMap', currentLanguage)}</h5>
                       <div className="border border-gray-300 rounded-lg overflow-hidden shadow-sm">
                         <div
                           id="location-map"
@@ -1315,14 +1329,14 @@ export default function FarmerDApp() {
                             <div className="h-full flex items-center justify-center">
                               <div className="text-center">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto mb-2"></div>
-                                <p className="text-gray-600 text-sm">Loading map...</p>
+                                <p className="text-gray-600 text-sm">{t('loadingMap', currentLanguage)}</p>
                               </div>
                             </div>
                           )}
                         </div>
                       </div>
                       <p className="text-xs text-gray-500 mt-2 text-center">
-                        Interactive map showing your captured location with marker
+                        {t('interactiveMap', currentLanguage)}
                       </p>
                     </div>
 
@@ -1331,7 +1345,7 @@ export default function FarmerDApp() {
                         onClick={getCurrentLocation}
                         className="btn-secondary text-sm"
                       >
-                        📍 Update Location
+                        📍 {t('updateLocation', currentLanguage)}
                       </button>
                       {!location.isDemoLocation && (
                         <button
@@ -1378,7 +1392,7 @@ export default function FarmerDApp() {
                   onClick={() => setCurrentStep(2)}
                   className="btn-secondary"
                 >
-                  Back
+                  {t('previous', currentLanguage)}
                 </button>
                 <button
                   onClick={() => setCurrentStep(4)}
@@ -1765,22 +1779,22 @@ export default function FarmerDApp() {
             <div className="card max-w-2xl mx-auto">
               <div className="flex items-center space-x-3 mb-6">
                 <QrCodeIcon className="w-8 h-8 text-herb-green-600" />
-                <h2 className="text-2xl font-bold text-gray-900">Generate QR Code</h2>
+                <h2 className="text-2xl font-bold text-gray-900">{t('generateQRCode', currentLanguage)}</h2>
               </div>
 
               {!submissionResult && (
                 <div className="text-center space-y-6">
                   <div className="bg-gray-50 p-6 rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Collection Summary</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('collectionSummary', currentLanguage)}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-left">
-                      <div><strong>Farmer:</strong> {farmerData.name}</div>
-                      <div><strong>Location:</strong> {farmerData.village}, {farmerData.district}</div>
-                      <div><strong>Herb:</strong> {herbData.ayurvedicName} ({herbData.botanicalName})</div>
-                      <div><strong>Part Used:</strong> {herbData.partUsed}</div>
-                      <div><strong>Quantity:</strong> {herbData.quantity} {herbData.unit}</div>
-                      <div><strong>Method:</strong> {herbData.collectionMethod}</div>
-                      <div><strong>Season:</strong> {herbData.season}</div>
-                      <div><strong>GPS:</strong> {location?.latitude.toFixed(4)}, {location?.longitude.toFixed(4)}</div>
+                      <div><strong>{t('farmer', currentLanguage)}:</strong> {farmerData.name}</div>
+                      <div><strong>{t('location', currentLanguage)}:</strong> {farmerData.village}, {farmerData.district}</div>
+                      <div><strong>{t('herb', currentLanguage)}:</strong> {herbData.ayurvedicName} ({herbData.botanicalName})</div>
+                      <div><strong>{t('partUsed', currentLanguage)}:</strong> {herbData.partUsed}</div>
+                      <div><strong>{t('quantity', currentLanguage)}:</strong> {herbData.quantity} {herbData.unit}</div>
+                      <div><strong>{t('method', currentLanguage)}:</strong> {herbData.collectionMethod}</div>
+                      <div><strong>{t('season', currentLanguage)}:</strong> {herbData.season}</div>
+                      <div><strong>{t('gps', currentLanguage)}:</strong> {location?.latitude.toFixed(4)}, {location?.longitude.toFixed(4)}</div>
                     </div>
                   </div>
 
@@ -1792,12 +1806,12 @@ export default function FarmerDApp() {
                     {loading ? (
                       <>
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                        <span>Submitting to Blockchain...</span>
+                        <span>{t('submittingToBlockchain', currentLanguage)}</span>
                       </>
                     ) : (
                       <>
                         <span className="text-3xl">🔗</span>
-                        <span>Submit to Blockchain & Generate QR</span>
+                        <span>{t('submitToBlockchain', currentLanguage)}</span>
                       </>
                     )}
                   </button>
@@ -1811,7 +1825,7 @@ export default function FarmerDApp() {
                       <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                         <CheckCircleIcon className="w-12 h-12 text-green-600" />
                       </div>
-                      <h3 className="text-xl font-bold text-green-900">Success!</h3>
+                      <h3 className="text-xl font-bold text-green-900">{t('success', currentLanguage)}</h3>
                       <p className="text-green-700">{submissionResult.message}</p>
 
                       {qrCodeUrl && (
@@ -1819,7 +1833,7 @@ export default function FarmerDApp() {
                           <img src={qrCodeUrl} alt="QR Code" className="w-full h-auto" />
                           <div className="mt-4 space-y-2">
                             <p className="font-semibold text-gray-900">QR Code: {submissionResult.qrCode}</p>
-                            <p className="text-sm text-gray-600">Collection ID: {submissionResult.collectionId}</p>
+                            <p className="text-sm text-gray-600">{t('collectionID', currentLanguage)}: {submissionResult.collectionId}</p>
                           </div>
                         </div>
                       )}
@@ -1834,7 +1848,7 @@ export default function FarmerDApp() {
                           }}
                           className="btn-primary"
                         >
-                          📱 Download QR Code
+                          📱 {t('downloadQRCode', currentLanguage)}
                         </button>
                         <button
                           onClick={() => {
@@ -1843,7 +1857,7 @@ export default function FarmerDApp() {
                           }}
                           className="btn-secondary"
                         >
-                          ➕ Add New Collection
+                          ➕ {t('addNewCollection', currentLanguage)}
                         </button>
                         <button
                           onClick={() => {
@@ -1936,6 +1950,14 @@ export default function FarmerDApp() {
             </div>
           )}
         </main>
+
+        {/* Language Selection Modal */}
+        {showLanguageSelector && (
+          <LanguageSelectionModal
+            currentLanguage={currentLanguage}
+            onLanguageSelect={handleLanguageChange}
+          />
+        )}
       </div>
     </>
   )

@@ -9,6 +9,7 @@ import {
   STATUS_ICONS,
   getStatusIcon as getStatusIconFromUtils
 } from '../utils/batchStatusSync'
+import { t } from '../utils/simpleTranslations'
 
 // Status icon helper function
 const getStatusIcon = (status) => {
@@ -21,7 +22,7 @@ const getStatusColors = (status) => {
   return STATUS_COLORS[status] || 'bg-gray-100 text-gray-800'
 }
 
-const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTracking, onLogout }) => {
+const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTracking, onLogout, currentLanguage = 'en' }) => {
   const [batches, setBatches] = useState([])
   const [loading, setLoading] = useState(true)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
@@ -140,7 +141,7 @@ const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTr
               <div className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
                 <h1 className="text-2xl font-bold">TRACE HERB</h1>
               </div>
-              <div className="text-sm text-gray-500">Farmer Dashboard</div>
+              <div className="text-sm text-gray-500">{t('farmerPortal', currentLanguage)}</div>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -196,7 +197,7 @@ const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTr
                 <span className="text-2xl">📦</span>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Batches</p>
+                <p className="text-sm font-medium text-gray-600">{t('yourBatches', currentLanguage)}</p>
                 <p className="text-2xl font-bold text-gray-900">{batches.length}</p>
               </div>
             </div>
@@ -208,7 +209,7 @@ const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTr
                 <span className="text-2xl">⏳</span>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">In Progress</p>
+                <p className="text-sm font-medium text-gray-600">{t('batchProgress', currentLanguage)}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {batches.filter(b => ['pending', 'processing', 'testing'].includes(b.status)).length}
                 </p>
@@ -222,7 +223,7 @@ const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTr
                 <span className="text-2xl">✅</span>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Approved</p>
+                <p className="text-sm font-medium text-gray-600">{t('approved', currentLanguage)}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {batches.filter(b => b.status === 'approved').length}
                 </p>
@@ -236,7 +237,7 @@ const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTr
                 <span className="text-2xl">❌</span>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Rejected</p>
+                <p className="text-sm font-medium text-gray-600">{t('rejected', currentLanguage)}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {batches.filter(b => b.status === 'rejected').length}
                 </p>
@@ -251,7 +252,7 @@ const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTr
             onClick={onCreateBatch}
             className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
           >
-            + Add New Herb Batch
+            + {t('createNewBatch', currentLanguage)}
           </button>
         </div>
 
@@ -260,22 +261,22 @@ const FastFarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTr
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Your Herb Batches</h2>
-                <p className="text-sm text-gray-600">Click on any batch to view its progress and status</p>
+                <h2 className="text-xl font-bold text-gray-900">{t('yourBatches', currentLanguage)}</h2>
+                <p className="text-sm text-gray-600">{t('viewBatch', currentLanguage)}</p>
               </div>
 
               {/* Filter Dropdown */}
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">Filter:</label>
+                <label className="text-sm font-medium text-gray-700">{t('filter', currentLanguage)}:</label>
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
                   className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 >
-                  <option value="all">All Batches</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                  <option value="in-progress">In Progress</option>
+                  <option value="all">{t('allBatches', currentLanguage)}</option>
+                  <option value="approved">{t('approved', currentLanguage)}</option>
+                  <option value="rejected">{t('rejected', currentLanguage)}</option>
+                  <option value="in-progress">{t('inProgress', currentLanguage)}</option>
                 </select>
               </div>
             </div>

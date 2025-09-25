@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { ArrowLeftIcon, CheckCircleIcon, ClockIcon, XCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { t } from '../utils/simpleTranslations'
 
-const FastBatchTracking = ({ batchId, onBack }) => {
+const FastBatchTracking = ({ batchId, onBack, currentLanguage = 'en' }) => {
   const [batch, setBatch] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -580,7 +581,7 @@ const FastBatchTracking = ({ batchId, onBack }) => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">❌</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Batch Not Found</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">{t('batchNotFound', currentLanguage)}</h2>
           <p className="text-gray-600 mb-6">Could not find batch with ID: {batchId}</p>
           <button
             onClick={onBack}
@@ -609,7 +610,7 @@ const FastBatchTracking = ({ batchId, onBack }) => {
                 <ArrowLeftIcon className="h-5 w-5 text-gray-600" />
               </button>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Batch Tracking</h1>
+                <h1 className="text-xl font-bold text-gray-900">{t('batchTracking', currentLanguage)}</h1>
                 <p className="text-sm text-gray-600">{batch.qrCode}</p>
                 <p className="text-xs text-blue-600">Tracking: {batchId}</p>
               </div>
@@ -668,7 +669,7 @@ const FastBatchTracking = ({ batchId, onBack }) => {
 
         {/* Progress Timeline */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Progress Timeline</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-6">{t('trackingSteps', currentLanguage)}</h2>
 
           <div className="space-y-6">
             {trackingSteps.map((step, index) => (

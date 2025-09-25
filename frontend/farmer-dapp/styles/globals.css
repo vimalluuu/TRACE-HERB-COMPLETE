@@ -163,18 +163,47 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-herb-green-600 hover:bg-herb-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed;
+    @apply bg-herb-green-600 hover:bg-herb-green-700 text-white font-medium py-3 sm:py-4 px-6 sm:px-8 rounded-lg transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed;
+    min-height: 48px;
+    touch-action: manipulation;
   }
-  
+
   .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 px-6 rounded-lg transition-colors duration-200;
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 sm:py-4 px-6 sm:px-8 rounded-lg transition-colors duration-200;
+    min-height: 48px;
+    touch-action: manipulation;
   }
   
   .input-field {
-    @apply w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-herb-green-500 focus:border-transparent;
+    @apply w-full p-3 sm:p-4 text-base sm:text-lg border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-herb-green-500 focus:border-transparent;
+    min-height: 48px;
+    -webkit-appearance: none;
   }
   
   .card {
-    @apply bg-white rounded-lg shadow-lg p-6;
+    @apply bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6;
+  }
+
+  /* Mobile-specific improvements */
+  @media (max-width: 640px) {
+    .mobile-form-container {
+      @apply px-4 py-6;
+    }
+
+    .mobile-form-grid {
+      @apply grid-cols-1 gap-4;
+    }
+
+    .mobile-button-group {
+      @apply flex-col space-y-3 space-x-0;
+    }
+
+    .mobile-text-responsive {
+      @apply text-base;
+    }
+
+    .mobile-padding-responsive {
+      @apply px-4 py-3;
+    }
   }
 }
