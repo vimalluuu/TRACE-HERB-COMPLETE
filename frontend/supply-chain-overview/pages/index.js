@@ -16,7 +16,7 @@ export default function SupplyChainOverview() {
       name: 'Farmer Portal',
       description: 'Herb collection data entry and QR generation',
       icon: '🌱',
-      url: 'http://localhost:3002',
+      url: 'http://localhost:4005',
       color: 'from-green-500 to-green-600',
       features: ['GPS Location Tracking', 'Herb Details Entry', 'QR Code Generation', 'Blockchain Submission']
     },

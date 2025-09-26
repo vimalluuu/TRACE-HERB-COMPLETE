@@ -48,13 +48,13 @@ export const LanguageSelectionModal = ({ onLanguageSelect, currentLanguage = 'en
 };
 
 // Language switch button for header
-export const LanguageSwitchButton = ({ currentLanguage, onLanguageChange }) => {
+export const LanguageSwitchButton = ({ currentLanguage, onLanguageChange, useDropdown = false }) => {
   const [showSelector, setShowSelector] = useState(false);
 
   return (
     <div className="relative">
       <button
-        onClick={() => setShowSelector(true)}
+        onClick={() => setShowSelector(!showSelector)}
         className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2.5 rounded-lg bg-white shadow-md border border-gray-200 hover:bg-gray-50 hover:shadow-lg transition-all duration-200 text-xs sm:text-sm relative z-50"
       >
         <span className="text-sm sm:text-lg">{LANGUAGES[currentLanguage]?.flag}</span>
@@ -70,13 +70,42 @@ export const LanguageSwitchButton = ({ currentLanguage, onLanguageChange }) => {
       </button>
 
       {showSelector && (
-        <LanguageSelectionModal
-          currentLanguage={currentLanguage}
-          onLanguageSelect={(lang) => {
-            onLanguageChange(lang);
-            setShowSelector(false);
-          }}
-        />
+        useDropdown ? (
+          <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-[99999] min-w-48 max-h-64 overflow-y-auto">
+            {Object.entries(LANGUAGES).map(([code, language]) => (
+              <button
+                key={code}
+                onClick={() => {
+                  onLanguageChange(code);
+                  setShowSelector(false);
+                }}
+                className={`w-full px-4 py-3 text-left hover:bg-green-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                  currentLanguage === code ? 'bg-green-50 text-green-700' : 'text-gray-700'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <span className="text-lg">{language.flag}</span>
+                  <div>
+                    <div className="font-medium text-sm">
+                      {language.nativeName}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {language.name}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <LanguageSelectionModal
+            currentLanguage={currentLanguage}
+            onLanguageSelect={(lang) => {
+              onLanguageChange(lang);
+              setShowSelector(false);
+            }}
+          />
+        )
       )}
     </div>
   );

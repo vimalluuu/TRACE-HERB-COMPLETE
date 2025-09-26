@@ -49,21 +49,21 @@ const LoginForm = ({ onLogin, onSwitchToSignup, portalName, portalIcon, loading 
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md animate-fade-in">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md animate-fade-in">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-4">{portalIcon}</div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">{portalIcon}</div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
             {portalName}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Please sign in to access your dashboard
           </p>
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* Phone Number Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -126,7 +126,7 @@ const LoginForm = ({ onLogin, onSwitchToSignup, portalName, portalIcon, loading 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 ${
+            className={`w-full py-3 sm:py-4 px-4 rounded-lg font-medium text-white transition-all duration-200 text-sm sm:text-base ${
               loading
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-green-600 hover:bg-green-700 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2'

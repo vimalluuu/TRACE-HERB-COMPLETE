@@ -1061,6 +1061,7 @@ export default function FarmerDApp() {
                 <LanguageSwitchButton
                   currentLanguage={currentLanguage}
                   onLanguageChange={handleLanguageChange}
+                  useDropdown={true}
                 />
                 <div className="text-right hidden sm:block bg-gradient-to-r from-herb-green-50 to-herb-green-100 px-3 py-2 rounded-lg border border-herb-green-200">
                   <p className="text-xs text-herb-green-600 font-medium">Welcome</p>

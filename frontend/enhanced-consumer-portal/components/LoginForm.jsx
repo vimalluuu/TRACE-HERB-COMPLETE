@@ -73,11 +73,11 @@ const LoginForm = ({
   };
 
   return (
-    <div className={`max-w-md mx-auto ${className}`}>
-      <div className="bg-white shadow-lg rounded-lg p-8">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">TRACE HERB</h2>
-          <p className="text-gray-600 mt-2">
+    <div className={`max-w-md mx-auto px-4 sm:px-0 ${className}`}>
+      <div className="bg-white shadow-lg rounded-lg p-6 sm:p-8">
+        <div className="text-center mb-6 sm:mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">TRACE HERB</h2>
+          <p className="text-sm sm:text-base text-gray-600 mt-2">
             {showPortalSelector ? 'Login to Access Portal' : `Login to ${portal.charAt(0).toUpperCase() + portal.slice(1)} Portal`}
           </p>
         </div>
@@ -88,7 +88,7 @@ const LoginForm = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700">
               Username or Email
@@ -145,7 +145,7 @@ const LoginForm = ({
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-3 sm:py-4 px-4 border border-transparent rounded-md shadow-sm text-sm sm:text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <div className="flex items-center">

@@ -244,19 +244,12 @@ export default function ProcessorPortal() {
               </div>
             </div>
 
-            {/* User Info and Logout */}
+            {/* User Info */}
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm text-gray-600">Welcome</p>
                 <p className="font-semibold text-processor-blue-700">{user?.username || 'Processor'}</p>
               </div>
-              <button
-                onClick={logout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
-              >
-                <span>🚪</span>
-                <span>Logout</span>
-              </button>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">

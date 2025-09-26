@@ -791,8 +791,180 @@ const FarmerDashboard = ({ user, onCreateBatch, onShowProfile, onShowBatchTracki
                 })}
               </div>
             )}
+
+            {/* Customer Feedback Section */}
+            <FeedbackSection user={user} />
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// Feedback Section Component
+const FeedbackSection = ({ user }) => {
+  const [feedbacks, setFeedbacks] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loadFeedbacks = () => {
+      try {
+        const farmerFeedbacks = JSON.parse(localStorage.getItem('farmerFeedbacks') || '[]')
+        // Filter feedbacks for this farmer
+        const userFeedbacks = farmerFeedbacks.filter(feedback =>
+          feedback.farmerName === user?.firstName + ' ' + user?.lastName ||
+          feedback.farmerName === user?.username ||
+          feedback.farmerName === 'Unknown Farmer' // Include unknown farmer feedbacks for demo
+        )
+        setFeedbacks(userFeedbacks)
+      } catch (error) {
+        console.error('Error loading feedbacks:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadFeedbacks()
+
+    // Poll for new feedbacks every 30 seconds
+    const interval = setInterval(loadFeedbacks, 30000)
+    return () => clearInterval(interval)
+  }, [user])
+
+  const StarDisplay = ({ rating }) => (
+    <div className="flex space-x-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span
+          key={star}
+          className={`text-lg ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
+        >
+          ★
+        </span>
+      ))}
+    </div>
+  )
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl shadow-lg p-6 mt-8">
+        <div className="animate-pulse">
+          <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="space-y-3">
+            <div className="h-4 bg-gray-200 rounded"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (feedbacks.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl shadow-lg p-6 mt-8">
+        <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+          <span className="text-blue-600 mr-2">💬</span>
+          Customer Feedback
+        </h3>
+        <div className="text-center py-8">
+          <div className="text-6xl mb-4">📝</div>
+          <p className="text-gray-600">No customer feedback yet.</p>
+          <p className="text-sm text-gray-500 mt-2">
+            Customer feedback will appear here when consumers rate your approved products.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const averageRating = feedbacks.reduce((sum, feedback) => sum + feedback.rating, 0) / feedbacks.length
+  const recommendationRate = feedbacks.filter(f => f.recommend === true).length / feedbacks.length * 100
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg p-6 mt-8">
+      <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+        <span className="text-blue-600 mr-2">💬</span>
+        Customer Feedback ({feedbacks.length})
+      </h3>
+
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+          <div className="flex items-center space-x-2 mb-2">
+            <StarDisplay rating={Math.round(averageRating)} />
+            <span className="font-bold text-yellow-900">{averageRating.toFixed(1)}</span>
+          </div>
+          <p className="text-sm text-yellow-700">Average Rating</p>
+        </div>
+
+        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+          <div className="text-2xl font-bold text-green-900 mb-1">
+            {recommendationRate.toFixed(0)}%
+          </div>
+          <p className="text-sm text-green-700">Recommendation Rate</p>
+        </div>
+
+        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+          <div className="text-2xl font-bold text-blue-900 mb-1">
+            {feedbacks.length}
+          </div>
+          <p className="text-sm text-blue-700">Total Reviews</p>
+        </div>
+      </div>
+
+      {/* Individual Feedbacks */}
+      <div className="space-y-4 max-h-96 overflow-y-auto">
+        {feedbacks.map((feedback) => (
+          <div key={feedback.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <h4 className="font-medium text-gray-900">{feedback.productName}</h4>
+                <p className="text-sm text-gray-500">Batch: {feedback.batchId}</p>
+              </div>
+              <div className="text-right">
+                <StarDisplay rating={feedback.rating} />
+                <p className="text-xs text-gray-500 mt-1">
+                  {new Date(feedback.timestamp).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4 mb-2">
+              <span className="text-sm font-medium text-gray-700">{feedback.userName}</span>
+              {feedback.verified && (
+                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                  ✓ Verified Purchase
+                </span>
+              )}
+              {feedback.recommend !== null && (
+                <span className={`text-sm font-medium ${
+                  feedback.recommend ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {feedback.recommend ? '👍 Recommends' : '👎 Does not recommend'}
+                </span>
+              )}
+            </div>
+
+            {feedback.comment && (
+              <p className="text-gray-700 text-sm bg-gray-50 rounded p-3 mt-2">
+                "{feedback.comment}"
+              </p>
+            )}
+
+            {/* Detailed Aspects */}
+            {Object.keys(feedback.aspects).some(key => feedback.aspects[key] > 0) && (
+              <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
+                {Object.entries(feedback.aspects).map(([aspect, rating]) => (
+                  rating > 0 && (
+                    <div key={aspect} className="text-center">
+                      <p className="text-xs text-gray-500 capitalize">{aspect}</p>
+                      <StarDisplay rating={rating} />
+                    </div>
+                  )
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   )

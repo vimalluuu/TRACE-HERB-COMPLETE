@@ -37,11 +37,45 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
   const [provenance, setProvenance] = useState<ProvenanceData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'journey' | 'quality' | 'sustainability' | 'farmer'>('journey')
+  const [activeTab, setActiveTab] = useState<'journey' | 'quality' | 'sustainability' | 'farmer' | 'feedback'>('journey')
   const [showAdvancedInsights, setShowAdvancedInsights] = useState(false)
   const [isNotFound, setIsNotFound] = useState(false)
   const [isRateLimit, setIsRateLimit] = useState(false)
   const [realBatchData, setRealBatchData] = useState<any>(null)
+
+  // Feedback state
+  const [feedback, setFeedback] = useState({
+    rating: 0,
+    comment: '',
+    recommend: null as boolean | null,
+    aspects: {
+      quality: 0,
+      packaging: 0,
+      effectiveness: 0,
+      value: 0
+    }
+  })
+  const [existingFeedbacks, setExistingFeedbacks] = useState<any[]>([])
+  const [submittingFeedback, setSubmittingFeedback] = useState(false)
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
+
+  // Load existing feedbacks
+  useEffect(() => {
+    const loadFeedbacks = () => {
+      try {
+        const storedFeedbacks = localStorage.getItem(`feedbacks_${qrCode}`)
+        if (storedFeedbacks) {
+          setExistingFeedbacks(JSON.parse(storedFeedbacks))
+        }
+      } catch (error) {
+        console.error('Error loading feedbacks:', error)
+      }
+    }
+
+    if (qrCode) {
+      loadFeedbacks()
+    }
+  }, [qrCode])
 
   // Load real batch data
   useEffect(() => {
@@ -266,6 +300,88 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
 
   if (!provenance) {
     return null
+  }
+
+  // Submit feedback
+  const submitFeedback = async () => {
+    if (feedback.rating === 0) {
+      alert('Please provide a rating')
+      return
+    }
+
+    setSubmittingFeedback(true)
+    try {
+      const newFeedback = {
+        id: Date.now().toString(),
+        qrCode,
+        rating: feedback.rating,
+        comment: feedback.comment,
+        recommend: feedback.recommend,
+        aspects: feedback.aspects,
+        timestamp: new Date().toISOString(),
+        userName: 'Anonymous Consumer',
+        verified: true
+      }
+
+      // Store locally
+      const existingFeedbacks = JSON.parse(localStorage.getItem(`feedbacks_${qrCode}`) || '[]')
+      const updatedFeedbacks = [...existingFeedbacks, newFeedback]
+      localStorage.setItem(`feedbacks_${qrCode}`, JSON.stringify(updatedFeedbacks))
+      setExistingFeedbacks(updatedFeedbacks)
+
+      // Also store in farmer portal data
+      const farmerFeedbacks = JSON.parse(localStorage.getItem('farmerFeedbacks') || '[]')
+      farmerFeedbacks.push({
+        ...newFeedback,
+        batchId: qrCode,
+        productName: realBatchData?.batch?.commonName || provenance?.product?.name || 'Unknown Product',
+        farmerName: realBatchData?.batch?.farmerName || 'Unknown Farmer'
+      })
+      localStorage.setItem('farmerFeedbacks', JSON.stringify(farmerFeedbacks))
+
+      setFeedbackSubmitted(true)
+
+      // Reset form
+      setFeedback({
+        rating: 0,
+        comment: '',
+        recommend: null,
+        aspects: {
+          quality: 0,
+          packaging: 0,
+          effectiveness: 0,
+          value: 0
+        }
+      })
+
+      setTimeout(() => setFeedbackSubmitted(false), 3000)
+    } catch (error) {
+      console.error('Error submitting feedback:', error)
+      alert('Failed to submit feedback. Please try again.')
+    } finally {
+      setSubmittingFeedback(false)
+    }
+  }
+
+  // Star rating component
+  const StarRating = ({ rating, onRatingChange, readonly = false }: { rating: number, onRatingChange?: (rating: number) => void, readonly?: boolean }) => {
+    return (
+      <div className="flex space-x-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            disabled={readonly}
+            onClick={() => !readonly && onRatingChange && onRatingChange(star)}
+            className={`text-2xl ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'} transition-transform ${
+              star <= rating ? 'text-yellow-400' : 'text-gray-300'
+            }`}
+          >
+            ★
+          </button>
+        ))}
+      </div>
+    )
   }
 
   // Amazon-style tracking stages
@@ -510,7 +626,8 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
                   { id: 'journey', label: 'Journey' },
                   { id: 'quality', label: 'Quality' },
                   { id: 'sustainability', label: 'Sustainability' },
-                  { id: 'farmer', label: 'Farmer' }
+                  { id: 'farmer', label: 'Farmer' },
+                  ...(realBatchData?.batch?.status === 'approved' ? [{ id: 'feedback', label: 'Feedback' }] : [])
                 ].map(tab => (
                   <button
                     key={tab.id}
@@ -874,6 +991,161 @@ const WorkingProvenanceDisplay: React.FC<WorkingProvenanceDisplayProps> = ({
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {activeTab === 'feedback' && realBatchData?.batch?.status === 'approved' && (
+              <div className="space-y-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Customer Feedback</h3>
+
+                {/* Feedback Form */}
+                <div className="bg-gradient-to-br from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Share Your Experience</h4>
+
+                  {feedbackSubmitted ? (
+                    <div className="text-center py-8">
+                      <div className="text-6xl mb-4">🎉</div>
+                      <h5 className="text-xl font-semibold text-green-900 mb-2">Thank You!</h5>
+                      <p className="text-green-700">Your feedback has been submitted successfully.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {/* Overall Rating */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Overall Rating *
+                        </label>
+                        <StarRating
+                          rating={feedback.rating}
+                          onRatingChange={(rating) => setFeedback(prev => ({ ...prev, rating }))}
+                        />
+                      </div>
+
+                      {/* Detailed Aspects */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[
+                          { key: 'quality', label: 'Product Quality' },
+                          { key: 'packaging', label: 'Packaging' },
+                          { key: 'effectiveness', label: 'Effectiveness' },
+                          { key: 'value', label: 'Value for Money' }
+                        ].map(aspect => (
+                          <div key={aspect.key}>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {aspect.label}
+                            </label>
+                            <StarRating
+                              rating={feedback.aspects[aspect.key as keyof typeof feedback.aspects]}
+                              onRatingChange={(rating) => setFeedback(prev => ({
+                                ...prev,
+                                aspects: { ...prev.aspects, [aspect.key]: rating }
+                              }))}
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Recommendation */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Would you recommend this product?
+                        </label>
+                        <div className="flex space-x-4">
+                          <button
+                            onClick={() => setFeedback(prev => ({ ...prev, recommend: true }))}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                              feedback.recommend === true
+                                ? 'bg-green-500 text-white'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            👍 Yes
+                          </button>
+                          <button
+                            onClick={() => setFeedback(prev => ({ ...prev, recommend: false }))}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                              feedback.recommend === false
+                                ? 'bg-red-500 text-white'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            👎 No
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Comment */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Additional Comments
+                        </label>
+                        <textarea
+                          value={feedback.comment}
+                          onChange={(e) => setFeedback(prev => ({ ...prev, comment: e.target.value }))}
+                          placeholder="Share your detailed experience with this product..."
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          rows={4}
+                        />
+                      </div>
+
+                      {/* Submit Button */}
+                      <button
+                        onClick={submitFeedback}
+                        disabled={submittingFeedback || feedback.rating === 0}
+                        className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                          submittingFeedback || feedback.rating === 0
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                      >
+                        {submittingFeedback ? 'Submitting...' : 'Submit Feedback'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Existing Feedbacks */}
+                {existingFeedbacks.length > 0 && (
+                  <div className="bg-white rounded-xl p-6 border border-gray-200">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                      Customer Reviews ({existingFeedbacks.length})
+                    </h4>
+
+                    <div className="space-y-4">
+                      {existingFeedbacks.map((review) => (
+                        <div key={review.id} className="border-b border-gray-200 pb-4 last:border-b-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-3">
+                              <span className="font-medium text-gray-900">{review.userName}</span>
+                              {review.verified && (
+                                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                  ✓ Verified Purchase
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-sm text-gray-500">
+                              {new Date(review.timestamp).toLocaleDateString()}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center space-x-4 mb-2">
+                            <StarRating rating={review.rating} readonly />
+                            {review.recommend !== null && (
+                              <span className={`text-sm font-medium ${
+                                review.recommend ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {review.recommend ? '👍 Recommends' : '👎 Does not recommend'}
+                              </span>
+                            )}
+                          </div>
+
+                          {review.comment && (
+                            <p className="text-gray-700 text-sm">{review.comment}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
