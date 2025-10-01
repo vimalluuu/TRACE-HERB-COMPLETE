@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "name": "trace-herb-farmer-portal",
+  "builds": [
+    {
+      "src": "frontend/farmer-dapp/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/farmer-dapp/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "NEXT_PUBLIC_API_URL": "https://trace-herb-backend.railway.app"
+  },
+  "functions": {
+    "frontend/farmer-dapp/pages/api/*.js": {
+      "maxDuration": 10
+    }
+  },
+  "regions": ["iad1"],
+  "github": {
+    "autoAlias": false
+  }
+}

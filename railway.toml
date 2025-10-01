@@ -1,0 +1,34 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+numReplicas = 1
+sleepApplication = false
+restartPolicyType = "ON_FAILURE"
+
+[[services]]
+name = "backend"
+source = "backend/"
+
+[services.variables]
+NODE_ENV = "production"
+PORT = "3000"
+BLOCKCHAIN_MODE = "simulated"
+
+[[services]]
+name = "farmer-portal"
+source = "frontend/farmer-dapp/"
+
+[services.variables]
+NODE_ENV = "production"
+PORT = "3002"
+NEXT_PUBLIC_API_URL = "${{backend.RAILWAY_PUBLIC_DOMAIN}}"
+
+[[services]]
+name = "consumer-portal"
+source = "frontend/enhanced-consumer-portal/"
+
+[services.variables]
+NODE_ENV = "production"
+PORT = "3001"
+NEXT_PUBLIC_API_URL = "${{backend.RAILWAY_PUBLIC_DOMAIN}}"

@@ -1,0 +1,30 @@
+[build]
+  base = "frontend/enhanced-consumer-portal"
+  publish = "frontend/enhanced-consumer-portal/.next"
+  command = "npm run build"
+
+[build.environment]
+  NODE_ENV = "production"
+  NEXT_PUBLIC_API_URL = "https://trace-herb-backend.railway.app"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[context.production]
+  environment = { NODE_ENV = "production" }
+
+[context.deploy-preview]
+  environment = { NODE_ENV = "development" }
+
+[context.branch-deploy]
+  environment = { NODE_ENV = "development" }
