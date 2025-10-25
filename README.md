@@ -8,18 +8,18 @@
 
 ## 🎯 **HACKATHON READY - SINGLE COMMAND STARTUP**
 
-**For Judges & Demo**: Simply run `start-trace-herb.bat` and everything will be ready!
+**For Judges & Demo**: Simply run `start-trace-herb-full-system.bat` and everything will be ready!
 
 ```bash
 # Windows - Double click or run in Command Prompt
-start-trace-herb.bat
+start-trace-herb-full-system.bat
 
 # The script will:
-# ✅ Check Node.js installation
-# ✅ Install all dependencies automatically
-# ✅ Start all 8 services (Backend + 7 Frontend Portals)
-# ✅ Open main demo portal automatically
-# ✅ Display all access URLs
+# ✅ Set up Full Hyperledger Fabric Network with Certificate Authorities
+# ✅ Start Backend Service with blockchain integration
+# ✅ Launch all 8 Frontend Portals (Enhanced Consumer, Farmer, Processor, Lab, Regulator, etc.)
+# ✅ Open main demo portals automatically
+# ✅ Display all access URLs and blockchain network status
 ```
 
 ---
@@ -40,17 +40,18 @@ TRACE HERB is a **complete blockchain-based supply chain traceability system** s
 
 ## 🌐 **SYSTEM ACCESS POINTS**
 
-After running `start-trace-herb.bat`, access these URLs:
+After running `start-trace-herb-full-system.bat`, access these URLs:
 
 | Portal | URL | Purpose |
 |--------|-----|---------|
-| 📱 **Enhanced Consumer Portal** | http://localhost:3010 | **MAIN DEMO** - Product verification & tracking |
-| 🚜 **Farmer Portal** | http://localhost:3002 | Batch creation & collection management |
-| 📊 **Supply Chain Overview** | http://localhost:3000 | System dashboard & portal navigation |
-| 👤 **Consumer Portal (Original)** | http://localhost:3001 | Basic product verification |
-| 🏭 **Processor Portal** | http://localhost:3004 | Processing workflow management |
-| 🔬 **Lab Portal** | http://localhost:3005 | Quality testing & certification |
-| 🏛️ **Regulator Portal** | http://localhost:3006 | Compliance & approval workflows |
+| 👥 **Enhanced Consumer Portal** | http://localhost:3001 | **MAIN DEMO** - Product verification & tracking |
+| 🧑‍🌾 **Enhanced Farmer Portal** | http://localhost:4005 | Multilingual batch creation & collection management |
+| 🏭 **Processor Portal** | http://localhost:3003 | Processing workflow management |
+| 🔬 **Laboratory Portal** | http://localhost:3004 | Quality testing & certification |
+| 🏛️ **Regulatory Portal** | http://localhost:3005 | Compliance & approval workflows |
+| 📊 **Stakeholder Dashboard** | http://localhost:3006 | Stakeholder overview & analytics |
+| 🏢 **Management Portal** | http://localhost:3007 | System management & administration |
+| 🔗 **Supply Chain Overview** | http://localhost:3008 | Complete supply chain visualization |
 | 🔧 **Backend API** | http://localhost:3000/api | RESTful API endpoints |
 
 ---
@@ -58,7 +59,7 @@ After running `start-trace-herb.bat`, access these URLs:
 ## 🎮 **DEMO INSTRUCTIONS FOR JUDGES**
 
 ### 🎯 **Main Demo Flow (Enhanced Consumer Portal)**
-1. **Visit**: http://localhost:3010
+1. **Visit**: http://localhost:3001
 2. **Enter QR Code**: Use any demo code below
 3. **View Tracking Progress**: See Amazon-style supply chain tracking
 4. **Explore Tabs**: Journey, Quality, Sustainability, Farmer
@@ -73,9 +74,9 @@ QR_DEMO_NEEM_001         (Neem Leaves - Tamil Nadu)
 ```
 
 ### 🔄 **Create New Batches**
-1. **Visit Farmer Portal**: http://localhost:3002
+1. **Visit Enhanced Farmer Portal**: http://localhost:4005
 2. **Login**: Use demo credentials (displayed on login page)
-3. **Create Collection**: Add new herb batch
+3. **Create Collection**: Add new herb batch with multilingual support
 4. **Get QR Code**: System generates unique QR code
 5. **Test in Consumer Portal**: Verify the new batch
 
@@ -128,7 +129,7 @@ git --version     # Should show git version
 ### 🎯 **Option 1: Single Command (Recommended)**
 ```bash
 # Windows - Run this single command
-start-trace-herb.bat
+start-trace-herb-full-system.bat
 ```
 
 ### 🔧 **Option 2: Manual Setup**
@@ -262,7 +263,7 @@ curl -X POST http://localhost:3000/api/collection \
 
 ```
 TRACE-HERB-COMPLETE/
-├── 🚀 start-trace-herb.bat          # Single command startup script
+├── 🚀 start-trace-herb-full-system.bat # Full system startup script with blockchain
 ├── 📖 README.md                     # This comprehensive guide
 ├── 🔧 backend/                      # Backend API server
 │   ├── src/                         # Source code
@@ -270,13 +271,14 @@ TRACE-HERB-COMPLETE/
 │   ├── models/                      # Data models
 │   └── package.json                 # Dependencies
 ├── 🌐 frontend/                     # Frontend applications
-│   ├── enhanced-consumer-portal/    # Main demo portal (Port 3010)
-│   ├── farmer-dapp/                 # Farmer portal (Port 3002)
-│   ├── supply-chain-overview/       # Dashboard (Port 3000)
-│   ├── consumer-portal/             # Original consumer portal (Port 3001)
-│   ├── processor-portal/            # Processor portal (Port 3004)
-│   ├── lab-portal/                  # Lab portal (Port 3005)
-│   └── regulator-portal/            # Regulator portal (Port 3006)
+│   ├── enhanced-consumer-portal/    # Main demo portal (Port 3001)
+│   ├── farmer-dapp/                 # Enhanced farmer portal (Port 4005)
+│   ├── processor-portal/            # Processor portal (Port 3003)
+│   ├── lab-portal/                  # Laboratory portal (Port 3004)
+│   ├── regulator-portal/            # Regulatory portal (Port 3005)
+│   ├── stakeholder-dashboard/       # Stakeholder dashboard (Port 3006)
+│   ├── management-portal/           # Management portal (Port 3007)
+│   └── supply-chain-overview/       # Supply chain overview (Port 3008)
 ├── 🔗 blockchain/                   # Hyperledger Fabric network
 │   ├── chaincode/                   # Smart contracts
 │   ├── network/                     # Network configuration
@@ -342,12 +344,12 @@ npm run dev
 5. **Scalable Architecture**: Production-ready microservices design
 
 ### 📊 **Demo Flow for Judges**
-1. **Start**: Single command startup (`start-trace-herb.bat`)
+1. **Start**: Single command startup (`start-trace-herb-full-system.bat`)
 2. **Overview**: Show Supply Chain Overview dashboard
 3. **Consumer Experience**: Demo Enhanced Consumer Portal
-4. **Farmer Journey**: Create batch in Farmer Portal
+4. **Farmer Journey**: Create batch in Enhanced Farmer Portal with multilingual support
 5. **End-to-End**: Show complete workflow across all portals
-6. **Blockchain**: Highlight CA-Connected security features
+6. **Blockchain**: Highlight CA-Connected security features with real Certificate Authorities
 
 ### 💡 **Technical Highlights**
 - **Blockchain**: Hyperledger Fabric with Certificate Authority
@@ -387,8 +389,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🎉 **READY FOR DEMO!**
 
-Your TRACE HERB system is now ready for hackathon presentation. Simply run `start-trace-herb.bat` and showcase the complete blockchain-based herb supply chain traceability system!
+Your TRACE HERB system is now ready for hackathon presentation. Simply run `start-trace-herb-full-system.bat` and showcase the complete blockchain-based herb supply chain traceability system with full Certificate Authority integration!
 
-**Main Demo URL**: http://localhost:3010
+**Main Demo URL**: http://localhost:3001
 
 Good luck with your presentation! 🌿🚀

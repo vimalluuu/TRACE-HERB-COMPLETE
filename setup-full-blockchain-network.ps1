@@ -72,7 +72,7 @@ if (!(Test-Path "organizations/peerOrganizations") -or $Clean) {
 
     # Run crypto generation script
     if (Test-Path "setup-network.ps1") {
-        .\setup-network.ps1 -GenerateCrypto
+        .\setup-network.ps1 -GenerateCrypto -SkipDownload
     } else {
         Write-Warning "Crypto generation script not found, using existing material"
     }
