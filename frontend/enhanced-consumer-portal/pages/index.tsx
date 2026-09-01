@@ -274,38 +274,30 @@ const HomePage: React.FC = () => {
           )}
         </AnimatePresence>
 
-        {/* Enhanced Header */}
+        {/* Compact Header */}
         <motion.header
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-white/95 backdrop-blur-xl shadow-2xl sticky top-0 z-50 border-b border-white/20"
+          className="bg-white/95 backdrop-blur-xl shadow-sm sticky top-0 z-50 border-b border-gray-100"
         >
-          <div className="container mx-auto px-6 py-6">
+          <div className="container mx-auto px-4 sm:px-6 py-3">
             <div className="flex items-center justify-between">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
-                className="flex items-center space-x-4"
+                className="flex items-center gap-3"
               >
                 <motion.div
-                  className="w-16 h-16 bg-gradient-to-br from-trace-green-600 via-trace-green-700 to-trace-blue-600 rounded-2xl flex items-center justify-center shadow-2xl relative overflow-hidden"
+                  className="w-9 h-9 bg-gradient-to-br from-green-600 to-blue-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0"
                   whileHover={{ scale: 1.05, rotate: 5 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
-                  <HomeIcon className="w-9 h-9 text-white relative z-10" />
+                  <HomeIcon className="w-5 h-5 text-white" />
                 </motion.div>
                 <div>
-                  <motion.h1
-                    className="text-3xl md:text-4xl font-black bg-gradient-to-r from-trace-green-600 via-trace-blue-600 to-trace-green-800 bg-clip-text text-transparent"
-                    initial={{ scale: 0.9 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-                  >
-                    TRACE HERB
-                  </motion.h1>
-                  <p className="text-lg text-gray-600 font-medium">Authentic Ayurvedic Verification</p>
+                  <h1 className="text-sm font-black text-gray-900 leading-none">TRACE HERB</h1>
+                  <p className="text-xs text-green-600 font-semibold">Authentic Ayurvedic Verification</p>
                 </div>
               </motion.div>
 
@@ -313,7 +305,7 @@ const HomePage: React.FC = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
-                className="flex items-center space-x-4"
+                className="flex items-center gap-3"
               >
                 <BlockchainStatus />
                 {user && (

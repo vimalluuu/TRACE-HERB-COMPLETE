@@ -1,63 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  font-family: 'Inter', system-ui, sans-serif;
+  background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 30%, #f0fdf4 100%);
+  min-height: 100vh;
+  color: #111827;
 }
 
-.input-field {
-  @apply w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-regulator-red-500 focus:border-regulator-red-500 text-lg font-medium transition-all duration-300 text-gray-900 bg-white;
-}
+@layer components {
+  .input-field {
+    @apply w-full px-4 py-3 bg-white border border-gray-200 rounded-xl
+           focus:ring-2 focus:ring-red-400 focus:border-red-400
+           text-sm font-medium text-gray-900 transition-all duration-200
+           placeholder:text-gray-400 shadow-sm hover:border-gray-300;
+  }
 
-.btn-primary {
-  @apply px-8 py-4 bg-regulator-red-600 text-white rounded-xl font-bold text-xl hover:bg-regulator-red-700 transition-all duration-300 shadow-lg hover:shadow-xl;
-}
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r
+           from-red-600 to-rose-600 text-white rounded-xl font-semibold
+           text-sm hover:from-red-700 hover:to-rose-700 transition-all duration-200
+           shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0;
+  }
 
-.btn-secondary {
-  @apply px-8 py-4 bg-gray-200 text-gray-800 rounded-xl font-bold text-xl hover:bg-gray-300 transition-all duration-300 shadow-lg hover:shadow-xl;
-}
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700
+           border border-gray-200 rounded-xl font-semibold text-sm
+           hover:bg-gray-50 hover:border-gray-300 transition-all duration-200
+           shadow-sm hover:shadow-md;
+  }
 
-.btn-approve {
-  @apply px-6 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-all duration-300;
-}
+  .glass-card {
+    @apply bg-white/90 backdrop-blur-xl border border-white/60 rounded-2xl shadow-lg;
+  }
 
-.btn-reject {
-  @apply px-6 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-all duration-300;
-}
+  .batch-row {
+    @apply p-4 bg-white rounded-xl border border-gray-100 hover:border-red-200
+           hover:shadow-md cursor-pointer transition-all duration-200;
+  }
 
-.status-badge {
-  @apply px-3 py-1 rounded-full text-sm font-bold;
-}
-
-.status-approved {
-  @apply bg-green-100 text-green-800;
-}
-
-.status-pending {
-  @apply bg-yellow-100 text-yellow-800;
-}
-
-.status-rejected {
-  @apply bg-red-100 text-red-800;
+  .info-chip {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
 }

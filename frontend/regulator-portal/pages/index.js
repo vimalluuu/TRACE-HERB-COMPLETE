@@ -373,72 +373,66 @@ export default function RegulatorPortal() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-regulator-red-50 to-herb-green-50">
-      {/* Header */}
-      <header className="bg-white/90 backdrop-blur-sm shadow-xl sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-regulator-red-600 to-regulator-red-700 rounded-2xl flex items-center justify-center shadow-xl">
-                <span className="text-white font-bold text-4xl">⚖️</span>
-              </div>
-              <div>
-                <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-regulator-red-600 to-regulator-red-800 bg-clip-text text-transparent">
-                  TRACE HERB
-                </h1>
-                <p className="text-xl md:text-2xl text-gray-600 font-medium">Regulatory Authority Portal</p>
-              </div>
+    <div className="min-h-screen">
+      {/* Compact Sticky Navbar */}
+      <nav className="bg-white/90 backdrop-blur-xl border-b border-gray-100 shadow-sm sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+              <span className="text-white text-base">⚖️</span>
             </div>
-
-            {/* User Info and Logout */}
-            <div className="flex items-center space-x-6">
-              <div className="text-right">
-                <p className="text-lg text-gray-600 font-medium">Compliance & Certification</p>
-                <p className="text-sm text-gray-500">Regulatory Oversight</p>
-              </div>
-
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  <p className="text-sm text-gray-600">Welcome</p>
-                  <p className="font-semibold text-regulator-red-700">{user?.username || 'Regulator'}</p>
-                </div>
-                <button
-                  onClick={logout}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
-                >
-                  <span>🚪</span>
-                  <span>Logout</span>
-                </button>
-              </div>
+            <div className="min-w-0">
+              <h1 className="text-sm font-black text-gray-900 leading-none truncate">TRACE HERB</h1>
+              <p className="text-xs text-red-600 font-semibold truncate">Regulatory Authority Portal</p>
             </div>
+          </div>
+
+          {/* Live status badge */}
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-100 rounded-full">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            <span className="text-xs font-semibold text-green-700">Compliance Overview</span>
+          </div>
+
+          {/* User chip + Logout */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-red-50 rounded-full border border-red-100">
+              <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                {(user?.username || 'R')[0].toUpperCase()}
+              </div>
+              <span className="text-xs font-semibold text-red-700 max-w-20 truncate">{user?.username || 'Regulator'}</span>
+            </div>
+            <button
+              onClick={logout}
+              className="text-xs font-semibold text-gray-500 hover:text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors border border-gray-200 hover:border-red-200"
+            >
+              Logout
+            </button>
           </div>
         </div>
-      </header>
+      </nav>
 
       {/* Navigation Tabs */}
-      <div className="container mx-auto px-6 py-6">
-        <div className="bg-white rounded-2xl shadow-lg p-2 mb-8">
-          <div className="flex space-x-2">
-            {[
-              { id: 'dashboard', name: 'Dashboard', icon: '📊' },
-              { id: 'review', name: 'Batch Review', icon: '🔍' },
-              { id: 'compliance', name: 'Compliance', icon: '✅' },
-              { id: 'reports', name: 'Reports', icon: '📋' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 ${
-                  activeTab === tab.id
-                    ? 'bg-regulator-red-600 text-white shadow-lg'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <span>{tab.icon}</span>
-                <span>{tab.name}</span>
-              </button>
-            ))}
-          </div>
+      <div className="container mx-auto px-6 py-5">
+        <div className="bg-white/90 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-sm p-1.5 mb-8 inline-flex gap-1">
+          {[
+            { id: 'dashboard', name: 'Dashboard', icon: '📊' },
+            { id: 'review', name: 'Batch Review', icon: '🔍' },
+            { id: 'compliance', name: 'Compliance', icon: '✅' },
+            { id: 'reports', name: 'Reports', icon: '📋' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                activeTab === tab.id
+                  ? 'bg-red-600 text-white shadow-md'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              <span className="hidden sm:block">{tab.name}</span>
+            </button>
+          ))}
         </div>
 
         {/* Dashboard Tab */}

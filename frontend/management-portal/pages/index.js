@@ -345,59 +345,60 @@ export default function ManagementPortal() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-management-indigo-50 to-herb-green-50">
-      {/* Header */}
-      <header className="bg-white/90 backdrop-blur-sm shadow-xl sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-management-indigo-600 to-management-indigo-700 rounded-2xl flex items-center justify-center shadow-xl">
-                <span className="text-white font-bold text-4xl">📊</span>
-              </div>
-              <div>
-                <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-management-indigo-600 to-management-indigo-800 bg-clip-text text-transparent">
-                  TRACE HERB
-                </h1>
-                <p className="text-xl md:text-2xl text-gray-600 font-medium">Management Portal</p>
-              </div>
+    <div className="min-h-screen">
+      {/* Compact Sticky Navbar */}
+      <nav className="bg-white/90 backdrop-blur-xl border-b border-gray-100 shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+              <span className="text-white text-base">📊</span>
             </div>
-            <div className="text-right">
-              <div className="flex items-center space-x-2 mb-2">
-                <div className={`status-indicator ${systemHealth?.blockchain?.status === 'connected' ? 'status-online' : 'status-offline'}`}></div>
-                <p className="text-lg text-gray-600 font-medium">System Status</p>
-              </div>
-              <p className="text-sm text-gray-500">Real-time Monitoring</p>
+            <div className="min-w-0">
+              <h1 className="text-sm font-black text-gray-900 leading-none truncate">TRACE HERB</h1>
+              <p className="text-xs text-indigo-600 font-semibold truncate">Management Portal</p>
+            </div>
+          </div>
+
+          {/* System status */}
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full">
+            <span className={`w-2 h-2 rounded-full animate-pulse ${systemHealth?.blockchain?.status === 'connected' ? 'bg-green-500' : 'bg-amber-400'}`}></span>
+            <span className="text-xs font-semibold text-indigo-700">System Monitor</span>
+          </div>
+
+          {/* Live indicator */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-green-600 bg-green-50 px-3 py-1.5 rounded-full border border-green-100">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+              Real-time
             </div>
           </div>
         </div>
-      </header>
+      </nav>
 
       {/* Navigation Tabs */}
-      <div className="container mx-auto px-6 py-6">
-        <div className="bg-white rounded-2xl shadow-lg p-2 mb-8">
-          <div className="flex space-x-2">
-            {[
-              { id: 'overview', name: 'Overview', icon: '📈' },
-              { id: 'ledger', name: 'Blockchain Ledger', icon: '⛓️' },
-              { id: 'analytics', name: 'Analytics', icon: '📊' },
-              { id: 'monitoring', name: 'System Monitoring', icon: '🖥️' },
-              { id: 'users', name: 'User Management', icon: '👥' },
-              { id: 'settings', name: 'Settings', icon: '⚙️' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 ${
-                  activeTab === tab.id
-                    ? 'bg-management-indigo-600 text-white shadow-lg'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <span>{tab.icon}</span>
-                <span>{tab.name}</span>
-              </button>
-            ))}
-          </div>
+      <div className="container mx-auto px-6 py-5">
+        <div className="bg-white/90 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-sm p-1.5 mb-8 flex flex-wrap gap-1">
+          {[
+            { id: 'overview', name: 'Overview', icon: '📈' },
+            { id: 'ledger', name: 'Blockchain Ledger', icon: '⛓️' },
+            { id: 'analytics', name: 'Analytics', icon: '📊' },
+            { id: 'monitoring', name: 'System Monitoring', icon: '🖥️' },
+            { id: 'users', name: 'User Management', icon: '👥' },
+            { id: 'settings', name: 'Settings', icon: '⚙️' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                activeTab === tab.id
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              <span className="hidden md:block">{tab.name}</span>
+            </button>
+          ))}
         </div>
 
         {/* Overview Tab */}

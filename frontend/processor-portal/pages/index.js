@@ -227,50 +227,53 @@ export default function ProcessorPortal() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-processor-blue-50 to-herb-green-50">
-      {/* Header */}
-      <header className="bg-white/90 backdrop-blur-sm shadow-xl sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-processor-blue-600 to-processor-blue-700 rounded-2xl flex items-center justify-center shadow-xl">
-                <span className="text-white font-bold text-4xl">🏭</span>
-              </div>
-              <div>
-                <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-processor-blue-600 to-processor-blue-800 bg-clip-text text-transparent">
-                  TRACE HERB
-                </h1>
-                <p className="text-xl md:text-2xl text-gray-600 font-medium">Processor Portal</p>
-              </div>
+    <div className="min-h-screen">
+      {/* Compact Sticky Navbar */}
+      <nav className="bg-white/90 backdrop-blur-xl border-b border-gray-100 shadow-sm sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+              <span className="text-white text-base">🏭</span>
             </div>
-
-            {/* User Info */}
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Welcome</p>
-                <p className="font-semibold text-processor-blue-700">{user?.username || 'Processor'}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-lg md:text-xl text-gray-600 font-medium">Step {currentStep} of 4</p>
-                <div className="w-32 bg-gray-200 rounded-full h-4 mt-2">
-                  <div
-                    className="bg-processor-blue-600 h-4 rounded-full transition-all duration-300 shadow-lg"
-                    style={{ width: `${(currentStep / 4) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-              <button
-                onClick={logout}
-                className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-gray-700 font-medium transition-colors"
-              >
-                Logout
-              </button>
+            <div className="min-w-0">
+              <h1 className="text-sm font-black text-gray-900 leading-none truncate">TRACE HERB</h1>
+              <p className="text-xs text-blue-600 font-semibold truncate">Processor Portal</p>
             </div>
           </div>
+
+          {/* Step progress indicator */}
+          <div className="hidden sm:flex items-center gap-2">
+            {[1,2,3,4].map(s => (
+              <div key={s} className="flex items-center gap-1">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
+                  currentStep > s ? 'bg-blue-500 border-blue-500 text-white' :
+                  currentStep === s ? 'bg-white border-blue-500 text-blue-600' :
+                  'bg-gray-100 border-gray-200 text-gray-400'
+                }`}>
+                  {currentStep > s ? '✓' : s}
+                </div>
+                {s < 4 && <div className={`w-6 h-0.5 ${currentStep > s ? 'bg-blue-500' : 'bg-gray-200'}`}></div>}
+              </div>
+            ))}
+          </div>
+
+          {/* User chip + Logout */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-full border border-blue-100">
+              <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                {(user?.username || 'P')[0].toUpperCase()}
+              </div>
+              <span className="text-xs font-semibold text-blue-700 max-w-20 truncate">{user?.username || 'Processor'}</span>
+            </div>
+            <button
+              onClick={logout}
+              className="text-xs font-semibold text-gray-500 hover:text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors border border-gray-200 hover:border-red-200"
+            >
+              Logout
+            </button>
+          </div>
         </div>
-      </header>
+      </nav>
 
       <main className="container mx-auto px-6 py-12">
         {/* Dashboard Section */}
