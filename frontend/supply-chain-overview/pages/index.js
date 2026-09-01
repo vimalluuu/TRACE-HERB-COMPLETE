@@ -16,7 +16,7 @@ export default function SupplyChainOverview() {
       name: 'Farmer Portal',
       description: 'Herb collection data entry and QR generation',
       icon: '🌱',
-      url: 'http://localhost:4005',
+      url: 'http://localhost:3002',
       color: 'from-green-500 to-green-600',
       features: ['GPS Location Tracking', 'Herb Details Entry', 'QR Code Generation', 'Blockchain Submission']
     },
@@ -99,7 +99,7 @@ export default function SupplyChainOverview() {
           <h2 className="text-4xl font-black text-center text-gray-900 mb-12">
             Complete Supply Chain Flow
           </h2>
-          
+
           <div className="flex flex-wrap justify-center items-center gap-8 mb-12">
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center">
@@ -107,27 +107,27 @@ export default function SupplyChainOverview() {
               </div>
               <span className="text-xl font-bold text-gray-700">Farmer</span>
             </div>
-            
+
             <div className="text-4xl text-gray-400">→</div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
                 <span className="text-blue-600 text-2xl">🏭</span>
               </div>
               <span className="text-xl font-bold text-gray-700">Processor</span>
             </div>
-            
+
             <div className="text-4xl text-gray-400">→</div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center">
                 <span className="text-purple-600 text-2xl">🔬</span>
               </div>
               <span className="text-xl font-bold text-gray-700">Laboratory</span>
             </div>
-            
+
             <div className="text-4xl text-gray-400">→</div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center">
                 <span className="text-orange-600 text-2xl">📱</span>
@@ -154,7 +154,7 @@ export default function SupplyChainOverview() {
                 <h3 className="text-2xl font-black text-gray-900 mb-2">{portal.name}</h3>
                 <p className="text-gray-600 text-lg">{portal.description}</p>
               </div>
-              
+
               <div className="space-y-3 mb-8">
                 {portal.features.map((feature, idx) => (
                   <div key={idx} className="flex items-center space-x-3">
@@ -163,7 +163,7 @@ export default function SupplyChainOverview() {
                   </div>
                 ))}
               </div>
-              
+
               <button
                 onClick={() => openPortal(portal.url)}
                 className={`w-full btn-portal bg-gradient-to-r ${portal.color} text-white hover:opacity-90`}
@@ -177,7 +177,7 @@ export default function SupplyChainOverview() {
         {/* System Status */}
         <div className="bg-white rounded-3xl shadow-2xl p-8">
           <h2 className="text-3xl font-black text-gray-900 mb-8 text-center">System Status</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="bg-green-50 p-6 rounded-2xl">
               <div className="flex items-center space-x-4">
@@ -190,7 +190,7 @@ export default function SupplyChainOverview() {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-blue-50 p-6 rounded-2xl">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -202,7 +202,7 @@ export default function SupplyChainOverview() {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-purple-50 p-6 rounded-2xl">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
