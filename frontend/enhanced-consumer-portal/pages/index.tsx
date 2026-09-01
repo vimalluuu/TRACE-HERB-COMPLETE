@@ -648,22 +648,6 @@ const HomePage: React.FC = () => {
                 whileHover={{ scale: 1.05, y: -3 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
-                  // Set demo data and show advanced features
-                  setBatchData({
-                    qrCode: 'DEMO_ASHWAGANDHA_PREMIUM',
-                    botanicalName: 'Withania somnifera',
-                    commonName: 'Ashwagandha',
-                    farmerName: 'Rajesh Kumar',
-                    village: 'Kumta',
-                    district: 'Uttara Kannada',
-                    state: 'Karnataka',
-                    quantity: 5,
-                    collectionDate: '2024-08-15',
-                    farmerExperience: 15,
-                    farmerReputation: 88,
-                    qualityScore: 92,
-                    sustainabilityScore: 87
-                  })
                   setCurrentQRCode('DEMO_ASHWAGANDHA_PREMIUM')
                   router.push('/dashboard')
                 }}
