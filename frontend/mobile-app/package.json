@@ -49,7 +49,7 @@
     "react-native-uuid": "^2.0.1",
     "react-native-qrcode-scanner": "^1.5.5",
     "react-native-permissions": "^3.8.4",
-    "react-native-async-storage": "^1.19.3",
+    "@react-native-async-storage/async-storage": "^1.19.3",
     "react-native-netinfo": "^9.4.1",
     "react-native-background-job": "^1.2.0",
     "react-native-sms": "^2.0.0"

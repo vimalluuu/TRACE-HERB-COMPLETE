@@ -132,46 +132,69 @@ git --version     # Should show git version
 start-trace-herb-full-system.bat
 ```
 
-### 🔧 **Option 2: Manual Setup**
-```bash
-# 1. Clone repository
-git clone <your-repo-url>
-cd TRACE-HERB-COMPLETE
+### 🔧 **Option 2: Manual Setup & Execution**
 
-# 2. Install backend dependencies
+#### **Step 1: Install Dependencies**
+Run dependency installation for the backend and all 8 web frontend portals:
+
+```bash
+# 1. Install Backend Dependencies
 cd backend
-npm install
+npm install --no-workspaces --legacy-peer-deps
 cd ..
 
-# 3. Install frontend dependencies
-cd frontend/enhanced-consumer-portal
-npm install
-cd ../farmer-dapp
-npm install
-cd ../supply-chain-overview
-npm install
-cd ../consumer-portal
-npm install
-cd ../processor-portal
-npm install
-cd ../lab-portal
-npm install
-cd ../regulator-portal
-npm install
-cd ../..
+# 2. Install Frontend Portal Dependencies
+cd frontend/enhanced-consumer-portal && npm install --no-workspaces --legacy-peer-deps && cd ../..
+cd frontend/farmer-dapp && npm install --no-workspaces --legacy-peer-deps && cd ../..
+cd frontend/processor-portal && npm install --no-workspaces --legacy-peer-deps && cd ../..
+cd frontend/lab-portal && npm install --no-workspaces --legacy-peer-deps && cd ../..
+cd frontend/regulator-portal && npm install --no-workspaces --legacy-peer-deps && cd ../..
+cd frontend/stakeholder-dashboard && npm install --no-workspaces --legacy-peer-deps && cd ../..
+cd frontend/management-portal && npm install --no-workspaces --legacy-peer-deps && cd ../..
+cd frontend/supply-chain-overview && npm install --no-workspaces --legacy-peer-deps && cd ../..
+```
 
-# 4. Start backend
+#### **Step 2: Start Backend Service (Port 3000)**
+Open a terminal and run:
+```bash
 cd backend
-npm start &
+npm start
+# Server will start on http://localhost:3000
+```
 
-# 5. Start all frontend portals (in separate terminals)
-cd frontend/enhanced-consumer-portal && npm run dev &
-cd frontend/farmer-dapp && npm run dev &
-cd frontend/supply-chain-overview && npm run dev &
-cd frontend/consumer-portal && npm run dev &
-cd frontend/processor-portal && npm run dev &
-cd frontend/lab-portal && npm run dev &
-cd frontend/regulator-portal && npm run dev &
+#### **Step 3: Start Frontend Portals (Ports 3001 – 3008)**
+Open separate terminal windows for each portal (or run in background):
+
+```bash
+# 1. Enhanced Consumer Portal (Port 3001)
+cd frontend/enhanced-consumer-portal && npx next dev -p 3001
+
+# 2. Farmer Portal / DApp (Port 3002)
+cd frontend/farmer-dapp && npx next dev -p 3002
+
+# 3. Processor Portal (Port 3003)
+cd frontend/processor-portal && npx next dev -p 3003
+
+# 4. Laboratory Portal (Port 3004)
+cd frontend/lab-portal && npx next dev -p 3004
+
+# 5. Regulatory Portal (Port 3005)
+cd frontend/regulator-portal && npx next dev -p 3005
+
+# 6. Stakeholder Dashboard (Port 3006)
+cd frontend/stakeholder-dashboard && npx next dev -p 3006
+
+# 7. Management Portal (Port 3007)
+cd frontend/management-portal && npx next dev -p 3007
+
+# 8. Supply Chain Overview (Port 3008)
+cd frontend/supply-chain-overview && npx next dev -p 3008
+```
+
+#### **Alternative: Start All Services via Single Command**
+If dependencies are already installed:
+```bash
+npm run start:all
 ```
 
 ---
